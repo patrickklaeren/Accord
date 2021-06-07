@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LazyCache" Version="2.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+    <PackageReference Include="Remora.Discord" Version="3.0.32" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Accord.Services\Accord.Services.csproj" />
+  </ItemGroup>
+
+</Project>
