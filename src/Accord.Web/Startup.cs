@@ -27,6 +27,7 @@ namespace Accord.Web
                 .AddDbContext<AccordContext>(x => x.UseSqlServer(_configuration.GetConnectionString("Database")))
                 .AddLazyCache()
                 .AddDiscordBot(_configuration)
+                .AddScoped<XpService>()
                 .AddSingleton<IXpCalculatorQueueService, XpCalculatorQueueService>();
 
             // Configure hosted services

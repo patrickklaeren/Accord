@@ -1,6 +1,8 @@
-﻿using Accord.Bot.Responders;
+﻿using Accord.Bot.CommandGroups;
+using Accord.Bot.Responders;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Remora.Commands.Extensions;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway.Extensions;
 
@@ -22,6 +24,7 @@ namespace Accord.Bot.Infrastructure
                 .AddTransient<BotClient>()
                 .AddDiscordGateway(_ => token)
                 .AddDiscordCommands(true)
+                .AddCommandGroup<XpCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<XpResponder>();
 
