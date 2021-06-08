@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Domain;
-using Accord.Domain.Model;
 using Accord.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -42,29 +39,10 @@ namespace Accord.Web.Hosted
                 {
                     using var scope = _serviceScopeFactory.CreateScope();
 
-                    await using var db = scope.ServiceProvider.GetRequiredService<AccordContext>();
+                    var service = scope.ServiceProvider.GetRequiredService<XpService>();
 
-                    var user = await db.Users.SingleOrDefaultAsync(x => x.Id == queuedItem.DiscordUserId, cancellationToken: stoppingToken);
-
-                    if (user is null)
-                    {
-                        user = new User
-                        {
-                            Id = queuedItem.DiscordUserId,
-                            FirstSeenDateTime = DateTimeOffset.Now,
-                        };
-
-                        db.Add(user);
-                    }
-
-                    if (user.LastSeenDateTime.AddSeconds(10) > queuedItem.MessageSentDateTime)
-                    {
-                        user.Xp += 5;
-                    }
-
-                    user.LastSeenDateTime = queuedItem.MessageSentDateTime;
-
-                    await db.SaveChangesAsync(stoppingToken);
+                    await service.CalculateXp(queuedItem.DiscordUserId, queuedItem.DiscordChannelId, 
+                        queuedItem.MessageSentDateTime, stoppingToken);
                 }
                 catch (Exception ex)
                 {

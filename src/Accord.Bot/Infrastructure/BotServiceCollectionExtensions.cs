@@ -25,6 +25,7 @@ namespace Accord.Bot.Infrastructure
                 .AddDiscordGateway(_ => token)
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
+                .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<XpResponder>();
 

@@ -38,5 +38,5 @@ namespace Accord.Services
         }
     }
 
-    public record XpCalculationForUser(ulong DiscordUserId, DateTimeOffset MessageSentDateTime);
+    public record XpCalculationForUser(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset MessageSentDateTime);
 }

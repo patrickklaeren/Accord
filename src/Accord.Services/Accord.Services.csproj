@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LazyCache" Version="2.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Accord.Domain\Accord.Domain.csproj" />
   </ItemGroup>
 

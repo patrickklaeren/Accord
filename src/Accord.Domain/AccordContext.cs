@@ -9,6 +9,13 @@ namespace Accord.Domain
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AccordContext).Assembly);
+            base.OnModelCreating(modelBuilder);
+        }
+
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<ChannelFlag> ChannelFlags { get; set; }
     }
 }

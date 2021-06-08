@@ -28,6 +28,7 @@ namespace Accord.Web
                 .AddLazyCache()
                 .AddDiscordBot(_configuration)
                 .AddScoped<XpService>()
+                .AddScoped<ChannelFlagService>()
                 .AddSingleton<IXpCalculatorQueueService, XpCalculatorQueueService>();
 
             // Configure hosted services
