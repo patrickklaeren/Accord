@@ -8,7 +8,7 @@ namespace Accord.Web.Hosted
     public class BotHostedService : IHostedService
     {
         private readonly BotClient _botClient;
-        private Task _runTask;
+        private Task? _runTask;
 
         public BotHostedService(BotClient botClient)
         {
@@ -23,7 +23,7 @@ namespace Accord.Web.Hosted
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            return _runTask;
+            return _runTask ?? Task.CompletedTask;
         }
     }
 }

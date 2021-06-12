@@ -26,6 +26,7 @@ namespace Accord.Bot.Infrastructure
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
+                .AddCommandGroup<PermissionCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<XpResponder>();
 

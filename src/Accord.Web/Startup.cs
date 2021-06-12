@@ -29,6 +29,7 @@ namespace Accord.Web
                 .AddDiscordBot(_configuration)
                 .AddScoped<XpService>()
                 .AddScoped<ChannelFlagService>()
+                .AddScoped<PermissionService>()
                 .AddSingleton<IXpCalculatorQueueService, XpCalculatorQueueService>();
 
             // Configure hosted services

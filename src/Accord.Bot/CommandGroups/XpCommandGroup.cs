@@ -11,6 +11,7 @@ using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
@@ -32,7 +33,7 @@ namespace Accord.Bot.CommandGroups
             _webhookApi = webhookApi;
         }
 
-        [Command("leaderboard"), Description("Get a leaderboard of XP")]
+        [RequireContext(ChannelContext.Guild), Command("leaderboard"), Description("Get a leaderboard of XP")]
         public async Task<IResult> GetLeaderboard()
         {
             var leaderboard = await _xpService.GetLeaderboard();

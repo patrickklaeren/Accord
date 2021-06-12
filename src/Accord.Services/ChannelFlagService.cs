@@ -11,12 +11,14 @@ namespace Accord.Services
     public class ChannelFlagService
     {
         private readonly AccordContext _db;
+        private readonly PermissionService _permissionService;
         private readonly IAppCache _appCache;
 
-        public ChannelFlagService(AccordContext db, IAppCache appCache)
+        public ChannelFlagService(AccordContext db, IAppCache appCache, PermissionService permissionService)
         {
             _db = db;
             _appCache = appCache;
+            _permissionService = permissionService;
         }
 
         private static string BuildIsChannelIgnoredFromXpCacheKey(ulong discordChannelId)
@@ -38,12 +40,17 @@ namespace Accord.Services
                 .AnyAsync(x => x.Type == ChannelFlagType.IgnoredFromXp);
         }
 
-        public async Task AddFlag(ChannelFlagType channelFlag, ulong discordChannelId)
+        public async Task<ServiceResponse> AddFlag(PermissionUser user, ChannelFlagType channelFlag, ulong discordChannelId)
         {
+            if (!await _permissionService.UserHasPermission(user, PermissionType.AddFlags))
+            {
+                return ServiceResponse.Fail("Missing permission");
+            }
+
             if (await _db.ChannelFlags.AnyAsync(x => x.DiscordChannelId == discordChannelId 
                                                      && x.Type == channelFlag))
             {
-                return;
+                return ServiceResponse.Ok();
             }
 
             var entity = new ChannelFlag
@@ -57,6 +64,8 @@ namespace Accord.Services
             await _db.SaveChangesAsync();
 
             _appCache.Remove(BuildIsChannelIgnoredFromXpCacheKey(discordChannelId));
+
+            return ServiceResponse.Ok();
         }
     }
 }

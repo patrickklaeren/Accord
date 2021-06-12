@@ -15,7 +15,10 @@ namespace Accord.Domain
             base.OnModelCreating(modelBuilder);
         }
 
-        public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<ChannelFlag> ChannelFlags { get; set; }
+        public virtual DbSet<User> Users { get; set; } = null!;
+        public virtual DbSet<ChannelFlag> ChannelFlags { get; set; } = null!;
+        public virtual DbSet<Permission> Permissions { get; set; } = null!;
+        public virtual DbSet<UserPermission> UserPermissions { get; set; } = null!;
+        public virtual DbSet<RolePermission> RolePermissions { get; set; } = null!;
     }
 }

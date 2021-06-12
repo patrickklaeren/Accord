@@ -18,8 +18,8 @@ namespace Accord.Bot.Responders
 
         public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
         {
-            if (gatewayEvent.Author.IsBot == false 
-                && gatewayEvent.Author.IsSystem == false)
+            if (!gatewayEvent.Author.IsBot.HasValue
+                && !gatewayEvent.Author.IsSystem.HasValue)
             {
                 await _xpCalculatorQueueService.QueueBackgroundWorkItemAsync(new XpCalculationForUser(gatewayEvent.Author.ID.Value, 
                     gatewayEvent.ChannelID.Value, gatewayEvent.Timestamp));
