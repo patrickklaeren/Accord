@@ -31,7 +31,7 @@ namespace Accord.Bot.Responders
 
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
 
-            var embed = new Embed(Title: $"{gatewayEvent.User.Value.ID.ToUserMention()} joined at {gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}");
+            var embed = new Embed(Title: "User Joined", Description: $"{gatewayEvent.User.Value.ID.ToUserMention()} ({gatewayEvent.User.Value.ID.Value})", Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
@@ -48,7 +48,7 @@ namespace Accord.Bot.Responders
         {
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
 
-            var embed = new Embed(Title: $"{gatewayEvent.User.ID.ToUserMention()} left at {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}");
+            var embed = new Embed(Title: "User left", Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
