@@ -14,6 +14,8 @@ namespace Accord.Domain.Model
     {
         IgnoredFromXp = 0,
         JoinLeaveLogs = 1,
+        NameChangeLogs = 2,
+        BanKickLogs = 3,
     }
 
     public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>

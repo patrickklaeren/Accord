@@ -33,6 +33,8 @@ namespace Accord.Services
                 .Where(x => x.MinutesInVoiceChannel != null)
                 .GroupBy(x => x.UserId)
                 .Select(x => new VoiceUser(x.Key, x.Sum(q => q.MinutesInVoiceChannel!.Value)))
+                .OrderByDescending(x => x.MinutesInVoiceChannel)
+                .Take(10)
                 .ToListAsync();
 
             return new Leaderboard(messageUsers, voiceUsers);

@@ -2,9 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Bot.Infrastructure;
 using Accord.Domain.Model;
 using Accord.Services;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
@@ -17,11 +20,13 @@ namespace Accord.Bot.Responders
     {
         private readonly ChannelFlagService _channelFlagService;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly DiscordConfiguration _discordConfiguration;
 
-        public JoinLeaveResponder(ChannelFlagService channelFlagService, IDiscordRestChannelAPI channelApi)
+        public JoinLeaveResponder(ChannelFlagService channelFlagService, IDiscordRestChannelAPI channelApi, IOptions<DiscordConfiguration> discordConfiguration)
         {
             _channelFlagService = channelFlagService;
             _channelApi = channelApi;
+            _discordConfiguration = discordConfiguration.Value;
         }
 
         public async Task<Result> RespondAsync(IGuildMemberAdd gatewayEvent, CancellationToken ct = new CancellationToken())
@@ -29,9 +34,16 @@ namespace Accord.Bot.Responders
             if (!gatewayEvent.User.HasValue)
                 return Result.FromSuccess();
 
+            var user = gatewayEvent.User.Value;
+
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
 
-            var embed = new Embed(Title: "User Joined", Description: $"{gatewayEvent.User.Value.ID.ToUserMention()} ({gatewayEvent.User.Value.ID.Value})", Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
+            var image = GetAvatar(user);
+
+            var embed = new Embed(Title: "User Joined",
+                Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
+                Image: image,
+                Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
@@ -48,7 +60,12 @@ namespace Accord.Bot.Responders
         {
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
 
-            var embed = new Embed(Title: "User left", Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+            var image = GetAvatar(gatewayEvent.User);
+
+            var embed = new Embed(Title: "User left", 
+                Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", 
+                Image: image,
+                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
@@ -59,6 +76,26 @@ namespace Accord.Bot.Responders
             }
 
             return Result.FromSuccess();
+        }
+
+        private EmbedImage? GetAvatar(IUser user)
+        {
+            if (user.Avatar is null)
+            {
+                return null;
+            }
+
+            var extension = "png";
+
+            if (user.Avatar.HasGif)
+            {
+                extension = "gif";
+            }
+
+            var url = $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
+
+            return new EmbedImage(url);
+
         }
     }
 }
