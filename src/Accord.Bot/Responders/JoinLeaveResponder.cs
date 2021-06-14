@@ -42,7 +42,7 @@ namespace Accord.Bot.Responders
 
             var embed = new Embed(Title: "User Joined",
                 Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
-                Image: image,
+                Thumbnail: image,
                 Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
@@ -64,7 +64,7 @@ namespace Accord.Bot.Responders
 
             var embed = new Embed(Title: "User left", 
                 Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", 
-                Image: image,
+                Thumbnail: image,
                 Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
@@ -78,7 +78,7 @@ namespace Accord.Bot.Responders
             return Result.FromSuccess();
         }
 
-        private EmbedImage? GetAvatar(IUser user)
+        private EmbedThumbnail? GetAvatar(IUser user)
         {
             if (user.Avatar is null)
             {
@@ -94,7 +94,7 @@ namespace Accord.Bot.Responders
 
             var url = $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
 
-            return new EmbedImage(url);
+            return new EmbedThumbnail(url);
 
         }
     }
