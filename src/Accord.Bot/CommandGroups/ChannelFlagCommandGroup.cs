@@ -57,6 +57,28 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
+        [RequireContext(ChannelContext.Guild), Command("removeflag"), Description("Add flag to the current channel")]
+        public async Task<IResult> RemoveFlag(string type)
+        {
+            var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
+
+            if (!isParsedEnumValue || !Enum.IsDefined(actualChannelFlag))
+            {
+                await Respond("Type of flag is not found");
+            }
+            else
+            {
+                var user = await _commandContext.ToPermissionUser(_guildApi);
+
+                var response = await _channelFlagService.DeleteFlag(user, actualChannelFlag, _commandContext.ChannelID.Value);
+
+                await response.GetAction(async () => await Respond($"{actualChannelFlag} flag removed"),
+                    async () => await Respond(response.ErrorMessage));
+            }
+
+            return Result.FromSuccess();
+        }
+
         private async Task Respond(string message)
         {
             if (_commandContext is InteractionContext interactionContext)

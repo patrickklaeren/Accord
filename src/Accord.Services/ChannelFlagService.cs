@@ -70,6 +70,26 @@ namespace Accord.Services
             return ServiceResponse.Ok();
         }
 
+        public async Task<ServiceResponse> DeleteFlag(PermissionUser user, ChannelFlagType channelFlag, ulong discordChannelId)
+        {
+            if (!await _permissionService.UserHasPermission(user, PermissionType.AddFlags))
+            {
+                return ServiceResponse.Fail("Missing permission");
+            }
+
+            var flag = await _db.ChannelFlags.SingleAsync(x => x.DiscordChannelId == discordChannelId
+                                                               && x.Type == channelFlag);
+
+            _db.Remove(flag);
+
+            await _db.SaveChangesAsync();
+
+            _appCache.Remove(BuildIsChannelIgnoredFromXpCacheKey(discordChannelId));
+            _appCache.Remove(BuildGetChannelsWithFlagKey(channelFlag));
+
+            return ServiceResponse.Ok();
+        }
+
         private static string BuildGetChannelsWithFlagKey(ChannelFlagType type)
         {
             return $"{nameof(ChannelFlagService)}/{nameof(GetChannelsWithFlag)}/{type}";

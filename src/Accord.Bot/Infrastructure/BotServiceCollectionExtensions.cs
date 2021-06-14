@@ -31,6 +31,7 @@ namespace Accord.Bot.Infrastructure
                     o.Intents |= GatewayIntents.GuildMessageReactions;
                     o.Intents |= GatewayIntents.GuildPresences;
                     o.Intents |= GatewayIntents.GuildVoiceStates;
+                    o.Intents |= GatewayIntents.GuildMembers;
                 })
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
