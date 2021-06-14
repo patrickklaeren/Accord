@@ -22,6 +22,6 @@ namespace Accord.Domain.Model
     {
         RaidModeEnabled = 0,
         AutoRaidModeEnabled = 1,
-        JoinsToTriggerRaidModePerSecond = 2,
+        JoinsToTriggerRaidModePerMinute = 2,
     }
 }

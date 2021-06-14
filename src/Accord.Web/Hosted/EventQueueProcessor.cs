@@ -39,6 +39,9 @@ namespace Accord.Web.Hosted
 
                     var action = queuedItem switch
                     {
+                        RaidCalculationEvent raidCalculation
+                            => services.GetRequiredService<RaidModeService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
+
                         MessageSentEvent messageSent
                             => services.GetRequiredService<XpService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
 

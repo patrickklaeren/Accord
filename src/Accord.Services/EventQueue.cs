@@ -49,4 +49,6 @@ namespace Accord.Services
     public sealed record VoiceConnectedEvent(ulong DiscordUserId, ulong DiscordChannelId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IEvent;
 
     public sealed record VoiceDisconnectedEvent(ulong DiscordUserId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IEvent;
+
+    public sealed record RaidCalculationEvent(ulong DiscordUserId, DateTimeOffset QueuedDateTime) : IEvent;
 }

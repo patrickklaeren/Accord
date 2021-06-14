@@ -32,6 +32,7 @@ namespace Accord.Web
                 .AddScoped<PermissionService>()
                 .AddScoped<VoiceSessionService>()
                 .AddScoped<UserService>()
+                .AddSingleton<RaidCalculator>()
                 .AddSingleton<IEventQueue, EventQueue>();
 
             // Configure hosted services
