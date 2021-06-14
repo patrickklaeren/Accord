@@ -9,11 +9,11 @@ namespace Accord.Bot.Responders
 {
     public class XpResponder : IResponder<IMessageCreate>
     {
-        private readonly IXpCalculatorQueueService _xpCalculatorQueueService;
+        private readonly IEventQueue _eventQueue;
 
-        public XpResponder(IXpCalculatorQueueService xpCalculatorQueueService)
+        public XpResponder(IEventQueue eventQueue)
         {
-            _xpCalculatorQueueService = xpCalculatorQueueService;
+            _eventQueue = eventQueue;
         }
 
         public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
@@ -21,7 +21,7 @@ namespace Accord.Bot.Responders
             if (!gatewayEvent.Author.IsBot.HasValue
                 && !gatewayEvent.Author.IsSystem.HasValue)
             {
-                await _xpCalculatorQueueService.QueueBackgroundWorkItemAsync(new XpCalculationForUser(gatewayEvent.Author.ID.Value, 
+                await _eventQueue.Queue(new MessageSentEvent(gatewayEvent.Author.ID.Value, 
                     gatewayEvent.ChannelID.Value, gatewayEvent.Timestamp));
             }
 

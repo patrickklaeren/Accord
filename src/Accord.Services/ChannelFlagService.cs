@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -64,8 +65,29 @@ namespace Accord.Services
             await _db.SaveChangesAsync();
 
             _appCache.Remove(BuildIsChannelIgnoredFromXpCacheKey(discordChannelId));
+            _appCache.Remove(BuildGetChannelsWithFlagKey(channelFlag));
 
             return ServiceResponse.Ok();
+        }
+
+        private static string BuildGetChannelsWithFlagKey(ChannelFlagType type)
+        {
+            return $"{nameof(ChannelFlagService)}/{nameof(GetChannelsWithFlag)}/{type}";
+        }
+
+        public async Task<List<ulong>> GetChannelsWithFlag(ChannelFlagType type)
+        {
+            return await _appCache.GetOrAddAsync(BuildGetChannelsWithFlagKey(type),
+                () => GetChannelsWithFlagInternal(type),
+                DateTimeOffset.Now.AddDays(30));
+        }
+
+        private async Task<List<ulong>> GetChannelsWithFlagInternal(ChannelFlagType type)
+        {
+            return await _db.ChannelFlags
+                .Where(x => x.Type == type)
+                .Select(x => x.DiscordChannelId)
+                .ToListAsync();
         }
     }
 }

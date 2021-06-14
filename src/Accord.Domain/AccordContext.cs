@@ -20,5 +20,6 @@ namespace Accord.Domain
         public virtual DbSet<Permission> Permissions { get; set; } = null!;
         public virtual DbSet<UserPermission> UserPermissions { get; set; } = null!;
         public virtual DbSet<RolePermission> RolePermissions { get; set; } = null!;
+        public virtual DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
     }
 }

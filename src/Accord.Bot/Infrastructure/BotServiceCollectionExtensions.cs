@@ -3,7 +3,9 @@ using Accord.Bot.Responders;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
+using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 
 namespace Accord.Bot.Infrastructure
@@ -23,11 +25,20 @@ namespace Accord.Bot.Infrastructure
                 .AddLogging()
                 .AddTransient<BotClient>()
                 .AddDiscordGateway(_ => token)
+                .Configure<DiscordGatewayClientOptions>(o =>
+                {
+                    o.Intents |= GatewayIntents.DirectMessageReactions;
+                    o.Intents |= GatewayIntents.GuildMessageReactions;
+                    o.Intents |= GatewayIntents.GuildPresences;
+                    o.Intents |= GatewayIntents.GuildVoiceStates;
+                })
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddResponder<ReadyResponder>()
+                .AddResponder<JoinLeaveResponder>()
+                .AddResponder<VoiceStateResponder>()
                 .AddResponder<XpResponder>();
 
             return services;

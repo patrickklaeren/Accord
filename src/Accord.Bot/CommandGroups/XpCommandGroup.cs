@@ -38,10 +38,25 @@ namespace Accord.Bot.CommandGroups
         {
             var leaderboard = await _xpService.GetLeaderboard();
 
-            var payload = string.Join(Environment.NewLine, leaderboard
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("**Messages XP**");
+
+            var messageUsers = string.Join(Environment.NewLine, leaderboard.MessageUsers
                 .Select(x => $"{DiscordMentionHelper.IdToMention(x.DiscordUserId)} {x.Xp}"));
 
-            var embed = new Embed(Title: "Leaderboard", Description: payload);
+            stringBuilder.Append(messageUsers);
+
+            stringBuilder.AppendLine(string.Empty);
+
+            stringBuilder.AppendLine("**Voice Minutes**");
+
+            var voiceUsers = string.Join(Environment.NewLine, leaderboard.VoiceUsers
+                .Select(x => $"{DiscordMentionHelper.IdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel}"));
+
+            stringBuilder.Append(voiceUsers);
+
+            var embed = new Embed(Title: "Leaderboard", Description: stringBuilder.ToString());
 
             if (_commandContext is InteractionContext interactionContext)
             {

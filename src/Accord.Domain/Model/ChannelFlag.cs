@@ -13,6 +13,7 @@ namespace Accord.Domain.Model
     public enum ChannelFlagType
     {
         IgnoredFromXp = 0,
+        JoinLeaveLogs = 1,
     }
 
     public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>

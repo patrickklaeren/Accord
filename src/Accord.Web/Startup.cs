@@ -30,12 +30,14 @@ namespace Accord.Web
                 .AddScoped<XpService>()
                 .AddScoped<ChannelFlagService>()
                 .AddScoped<PermissionService>()
-                .AddSingleton<IXpCalculatorQueueService, XpCalculatorQueueService>();
+                .AddScoped<VoiceSessionService>()
+                .AddScoped<UserService>()
+                .AddSingleton<IEventQueue, EventQueue>();
 
             // Configure hosted services
             services
                 .AddHostedService<BotHostedService>()
-                .AddHostedService<QueuedHostedService>();
+                .AddHostedService<EventQueueProcessor>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
