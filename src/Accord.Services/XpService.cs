@@ -32,9 +32,9 @@ namespace Accord.Services
             var voiceUsers = await _db.VoiceConnections
                 .Where(x => x.MinutesInVoiceChannel != null)
                 .GroupBy(x => x.UserId)
-                .Select(x => new VoiceUser(x.Key, x.Sum(q => q.MinutesInVoiceChannel!.Value)))
-                .OrderByDescending(x => x.MinutesInVoiceChannel)
+                .OrderByDescending(x => x.Sum(q => q.MinutesInVoiceChannel!.Value))
                 .Take(10)
+                .Select(x => new VoiceUser(x.Key, x.Sum(q => q.MinutesInVoiceChannel!.Value)))
                 .ToListAsync();
 
             return new Leaderboard(messageUsers, voiceUsers);
