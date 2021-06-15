@@ -37,6 +37,7 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
+                .AddCommandGroup<RunOptionCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<JoinLeaveResponder>()
                 .AddResponder<VoiceStateResponder>()

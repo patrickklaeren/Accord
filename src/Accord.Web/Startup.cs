@@ -1,7 +1,9 @@
+using Accord.Bot;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Web.Hosted;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -26,12 +28,15 @@ namespace Accord.Web
             services
                 .AddDbContext<AccordContext>(x => x.UseSqlServer(_configuration.GetConnectionString("Database")))
                 .AddLazyCache()
+                .AddMediatR(typeof(BotClient).Assembly)
                 .AddDiscordBot(_configuration)
                 .AddScoped<XpService>()
                 .AddScoped<ChannelFlagService>()
                 .AddScoped<PermissionService>()
                 .AddScoped<VoiceSessionService>()
                 .AddScoped<UserService>()
+                .AddScoped<RunOptionService>()
+                .AddScoped<RaidModeService>()
                 .AddSingleton<RaidCalculator>()
                 .AddSingleton<IEventQueue, EventQueue>();
 

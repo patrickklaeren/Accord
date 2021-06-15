@@ -15,6 +15,20 @@ namespace Accord.Domain.Model
         {
             builder
                 .HasKey(x => x.Type);
+
+            builder.HasData(new RunOption()
+            {
+                Type = RunOptionType.RaidModeEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
+                Type = RunOptionType.AutoRaidModeEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
+                Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
+                Value = "10"
+            });
         }
     }
     

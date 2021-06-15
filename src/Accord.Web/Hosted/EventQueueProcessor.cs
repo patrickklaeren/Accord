@@ -40,7 +40,7 @@ namespace Accord.Web.Hosted
                     var action = queuedItem switch
                     {
                         RaidCalculationEvent raidCalculation
-                            => services.GetRequiredService<RaidModeService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
+                            => services.GetRequiredService<RaidModeService>().Process(raidCalculation.QueuedDateTime),
 
                         MessageSentEvent messageSent
                             => services.GetRequiredService<XpService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
@@ -50,6 +50,8 @@ namespace Accord.Web.Hosted
 
                         VoiceDisconnectedEvent voiceDisconnected
                             => services.GetRequiredService<VoiceSessionService>().Finish(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
+
+                        _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
                     };
 
                     await action;

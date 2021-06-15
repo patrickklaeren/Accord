@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -8,7 +7,6 @@ using Accord.Bot.Helpers;
 using Accord.Services;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;

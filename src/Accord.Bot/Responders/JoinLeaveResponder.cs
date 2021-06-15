@@ -21,11 +21,14 @@ namespace Accord.Bot.Responders
         private readonly ChannelFlagService _channelFlagService;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly DiscordConfiguration _discordConfiguration;
+        private readonly IEventQueue _eventQueue;
 
-        public JoinLeaveResponder(ChannelFlagService channelFlagService, IDiscordRestChannelAPI channelApi, IOptions<DiscordConfiguration> discordConfiguration)
+        public JoinLeaveResponder(ChannelFlagService channelFlagService, IDiscordRestChannelAPI channelApi, 
+            IOptions<DiscordConfiguration> discordConfiguration, IEventQueue eventQueue)
         {
             _channelFlagService = channelFlagService;
             _channelApi = channelApi;
+            _eventQueue = eventQueue;
             _discordConfiguration = discordConfiguration.Value;
         }
 
@@ -35,6 +38,8 @@ namespace Accord.Bot.Responders
                 return Result.FromSuccess();
 
             var user = gatewayEvent.User.Value;
+
+            var queueTask = _eventQueue.Queue(new RaidCalculationEvent(user.ID.Value, gatewayEvent.JoinedAt));
 
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
 
@@ -52,6 +57,8 @@ namespace Accord.Bot.Responders
                 // Artificial delay because Discord
                 await Task.Delay(TimeSpan.FromSeconds(3), ct);
             }
+
+            await queueTask;
 
             return Result.FromSuccess();
         }
