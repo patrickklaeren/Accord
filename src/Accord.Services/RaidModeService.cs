@@ -46,7 +46,7 @@ namespace Accord.Services
             await _mediator.Send(new RaidAlertRequest(isRaid, isInExistingRaidMode, isAutoRaidModeEnabled));
         }
 
-        private static string BuildGetLimitPerOneMinuteCacheKey()
+        public static string BuildGetLimitPerOneMinuteCacheKey()
         {
             return $"{nameof(RaidModeService)}/{nameof(GetLimitPerOneMinute)}";
         }
@@ -68,7 +68,7 @@ namespace Accord.Services
             return int.Parse(value);
         }
 
-        private static string BuildGetIsInRaidModeCacheKey()
+        public static string BuildGetIsInRaidModeCacheKey()
         {
             return $"{nameof(RaidModeService)}/{nameof(GetIsInRaidMode)}";
         }
@@ -90,7 +90,7 @@ namespace Accord.Services
             return bool.Parse(value);
         }
 
-        private static string BuildGetIsAutoRaidModeEnabledCacheKey()
+        public static string BuildGetIsAutoRaidModeEnabledCacheKey()
         {
             return $"{nameof(RaidModeService)}/{nameof(GetIsAutoRaidModeEnabled)}";
         }

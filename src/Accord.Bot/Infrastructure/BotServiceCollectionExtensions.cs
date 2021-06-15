@@ -27,8 +27,6 @@ namespace Accord.Bot.Infrastructure
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
                 {
-                    o.Intents |= GatewayIntents.DirectMessageReactions;
-                    o.Intents |= GatewayIntents.GuildMessageReactions;
                     o.Intents |= GatewayIntents.GuildPresences;
                     o.Intents |= GatewayIntents.GuildVoiceStates;
                     o.Intents |= GatewayIntents.GuildMembers;

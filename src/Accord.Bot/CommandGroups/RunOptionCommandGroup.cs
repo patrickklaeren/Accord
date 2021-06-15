@@ -44,7 +44,7 @@ namespace Accord.Bot.CommandGroups
 
                 if (response.Success)
                 {
-                    await Respond($"{actualRunOptionType} configuration updated");
+                    await Respond($"{actualRunOptionType} configuration updated to {value}");
                 }
                 else
                 {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
+using LazyCache;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services
@@ -9,10 +10,12 @@ namespace Accord.Services
     public class RunOptionService
     {
         private readonly AccordContext _db;
+        private readonly IAppCache _appCache;
 
-        public RunOptionService(AccordContext db)
+        public RunOptionService(AccordContext db, IAppCache appCache)
         {
             _db = db;
+            _appCache = appCache;
         }
 
         public async Task<ServiceResponse> Update(RunOptionType type, string rawValue)
@@ -20,20 +23,23 @@ namespace Accord.Services
             var runOption = await _db.RunOptions
                 .SingleAsync(x => x.Type == type);
 
-            var success = false;
+            bool success;
 
             switch (type)
             {
                 case RunOptionType.RaidModeEnabled when bool.TryParse(rawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
+                    _appCache.Remove(RaidModeService.BuildGetIsInRaidModeCacheKey());
                     success = true;
                     break;
                 case RunOptionType.AutoRaidModeEnabled when bool.TryParse(rawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
+                    _appCache.Remove(RaidModeService.BuildGetIsAutoRaidModeEnabledCacheKey());
                     success = true;
                     break;
                 case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(rawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
+                    _appCache.Remove(RaidModeService.BuildGetLimitPerOneMinuteCacheKey());
                     success = true;
                     break;
                 default:
