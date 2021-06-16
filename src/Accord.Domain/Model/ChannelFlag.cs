@@ -14,7 +14,7 @@ namespace Accord.Domain.Model
     {
         IgnoredFromXp = 0,
         JoinLeaveLogs = 1,
-        NameChangeLogs = 2,
+        UserUpdateLogs = 2,
         BanKickLogs = 3,
         RaidLogs = 4,
         IgnoredFromMessageTracking = 5,

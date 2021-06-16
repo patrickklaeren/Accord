@@ -21,6 +21,9 @@ namespace Accord.Bot.Responders
 
         public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
         {
+            if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
+                return Result.FromSuccess();
+
             await _mediator.Send(new AddMessageRequest(gatewayEvent.ID.Value, gatewayEvent.Author.ID.Value, 
                 gatewayEvent.ChannelID.Value, gatewayEvent.Timestamp), ct);
 
@@ -30,7 +33,6 @@ namespace Accord.Bot.Responders
         public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = new CancellationToken())
         {
             await _mediator.Send(new DeleteMessageRequest(gatewayEvent.ID.Value), ct);
-
             return Result.FromSuccess();
         }
 

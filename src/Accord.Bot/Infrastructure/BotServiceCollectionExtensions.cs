@@ -38,7 +38,8 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddResponder<ReadyResponder>()
-                .AddResponder<JoinLeaveResponder>()
+                .AddResponder<MemberJoinLeaveResponder>()
+                .AddResponder<MemberUpdateResponder>()
                 .AddResponder<MessageCreateDeleteResponder>()
                 .AddResponder<VoiceStateResponder>()
                 .AddResponder<XpResponder>();

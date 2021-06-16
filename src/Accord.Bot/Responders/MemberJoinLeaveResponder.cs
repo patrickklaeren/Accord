@@ -18,14 +18,14 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders
 {
-    public class JoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
+    public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
     {
         private readonly IMediator _mediator;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly DiscordConfiguration _discordConfiguration;
         private readonly IEventQueue _eventQueue;
 
-        public JoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, 
+        public MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, 
             IOptions<DiscordConfiguration> discordConfiguration, IEventQueue eventQueue)
         {
             _mediator = mediator;
@@ -41,7 +41,7 @@ namespace Accord.Bot.Responders
 
             var user = gatewayEvent.User.Value;
 
-            await _eventQueue.Queue(new UserJoinedEvent(user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToString(), null));
+            await _eventQueue.Queue(new UserJoinedEvent(user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null));
 
             var queueTask = _eventQueue.Queue(new RaidCalculationEvent(user.ID.Value, gatewayEvent.JoinedAt));
 
@@ -106,7 +106,6 @@ namespace Accord.Bot.Responders
             var url = $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
 
             return new EmbedThumbnail(url);
-
         }
     }
 }
