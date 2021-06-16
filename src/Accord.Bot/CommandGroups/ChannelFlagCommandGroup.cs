@@ -3,10 +3,10 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
-using Accord.Services;
+using Accord.Services.ChannelFlags;
+using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
@@ -17,25 +17,25 @@ namespace Accord.Bot.CommandGroups
     public class ChannelFlagCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
-        private readonly ChannelFlagService _channelFlagService;
+        private readonly IMediator _mediator;
         private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestGuildAPI _guildApi;
 
-        public ChannelFlagCommandGroup(ICommandContext commandContext, 
-            ChannelFlagService channelFlagService, 
+        public ChannelFlagCommandGroup(ICommandContext commandContext,
+            IMediator mediator, 
             IDiscordRestWebhookAPI webhookApi, 
             IDiscordRestChannelAPI channelApi,
             IDiscordRestGuildAPI guildApi)
         {
             _commandContext = commandContext;
-            _channelFlagService = channelFlagService;
+            _mediator = mediator;
             _webhookApi = webhookApi;
             _channelApi = channelApi;
             _guildApi = guildApi;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("addflag"), Description("Add flag to the current channel")]
+        [RequireContext(ChannelContext.Guild), Command("flag-add"), Description("Add flag to the current channel")]
         public async Task<IResult> AddFlag(string type)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
@@ -48,7 +48,7 @@ namespace Accord.Bot.CommandGroups
             {
                 var user = await _commandContext.ToPermissionUser(_guildApi);
 
-                var response = await _channelFlagService.AddFlag(user, actualChannelFlag, _commandContext.ChannelID.Value);
+                var response = await _mediator.Send(new AddChannelFlagRequest(user, actualChannelFlag, _commandContext.ChannelID.Value));
 
                 await response.GetAction(async () => await Respond($"{actualChannelFlag} flag added"),
                     async () => await Respond(response.ErrorMessage));
@@ -57,7 +57,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("removeflag"), Description("Add flag to the current channel")]
+        [RequireContext(ChannelContext.Guild), Command("flag-remove"), Description("Add flag to the current channel")]
         public async Task<IResult> RemoveFlag(string type)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
@@ -70,7 +70,7 @@ namespace Accord.Bot.CommandGroups
             {
                 var user = await _commandContext.ToPermissionUser(_guildApi);
 
-                var response = await _channelFlagService.DeleteFlag(user, actualChannelFlag, _commandContext.ChannelID.Value);
+                var response = await _mediator.Send(new DeleteChannelFlagRequest(user, actualChannelFlag, _commandContext.ChannelID.Value));
 
                 await response.GetAction(async () => await Respond($"{actualChannelFlag} flag removed"),
                     async () => await Respond(response.ErrorMessage));

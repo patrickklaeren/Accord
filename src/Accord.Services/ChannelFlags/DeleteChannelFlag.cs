@@ -1,0 +1,48 @@
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Accord.Domain;
+using Accord.Domain.Model;
+using Accord.Services.Permissions;
+using LazyCache;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace Accord.Services.ChannelFlags
+{
+    public sealed record DeleteChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+
+    public class DeleteChannelFlagHandler : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
+    {
+        private readonly AccordContext _db;
+        private readonly IMediator _mediator;
+
+        public DeleteChannelFlagHandler(AccordContext db, IMediator mediator)
+        {
+            _db = db;
+            _mediator = mediator;
+        }
+
+        public async Task<ServiceResponse> Handle(DeleteChannelFlagRequest request, CancellationToken cancellationToken)
+        {
+            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.AddFlags), cancellationToken);
+
+            if (!hasPermission)
+            {
+                return ServiceResponse.Fail("Missing permission");
+            }
+
+            var flag = await _db.ChannelFlags
+                .SingleAsync(x => x.DiscordChannelId == request.DiscordChannelId
+                                  && x.Type == request.Flag,
+                    cancellationToken: cancellationToken);
+
+            _db.Remove(flag);
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            await _mediator.Send(new InvalidateGetChannelsWithFlagRequest(request.Flag), cancellationToken);
+
+            return ServiceResponse.Ok();
+        }
+    }
+}

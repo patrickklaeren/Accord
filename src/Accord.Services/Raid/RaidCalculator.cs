@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Accord.Services
+namespace Accord.Services.Raid
 {
     public class RaidCalculator
     {

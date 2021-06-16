@@ -1,49 +1,52 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
-using LazyCache;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services
+namespace Accord.Services.RunOptions
 {
-    public class RunOptionService
+    public sealed record UpdateRunOptionRequest(RunOptionType Type, string RawValue) : IRequest<ServiceResponse>;
+
+    public class UpdateRunOption : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
     {
         private readonly AccordContext _db;
         private readonly IAppCache _appCache;
 
-        public RunOptionService(AccordContext db, IAppCache appCache)
+        public UpdateRunOption(AccordContext db)
         {
             _db = db;
             _appCache = appCache;
         }
 
-        public async Task<ServiceResponse> Update(RunOptionType type, string rawValue)
+        public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
         {
             var runOption = await _db.RunOptions
-                .SingleAsync(x => x.Type == type);
+                .SingleAsync(x => x.Type == request.Type, cancellationToken: cancellationToken);
 
             bool success;
 
-            switch (type)
+            switch (request.Type)
             {
-                case RunOptionType.RaidModeEnabled when bool.TryParse(rawValue, out var actualValue):
+                case RunOptionType.RaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     _appCache.Remove(RaidModeService.BuildGetIsInRaidModeCacheKey());
                     success = true;
                     break;
-                case RunOptionType.AutoRaidModeEnabled when bool.TryParse(rawValue, out var actualValue):
+                case RunOptionType.AutoRaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     _appCache.Remove(RaidModeService.BuildGetIsAutoRaidModeEnabledCacheKey());
                     success = true;
                     break;
-                case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(rawValue, out var actualValue):
+                case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     _appCache.Remove(RaidModeService.BuildGetLimitPerOneMinuteCacheKey());
                     success = true;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    throw new ArgumentOutOfRangeException(nameof(request.Type), request.Type, null);
             }
 
             if (!success)
@@ -51,7 +54,7 @@ namespace Accord.Services
                 return ServiceResponse.Fail("Failed updating value");
             }
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
             return ServiceResponse.Ok();
         }

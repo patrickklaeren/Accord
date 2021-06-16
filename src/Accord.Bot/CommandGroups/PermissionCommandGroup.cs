@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
-using Accord.Services;
+using Accord.Services.Permissions;
+using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
@@ -17,17 +18,17 @@ namespace Accord.Bot.CommandGroups
     public class PermissionCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
-        private readonly PermissionService _permissionService;
+        private readonly IMediator _mediator;
         private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly IDiscordRestChannelAPI _channelApi;
 
-        public PermissionCommandGroup(ICommandContext commandContext, 
-            PermissionService permissionService, 
+        public PermissionCommandGroup(ICommandContext commandContext,
+            IMediator mediator, 
             IDiscordRestWebhookAPI webhookApi, 
             IDiscordRestChannelAPI channelApi)
         {
             _commandContext = commandContext;
-            _permissionService = permissionService;
+            _mediator = mediator;
             _webhookApi = webhookApi;
             _channelApi = channelApi;
         }
@@ -41,7 +42,7 @@ namespace Accord.Bot.CommandGroups
             }
             else if(member.User.HasValue)
             {
-                await _permissionService.AddPermissionForUser(member.User.Value.ID.Value, actualPermission);
+                await _mediator.Send(new AddPermissionForUserRequest(member.User.Value.ID.Value, actualPermission));
                 await Respond($"{actualPermission} permission added to {member.User.Value.ID.ToUserMention()}");
             }
 
@@ -57,7 +58,7 @@ namespace Accord.Bot.CommandGroups
             }
             else
             {
-                await _permissionService.AddPermissionForRole(role.ID.Value, actualPermission);
+                await _mediator.Send(new AddPermissionForRoleRequest(role.ID.Value, actualPermission));
                 await Respond($"{actualPermission} permission added to `{role.Name}`");
             }
 

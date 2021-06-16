@@ -30,6 +30,7 @@ namespace Accord.Bot.Infrastructure
                     o.Intents |= GatewayIntents.GuildPresences;
                     o.Intents |= GatewayIntents.GuildVoiceStates;
                     o.Intents |= GatewayIntents.GuildMembers;
+                    o.Intents |= GatewayIntents.GuildMessages;
                 })
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
@@ -37,7 +38,9 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddResponder<ReadyResponder>()
-                .AddResponder<JoinLeaveResponder>()
+                .AddResponder<MemberJoinLeaveResponder>()
+                .AddResponder<MemberUpdateResponder>()
+                .AddResponder<MessageCreateDeleteResponder>()
                 .AddResponder<VoiceStateResponder>()
                 .AddResponder<XpResponder>();
 

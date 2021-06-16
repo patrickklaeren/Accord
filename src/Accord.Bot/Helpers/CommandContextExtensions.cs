@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Accord.Services;
+using Accord.Services.Permissions;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 
