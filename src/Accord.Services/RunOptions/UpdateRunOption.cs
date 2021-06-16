@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
+using Accord.Services.Raid;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +14,12 @@ namespace Accord.Services.RunOptions
     public class UpdateRunOption : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
     {
         private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+        private readonly IMediator _mediator;
 
-        public UpdateRunOption(AccordContext db)
+        public UpdateRunOption(AccordContext db, IMediator mediator)
         {
             _db = db;
-            _appCache = appCache;
+            _mediator = mediator;
         }
 
         public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
@@ -32,17 +33,17 @@ namespace Accord.Services.RunOptions
             {
                 case RunOptionType.RaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
-                    _appCache.Remove(RaidModeService.BuildGetIsInRaidModeCacheKey());
+                    await _mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
                     success = true;
                     break;
                 case RunOptionType.AutoRaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
-                    _appCache.Remove(RaidModeService.BuildGetIsAutoRaidModeEnabledCacheKey());
+                    await _mediator.Send(new InvalidateGetIsAutoRaidModeEnabledRequest(), cancellationToken);
                     success = true;
                     break;
                 case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
-                    _appCache.Remove(RaidModeService.BuildGetLimitPerOneMinuteCacheKey());
+                    await _mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
                     success = true;
                     break;
                 default:
