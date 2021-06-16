@@ -39,6 +39,8 @@ namespace Accord.Bot.Responders
 
             var user = gatewayEvent.User.Value;
 
+            await _eventQueue.Queue(new UserJoinedEvent(user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToString(), null));
+
             var queueTask = _eventQueue.Queue(new RaidCalculationEvent(user.ID.Value, gatewayEvent.JoinedAt));
 
             var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);

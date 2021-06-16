@@ -42,6 +42,9 @@ namespace Accord.Web.Hosted
                         RaidCalculationEvent raidCalculation
                             => services.GetRequiredService<RaidModeService>().Process(raidCalculation.QueuedDateTime),
 
+                        RaidCalculationEvent raidCalculation
+                            => services.GetRequiredService<RaidModeService>().Process(raidCalculation.QueuedDateTime),
+
                         MessageSentEvent messageSent
                             => services.GetRequiredService<XpService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
 
