@@ -3,11 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
+using Accord.Services.NamePatterns;
 using MediatR;
 
 namespace Accord.Services.Users
 {
-    public sealed record AddUserRequest(ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname, DateTimeOffset JoinedDateTime) : IRequest { }
+    public sealed record AddUserRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname, DateTimeOffset JoinedDateTime) : IRequest { }
 
     public class AddUserHandler : AsyncRequestHandler<AddUserRequest>
     {
@@ -41,6 +42,8 @@ namespace Accord.Services.Users
             await _db.SaveChangesAsync(cancellationToken);
 
             await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
+
+            await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, user.Id, user.UsernameWithDiscriminator, user.Nickname), cancellationToken);
         }
     }
 }

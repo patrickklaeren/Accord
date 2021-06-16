@@ -22,8 +22,9 @@ namespace Accord.Domain.Model
 
     public enum PermissionType
     {
-        AddFlags = 0,
+        ManageFlags = 0,
         ParticipateInModMailBeta = 1,
+        ManagePatterns = 2,
     }
 
     public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>

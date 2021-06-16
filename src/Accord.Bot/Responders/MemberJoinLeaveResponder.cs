@@ -2,12 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
-using Accord.Bot.Infrastructure;
 using Accord.Domain.Model;
 using Accord.Services;
 using Accord.Services.ChannelFlags;
 using MediatR;
-using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -22,16 +20,15 @@ namespace Accord.Bot.Responders
     {
         private readonly IMediator _mediator;
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly DiscordConfiguration _discordConfiguration;
         private readonly IEventQueue _eventQueue;
+        private readonly DiscordAvatarHelper _discordAvatarHelper;
 
-        public MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, 
-            IOptions<DiscordConfiguration> discordConfiguration, IEventQueue eventQueue)
+        public MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, IEventQueue eventQueue, DiscordAvatarHelper discordAvatarHelper)
         {
             _mediator = mediator;
             _channelApi = channelApi;
             _eventQueue = eventQueue;
-            _discordConfiguration = discordConfiguration.Value;
+            _discordAvatarHelper = discordAvatarHelper;
         }
 
         public async Task<Result> RespondAsync(IGuildMemberAdd gatewayEvent, CancellationToken ct = new CancellationToken())
@@ -41,13 +38,13 @@ namespace Accord.Bot.Responders
 
             var user = gatewayEvent.User.Value;
 
-            await _eventQueue.Queue(new UserJoinedEvent(user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null));
+            await _eventQueue.Queue(new UserJoinedEvent(gatewayEvent.GuildID.Value, user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null));
 
             var queueTask = _eventQueue.Queue(new RaidCalculationEvent(user.ID.Value, gatewayEvent.JoinedAt));
 
             var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
-            var image = GetAvatar(user);
+            var image = _discordAvatarHelper.GetAvatar(user);
 
             var embed = new Embed(Title: "User Joined",
                 Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
@@ -71,7 +68,7 @@ namespace Accord.Bot.Responders
         {
             var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
-            var image = GetAvatar(gatewayEvent.User);
+            var image = _discordAvatarHelper.GetAvatar(gatewayEvent.User);
 
             var embed = new Embed(Title: "User left", 
                 Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", 
@@ -87,25 +84,6 @@ namespace Accord.Bot.Responders
             }
 
             return Result.FromSuccess();
-        }
-
-        private EmbedThumbnail? GetAvatar(IUser user)
-        {
-            if (user.Avatar is null)
-            {
-                return null;
-            }
-
-            var extension = "png";
-
-            if (user.Avatar.HasGif)
-            {
-                extension = "gif";
-            }
-
-            var url = $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
-
-            return new EmbedThumbnail(url);
         }
     }
 }

@@ -23,5 +23,6 @@ namespace Accord.Domain
         public virtual DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
         public virtual DbSet<RunOption> RunOptions { get; set; } = null!;
         public virtual DbSet<UserMessage> UserMessages { get; set; } = null!;
+        public virtual DbSet<NamePattern> NamePatterns { get; set; } = null!;
     }
 }

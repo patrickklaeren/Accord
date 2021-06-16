@@ -1,4 +1,5 @@
 ﻿using Accord.Bot.CommandGroups;
+using Accord.Bot.Helpers;
 using Accord.Bot.Responders;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ namespace Accord.Bot.Infrastructure
             services
                 .AddLogging()
                 .AddTransient<BotClient>()
+                .AddScoped<DiscordAvatarHelper>()
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
                 {
@@ -37,6 +39,7 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
+                .AddCommandGroup<NamePatternCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<MemberJoinLeaveResponder>()
                 .AddResponder<MemberUpdateResponder>()

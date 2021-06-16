@@ -44,7 +44,7 @@ namespace Accord.Services
         DateTimeOffset QueuedDateTime { get; }
     }
 
-    public sealed record UserJoinedEvent(ulong DiscordUserId, DateTimeOffset QueuedDateTime, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IEvent;
+    public sealed record UserJoinedEvent(ulong DiscordGuildId, ulong DiscordUserId, DateTimeOffset QueuedDateTime, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IEvent;
 
     public sealed record MessageSentEvent(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset QueuedDateTime) : IEvent;
 

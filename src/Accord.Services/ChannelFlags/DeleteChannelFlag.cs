@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
 using Accord.Services.Permissions;
-using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +23,7 @@ namespace Accord.Services.ChannelFlags
 
         public async Task<ServiceResponse> Handle(DeleteChannelFlagRequest request, CancellationToken cancellationToken)
         {
-            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.AddFlags), cancellationToken);
+            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManageFlags), cancellationToken);
 
             if (!hasPermission)
             {

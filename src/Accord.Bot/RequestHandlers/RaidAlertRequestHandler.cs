@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
-using Accord.Services;
 using Accord.Services.ChannelFlags;
 using Accord.Services.Raid;
 using MediatR;
@@ -17,7 +16,6 @@ namespace Accord.Bot.RequestHandlers
     {
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IMediator _mediator;
-        private static readonly Snowflake PatrickSnowflake = new(104975006542372864);
 
         public RaidAlertRequestHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
         {
@@ -42,7 +40,7 @@ namespace Accord.Bot.RequestHandlers
 
                 foreach (var channel in channelsToPostTo)
                 {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), content: PatrickSnowflake.ToUserMention(), embed: embed, ct: cancellationToken);
+                    await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
 
                     // Artificial delay because Discord
                     await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);

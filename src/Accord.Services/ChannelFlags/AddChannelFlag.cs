@@ -25,7 +25,7 @@ namespace Accord.Services.ChannelFlags
 
         public async Task<ServiceResponse> Handle(AddChannelFlagRequest request, CancellationToken cancellationToken)
         {
-            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.AddFlags), cancellationToken);
+            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManageFlags), cancellationToken);
 
             if (!hasPermission)
             {
