@@ -11,7 +11,7 @@ namespace Accord.Services.NamePatterns
 {
     public sealed record DeleteNamePatternRequest(PermissionUser User, string Pattern) : IRequest<ServiceResponse>;
 
-    public class DeleteNamePatternHandler : IRequestHandler<AddNamePatternRequest, ServiceResponse>
+    public class DeleteNamePatternHandler : IRequestHandler<DeleteNamePatternRequest, ServiceResponse>
     {
         private readonly AccordContext _db;
         private readonly IMediator _mediator;
@@ -22,7 +22,7 @@ namespace Accord.Services.NamePatterns
             _mediator = mediator;
         }
 
-        public async Task<ServiceResponse> Handle(AddNamePatternRequest request, 
+        public async Task<ServiceResponse> Handle(DeleteNamePatternRequest request, 
             CancellationToken cancellationToken)
         {
             var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManagePatterns), cancellationToken);
