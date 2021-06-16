@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services;
+using Accord.Services.ChannelFlags;
+using Accord.Services.Raid;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
@@ -14,13 +16,13 @@ namespace Accord.Bot.RequestHandlers
     public class RaidAlertRequestHandler : AsyncRequestHandler<RaidAlertRequest>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly ChannelFlagService _channelFlagService;
+        private readonly IMediator _mediator;
         private static readonly Snowflake PatrickSnowflake = new(104975006542372864);
 
-        public RaidAlertRequestHandler(IDiscordRestChannelAPI channelApi, ChannelFlagService channelFlagService)
+        public RaidAlertRequestHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
         {
             _channelApi = channelApi;
-            _channelFlagService = channelFlagService;
+            _mediator = mediator;
         }
 
         protected override async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ namespace Accord.Bot.RequestHandlers
 
             if (request.IsRaidDetected && !request.IsInExistingRaidMode)
             {
-                var channelsToPostTo = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.RaidLogs);
+                var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
 
                 var embed = new Embed(Title: "🚨 Raid detected",
                     Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));

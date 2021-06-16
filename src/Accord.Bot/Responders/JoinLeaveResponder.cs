@@ -5,6 +5,8 @@ using Accord.Bot.Helpers;
 using Accord.Bot.Infrastructure;
 using Accord.Domain.Model;
 using Accord.Services;
+using Accord.Services.ChannelFlags;
+using MediatR;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -18,15 +20,15 @@ namespace Accord.Bot.Responders
 {
     public class JoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
     {
-        private readonly ChannelFlagService _channelFlagService;
+        private readonly IMediator _mediator;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly DiscordConfiguration _discordConfiguration;
         private readonly IEventQueue _eventQueue;
 
-        public JoinLeaveResponder(ChannelFlagService channelFlagService, IDiscordRestChannelAPI channelApi, 
+        public JoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, 
             IOptions<DiscordConfiguration> discordConfiguration, IEventQueue eventQueue)
         {
-            _channelFlagService = channelFlagService;
+            _mediator = mediator;
             _channelApi = channelApi;
             _eventQueue = eventQueue;
             _discordConfiguration = discordConfiguration.Value;
@@ -43,7 +45,7 @@ namespace Accord.Bot.Responders
 
             var queueTask = _eventQueue.Queue(new RaidCalculationEvent(user.ID.Value, gatewayEvent.JoinedAt));
 
-            var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
+            var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
             var image = GetAvatar(user);
 
@@ -67,7 +69,7 @@ namespace Accord.Bot.Responders
 
         public async Task<Result> RespondAsync(IGuildMemberRemove gatewayEvent, CancellationToken ct = new CancellationToken())
         {
-            var channels = await _channelFlagService.GetChannelsWithFlag(ChannelFlagType.JoinLeaveLogs);
+            var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
             var image = GetAvatar(gatewayEvent.User);
 

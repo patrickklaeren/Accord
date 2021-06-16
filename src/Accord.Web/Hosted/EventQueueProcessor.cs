@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
+using Accord.Services.Raid;
+using Accord.Services.Users;
+using Accord.Services.VoiceSessions;
+using Accord.Services.Xp;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -35,29 +41,36 @@ namespace Accord.Web.Hosted
                     using var scope = _serviceScopeFactory.CreateScope();
                     var services = scope.ServiceProvider;
 
-                    await services.GetRequiredService<UserService>().EnsureUserExists(queuedItem.DiscordUserId);
+                    var mediator = services.GetRequiredService<IMediator>();
 
-                    var action = queuedItem switch
+                    if (queuedItem is UserJoinedEvent userJoined)
+                    {
+                        await mediator.Send(new AddUserRequest(userJoined.DiscordUserId, userJoined.DiscordUsername, 
+                            userJoined.DiscordDiscriminator, userJoined.DiscordNickname, userJoined.QueuedDateTime), stoppingToken);
+                    }
+                    else
+                    {
+                        await mediator.Send(new EnsureUserExistsRequest(queuedItem.DiscordUserId), stoppingToken);
+                    }
+
+                    IRequest<ServiceResponse> action = queuedItem switch
                     {
                         RaidCalculationEvent raidCalculation
-                            => services.GetRequiredService<RaidModeService>().Process(raidCalculation.QueuedDateTime),
-
-                        RaidCalculationEvent raidCalculation
-                            => services.GetRequiredService<RaidModeService>().Process(raidCalculation.QueuedDateTime),
+                            => new RaidCalculationRequest(raidCalculation.QueuedDateTime),
 
                         MessageSentEvent messageSent
-                            => services.GetRequiredService<XpService>().AddXpForMessage(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime, stoppingToken),
+                            => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
 
                         VoiceConnectedEvent voiceConnected
-                            => services.GetRequiredService<VoiceSessionService>().Start(voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
+                            => new StartVoiceSessionRequest(voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
 
                         VoiceDisconnectedEvent voiceDisconnected
-                            => services.GetRequiredService<VoiceSessionService>().Finish(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
+                            => new FinishVoiceSessionRequest(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
 
                         _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
                     };
 
-                    await action;
+                    await mediator.Send(action, stoppingToken);
                 }
                 catch (Exception ex)
                 {

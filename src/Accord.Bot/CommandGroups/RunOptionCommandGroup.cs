@@ -2,7 +2,8 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Domain.Model;
-using Accord.Services;
+using Accord.Services.RunOptions;
+using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
@@ -18,17 +19,17 @@ namespace Accord.Bot.CommandGroups
         private readonly ICommandContext _commandContext;
         private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly RunOptionService _runOptionService;
+        private readonly IMediator _mediator;
 
         public RunOptionCommandGroup(ICommandContext commandContext, 
             IDiscordRestWebhookAPI webhookApi, 
             IDiscordRestChannelAPI channelApi,
-            RunOptionService runOptionService)
+            IMediator mediator)
         {
             _commandContext = commandContext;
             _webhookApi = webhookApi;
             _channelApi = channelApi;
-            _runOptionService = runOptionService;
+            _mediator = mediator;
         }
 
         [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
@@ -40,7 +41,7 @@ namespace Accord.Bot.CommandGroups
             }
             else
             {
-                var response = await _runOptionService.Update(actualRunOptionType, value);
+                var response = await _mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
 
                 if (response.Success)
                 {

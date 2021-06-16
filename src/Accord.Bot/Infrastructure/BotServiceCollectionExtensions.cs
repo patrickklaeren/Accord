@@ -27,11 +27,10 @@ namespace Accord.Bot.Infrastructure
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
                 {
-                    o.Intents |= GatewayIntents.DirectMessageReactions;
-                    o.Intents |= GatewayIntents.GuildMessageReactions;
                     o.Intents |= GatewayIntents.GuildPresences;
                     o.Intents |= GatewayIntents.GuildVoiceStates;
                     o.Intents |= GatewayIntents.GuildMembers;
+                    o.Intents |= GatewayIntents.GuildMessages;
                 })
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
@@ -40,6 +39,7 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<JoinLeaveResponder>()
+                .AddResponder<MessageCreateDeleteResponder>()
                 .AddResponder<VoiceStateResponder>()
                 .AddResponder<XpResponder>();
 

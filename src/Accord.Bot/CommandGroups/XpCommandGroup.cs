@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services;
+using Accord.Services.Xp;
+using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
@@ -17,15 +19,15 @@ namespace Accord.Bot.CommandGroups
 {
     public class XpCommandGroup : CommandGroup
     {
-        private readonly XpService _xpService;
+        private readonly IMediator _mediator;
         private readonly ICommandContext _commandContext;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestWebhookAPI _webhookApi;
 
-        public XpCommandGroup(XpService xpService, ICommandContext commandContext, 
+        public XpCommandGroup(IMediator mediator, ICommandContext commandContext, 
             IDiscordRestChannelAPI channelApi, IDiscordRestWebhookAPI webhookApi)
         {
-            _xpService = xpService;
+            _mediator = mediator;
             _commandContext = commandContext;
             _channelApi = channelApi;
             _webhookApi = webhookApi;
@@ -34,7 +36,7 @@ namespace Accord.Bot.CommandGroups
         [RequireContext(ChannelContext.Guild), Command("leaderboard"), Description("Get a leaderboard of XP")]
         public async Task<IResult> GetLeaderboard()
         {
-            var leaderboard = await _xpService.GetLeaderboard();
+            var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
 
             var stringBuilder = new StringBuilder();
 
