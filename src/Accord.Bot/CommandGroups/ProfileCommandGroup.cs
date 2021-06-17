@@ -94,7 +94,7 @@ namespace Accord.Bot.CommandGroups
             builder
                 .AppendLine()
                 .AppendLine("**Message Experience**")
-                .AppendLine($"Last 30 days: {userMessagesInChannelDtos.Count} messages");
+                .AppendLine($"Last 30 days: {userMessagesInChannelDtos.Sum(x => x.NumberOfMessages)} messages");
 
             if (userMessagesInChannelDtos.Any())
             {
@@ -116,7 +116,7 @@ namespace Accord.Bot.CommandGroups
                     .OrderByDescending(x => x.NumberOfMinutes)
                     .First();
 
-                builder.AppendLine($"Most active voice channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({numberOfMinutes} minutes)");
+                builder.AppendLine($"Most active voice channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({Math.Round(numberOfMinutes, 0)} minutes)");
             }
 
             var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),
