@@ -15,6 +15,7 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
+    [Group("permission")]
     public class PermissionCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
@@ -33,7 +34,7 @@ namespace Accord.Bot.CommandGroups
             _channelApi = channelApi;
         }
 
-        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("perm-to-user"), Description("Add permission to a user")]
+        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user")]
         public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
@@ -49,7 +50,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("perm-to-role"), Description("Add permission to a role")]
+        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("addrole"), Description("Add permission to a role")]
         public async Task<IResult> AddPermissionToRole(IRole role, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))

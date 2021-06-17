@@ -1,4 +1,5 @@
 ﻿using Accord.Domain.Model;
+using Accord.Domain.Model.UserReports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Domain
@@ -24,5 +25,9 @@ namespace Accord.Domain
         public virtual DbSet<RunOption> RunOptions { get; set; } = null!;
         public virtual DbSet<UserMessage> UserMessages { get; set; } = null!;
         public virtual DbSet<NamePattern> NamePatterns { get; set; } = null!;
+
+        public virtual DbSet<UserReport> UserReports { get; set; } = null!;
+        public virtual DbSet<UserReportMessage> UserThreadMessages { get; set; } = null!;
+        public virtual DbSet<UserReportBlock> UserThreadBlocks { get; set; } = null!;
     }
 }

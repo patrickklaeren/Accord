@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid
 {
-    public sealed record GetIsAutoRaidModeEnabledRequest() : IRequest<bool>; 
-    public sealed record InvalidateGetIsAutoRaidModeEnabledRequest() : IRequest;
+    public sealed record GetIsAutoRaidModeEnabledRequest : IRequest<bool>; 
+    public sealed record InvalidateGetIsAutoRaidModeEnabledRequest : IRequest;
 
     public class GetIsAutoRaidModeEnabledHandler : RequestHandler<InvalidateGetIsAutoRaidModeEnabledRequest>, IRequestHandler<GetIsAutoRaidModeEnabledRequest, bool>
     {

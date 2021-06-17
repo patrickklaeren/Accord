@@ -11,12 +11,12 @@ namespace Accord.Services.Users
     public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
     public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest { }
 
-    public class DoesUserExist : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
+    public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
     {
         private readonly AccordContext _db;
         private readonly IAppCache _appCache;
 
-        public DoesUserExist(AccordContext db, IAppCache appCache)
+        public DoesUserExistHandler(AccordContext db, IAppCache appCache)
         {
             _db = db;
             _appCache = appCache;

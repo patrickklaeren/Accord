@@ -14,6 +14,7 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
+    [Group("channel-flag")]
     public class ChannelFlagCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
@@ -35,7 +36,7 @@ namespace Accord.Bot.CommandGroups
             _guildApi = guildApi;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("flag-add"), Description("Add flag to the current channel")]
+        [RequireContext(ChannelContext.Guild), Command("add"), Description("Add flag to the current channel")]
         public async Task<IResult> AddFlag(string type)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
@@ -57,7 +58,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("flag-remove"), Description("Add flag to the current channel")]
+        [RequireContext(ChannelContext.Guild), Command("remove"), Description("Add flag to the current channel")]
         public async Task<IResult> RemoveFlag(string type)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);

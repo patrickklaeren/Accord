@@ -16,6 +16,7 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
+    [Group("name-pattern")]
     public class NamePatternCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
@@ -37,7 +38,7 @@ namespace Accord.Bot.CommandGroups
             _guildApi = guildApi;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("name-pattern-list"), Description("List all name patterns")]
+        [RequireContext(ChannelContext.Guild), Command("list"), Description("List all name patterns")]
         public async Task<IResult> List()
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);
@@ -52,7 +53,7 @@ namespace Accord.Bot.CommandGroups
                 ? string.Join(Environment.NewLine, response.Where(x => x.Type == PatternType.Allowed).Select(x => $"- `{x.Pattern}`"))
                 : "There are no allowed patterns";
 
-            var embed = new Embed(Title: "Name patterns", 
+            var embed = new Embed(Title: "Name patterns",
                 Description: "Allowed patterns supersede those that are blocked.",
                 Fields: new EmbedField[]
                 {
@@ -72,29 +73,20 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("name-pattern-allow"), Description("Add name pattern")]
-        public async Task<IResult> AllowPattern(string pattern, string onDiscovery)
+        [RequireContext(ChannelContext.Guild), Command("allow"), Description("Add name pattern to allow")]
+        public async Task<IResult> AllowPattern(string pattern)
         {
-            var isParsedOnDiscovery = Enum.TryParse<OnNamePatternDiscovery>(onDiscovery, out var actualOnDiscovery);
+            var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            if (!isParsedOnDiscovery || !Enum.IsDefined(actualOnDiscovery))
-            {
-                await Respond("Pattern discovery is not found");
-            }
-            else
-            {
-                var user = await _commandContext.ToPermissionUser(_guildApi);
+            var response = await _mediator.Send(new AddNamePatternRequest(user, pattern, PatternType.Allowed, OnNamePatternDiscovery.DoNothing));
 
-                var response = await _mediator.Send(new AddNamePatternRequest(user, pattern, PatternType.Allowed, actualOnDiscovery));
-
-                await response.GetAction(async () => await Respond($"{pattern} Allowed, will {actualOnDiscovery}"),
-                    async () => await Respond(response.ErrorMessage));
-            }
+            await response.GetAction(async () => await Respond($"{pattern} Allowed"),
+                async () => await Respond(response.ErrorMessage));
 
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("name-pattern-block"), Description("Add name pattern")]
+        [RequireContext(ChannelContext.Guild), Command("block"), Description("Add name pattern to block")]
         public async Task<IResult> BlockPattern(string pattern, string onDiscovery)
         {
             var isParsedOnDiscovery = Enum.TryParse<OnNamePatternDiscovery>(onDiscovery, out var actualOnDiscovery);
@@ -116,7 +108,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("name-pattern-remove"), Description("Remove name pattern")]
+        [RequireContext(ChannelContext.Guild), Command("remove"), Description("Remove name pattern")]
         public async Task<IResult> RemovePattern(string pattern)
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);

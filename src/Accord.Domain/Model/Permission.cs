@@ -23,7 +23,7 @@ namespace Accord.Domain.Model
     public enum PermissionType
     {
         ManageFlags = 0,
-        ParticipateInModMailBeta = 1,
+        ManageUserReports = 1,
         ManagePatterns = 2,
     }
 

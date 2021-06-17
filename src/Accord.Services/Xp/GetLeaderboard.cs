@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Xp
 {
-    public sealed record GetLeaderboardRequest() : IRequest<Leaderboard>;
+    public sealed record GetLeaderboardRequest : IRequest<Leaderboard>;
 
     public sealed record Leaderboard(List<MessageUser> MessageUsers, List<VoiceUser> VoiceUsers);
     public record MessageUser(ulong DiscordUserId, float Xp);

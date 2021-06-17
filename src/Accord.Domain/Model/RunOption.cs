@@ -17,18 +17,31 @@ namespace Accord.Domain.Model
                 .HasKey(x => x.Type);
 
             builder.HasData(new RunOption()
-            {
-                Type = RunOptionType.RaidModeEnabled,
-                Value = "False"
-            }, new RunOption()
-            {
-                Type = RunOptionType.AutoRaidModeEnabled,
-                Value = "False"
-            }, new RunOption()
-            {
-                Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
-                Value = "10"
-            });
+                {
+                    Type = RunOptionType.RaidModeEnabled,
+                    Value = "False"
+                }, new RunOption()
+                {
+                    Type = RunOptionType.AutoRaidModeEnabled,
+                    Value = "False"
+                }, new RunOption()
+                {
+                    Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
+                    Value = "10"
+                }, new RunOption()
+                {
+                    Type = RunOptionType.UserReportsEnabled,
+                    Value = "False"
+                }, new RunOption()
+                {
+                    Type = RunOptionType.UserReportsReporterCategoryId,
+                    Value = ""
+                }, new RunOption()
+                {
+                    Type = RunOptionType.UserReportsModeratorCategoryId,
+                    Value = ""
+                }
+            );
         }
     }
     
@@ -37,5 +50,9 @@ namespace Accord.Domain.Model
         RaidModeEnabled = 0,
         AutoRaidModeEnabled = 1,
         JoinsToTriggerRaidModePerMinute = 2,
+
+        UserReportsEnabled = 3,
+        UserReportsReporterCategoryId = 4,
+        UserReportsModeratorCategoryId = 5,
     }
 }
