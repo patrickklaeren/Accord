@@ -36,16 +36,34 @@ namespace Accord.Services.RunOptions
                     await _mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
                     success = true;
                     break;
+
                 case RunOptionType.AutoRaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     await _mediator.Send(new InvalidateGetIsAutoRaidModeEnabledRequest(), cancellationToken);
                     success = true;
                     break;
+
                 case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     await _mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
                     success = true;
                     break;
+
+                case RunOptionType.UserReportsEnabled when bool.TryParse(request.RawValue, out var actualValue):
+                    runOption.Value = actualValue.ToString();
+                    success = true;
+                    break;
+
+                case RunOptionType.UserReportsReporterCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
+                    runOption.Value = actualValue.ToString();
+                    success = true;
+                    break;
+
+                case RunOptionType.UserReportsModeratorCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
+                    runOption.Value = actualValue.ToString();
+                    success = true;
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(request.Type), request.Type, null);
             }

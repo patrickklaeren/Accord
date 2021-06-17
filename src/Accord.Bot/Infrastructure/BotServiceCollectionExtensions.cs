@@ -1,4 +1,5 @@
-﻿using Accord.Bot.CommandGroups;
+﻿using System.Linq;
+using Accord.Bot.CommandGroups;
 using Accord.Bot.Helpers;
 using Accord.Bot.Responders;
 using Microsoft.Extensions.Configuration;
@@ -41,12 +42,16 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddCommandGroup<NamePatternCommandGroup>()
                 .AddCommandGroup<ProfileCommandGroup>()
-                .AddResponder<ReadyResponder>()
-                .AddResponder<MemberJoinLeaveResponder>()
-                .AddResponder<MemberUpdateResponder>()
-                .AddResponder<MessageCreateDeleteResponder>()
-                .AddResponder<VoiceStateResponder>()
-                .AddResponder<XpResponder>();
+                .AddCommandGroup<UserReportCommandGroup>();
+
+            var responderTypes = typeof(BotClient).Assembly
+                .GetExportedTypes()
+                .Where(t => t.IsResponder());
+
+            foreach (var responderType in responderTypes)
+            {
+                services.AddResponder(responderType);
+            }
 
             return services;
         }

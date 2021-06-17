@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Web.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,7 @@ namespace Accord.Web
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File("logs\\log.txt")
+                .WriteTo.Console()                               
                 .CreateLogger();
 
             Log.Information("Starting up...");
@@ -42,6 +42,13 @@ namespace Accord.Web
             }
 
             Log.Information("Ready to run");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.Mediatr(host.Services.GetRequiredService<IServiceScopeFactory>())
+                .CreateLogger();
 
             await host.RunAsync();
         }

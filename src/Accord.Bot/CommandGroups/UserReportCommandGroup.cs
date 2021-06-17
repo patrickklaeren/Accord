@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
@@ -10,6 +12,7 @@ using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Core;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
@@ -57,7 +60,26 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
+            var channelsInGuild = await _guildApi.GetGuildChannelsAsync(_commandContext.GuildID.Value);
 
+            if (!channelsInGuild.IsSuccess || channelsInGuild.Entity is null)
+            {
+                await Respond("Failed getting channels in Guild");
+                return Result.FromSuccess();
+            }
+
+            var userCategory = await _mediator.Send(new GetUserReportsReporterCategoryIdRequest());
+
+            if (userCategory is null)
+            {
+
+            }
+            else if (channelsInGuild.Entity!.All(x => x.ID.Value != userCategory))
+            {
+
+            }
+
+            var moderatorCategory = await _mediator.Send(new GetUserReportsModeratorCategoryIdRequest());
 
             await Respond("Set up!");
 
