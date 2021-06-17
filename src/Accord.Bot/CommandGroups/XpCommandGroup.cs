@@ -43,7 +43,7 @@ namespace Accord.Bot.CommandGroups
             stringBuilder.AppendLine("**Messages XP**");
 
             var messageUsers = string.Join(Environment.NewLine, leaderboard.MessageUsers
-                .Select(x => $"{DiscordMentionHelper.IdToMention(x.DiscordUserId)} {x.Xp}"));
+                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.Xp}"));
 
             stringBuilder.Append(messageUsers);
 
@@ -52,7 +52,7 @@ namespace Accord.Bot.CommandGroups
             stringBuilder.AppendLine("**Voice Minutes**");
 
             var voiceUsers = string.Join(Environment.NewLine, leaderboard.VoiceUsers
-                .Select(x => $"{DiscordMentionHelper.IdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel}"));
+                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel}"));
 
             stringBuilder.Append(voiceUsers);
 

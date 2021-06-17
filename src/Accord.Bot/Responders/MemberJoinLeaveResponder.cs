@@ -46,7 +46,7 @@ namespace Accord.Bot.Responders
 
             var image = _discordAvatarHelper.GetAvatar(user);
 
-            var embed = new Embed(Title: "User Joined",
+            var embed = new Embed(Title: "User joined",
                 Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));

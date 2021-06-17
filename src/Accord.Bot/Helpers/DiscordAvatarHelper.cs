@@ -16,6 +16,12 @@ namespace Accord.Bot.Helpers
 
         public EmbedThumbnail? GetAvatar(IUser user)
         {
+            var url = GetAvatarUrl(user);
+            return string.IsNullOrWhiteSpace(url) ? null : new EmbedThumbnail(url);
+        }
+
+        public string? GetAvatarUrl(IUser user)
+        {
             if (user.Avatar is null)
             {
                 return null;
@@ -28,9 +34,7 @@ namespace Accord.Bot.Helpers
                 extension = "gif";
             }
 
-            var url = $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
-
-            return new EmbedThumbnail(url);
+            return $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
         }
     }
 }

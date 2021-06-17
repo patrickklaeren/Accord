@@ -47,7 +47,7 @@ namespace Accord.Bot.Responders
 
                 if (!string.IsNullOrWhiteSpace(payload))
                 {
-                    var embed = new Embed(Title: "User Update",
+                    var embed = new Embed(Title: "User update",
                         Description: $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
                         Thumbnail: image);
 

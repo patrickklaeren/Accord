@@ -40,6 +40,7 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddCommandGroup<NamePatternCommandGroup>()
+                .AddCommandGroup<ProfileCommandGroup>()
                 .AddResponder<ReadyResponder>()
                 .AddResponder<MemberJoinLeaveResponder>()
                 .AddResponder<MemberUpdateResponder>()

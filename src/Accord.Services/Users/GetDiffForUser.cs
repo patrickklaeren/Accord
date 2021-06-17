@@ -41,7 +41,7 @@ namespace Accord.Services.Users
 
             if (user.UsernameWithDiscriminator != handle)
             {
-                diffMessages.Add($"Changed handle from `{user.UsernameWithDiscriminator}` to `{handle}`");
+                diffMessages.Add($"Changed handle from {user.UsernameWithDiscriminator} to {handle}");
             }
 
             if (user.Nickname != request.DiscordNickname)
@@ -52,7 +52,7 @@ namespace Accord.Services.Users
                 }
                 else
                 {
-                    diffMessages.Add($"Changed nickname from `{user.Nickname}` to `{request.DiscordNickname}`");
+                    diffMessages.Add($"Changed nickname from {user.Nickname} to {request.DiscordNickname}");
                 }
             }
 

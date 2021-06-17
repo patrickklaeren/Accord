@@ -6,5 +6,10 @@
         {
             return $"{username}#{discriminator}";
         }
+
+        public static string BuildHandle(string username, ulong discriminator)
+        {
+            return BuildHandle(username, discriminator.ToString("0000"));
+        }
     }
 }
