@@ -51,26 +51,26 @@ namespace Accord.Web.Hosted
                     else
                     {
                         await mediator.Send(new EnsureUserExistsRequest(queuedItem.DiscordUserId), stoppingToken);
+
+                        IRequest<ServiceResponse> action = queuedItem switch
+                        {
+                            RaidCalculationEvent raidCalculation
+                                => new RaidCalculationRequest(raidCalculation.QueuedDateTime),
+
+                            MessageSentEvent messageSent
+                                => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
+
+                            VoiceConnectedEvent voiceConnected
+                                => new StartVoiceSessionRequest(voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
+
+                            VoiceDisconnectedEvent voiceDisconnected
+                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
+
+                            _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
+                        };
+
+                        await mediator.Send(action, stoppingToken);
                     }
-
-                    IRequest<ServiceResponse> action = queuedItem switch
-                    {
-                        RaidCalculationEvent raidCalculation
-                            => new RaidCalculationRequest(raidCalculation.QueuedDateTime),
-
-                        MessageSentEvent messageSent
-                            => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
-
-                        VoiceConnectedEvent voiceConnected
-                            => new StartVoiceSessionRequest(voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
-
-                        VoiceDisconnectedEvent voiceDisconnected
-                            => new FinishVoiceSessionRequest(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
-
-                        _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
-                    };
-
-                    await mediator.Send(action, stoppingToken);
                 }
                 catch (Exception ex)
                 {
