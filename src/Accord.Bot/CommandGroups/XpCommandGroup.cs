@@ -52,7 +52,7 @@ namespace Accord.Bot.CommandGroups
             stringBuilder.AppendLine("**Voice Minutes**");
 
             var voiceUsers = string.Join(Environment.NewLine, leaderboard.VoiceUsers
-                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel}"));
+                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel:0.00}"));
 
             stringBuilder.Append(voiceUsers);
 
