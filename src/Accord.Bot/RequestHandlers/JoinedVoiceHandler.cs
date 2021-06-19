@@ -47,7 +47,7 @@ namespace Accord.Bot.RequestHandlers
             var avatar = _discordAvatarHelper.GetAvatar(user);
 
             var embed = new Embed(Title: $"📢 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined voice",
-                Description: $"Joined voice channel {DiscordMentionHelper.ChannelIdToMention(request.DiscordChannelId)}",
+                Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) joined {DiscordMentionHelper.ChannelIdToMention(request.DiscordChannelId)}",
                 Footer: new EmbedFooter($"Session ID: {request.DiscordSessionId}"),
                 Thumbnail: avatar);
 
