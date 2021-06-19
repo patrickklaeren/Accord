@@ -19,19 +19,21 @@ namespace Accord.Bot.Responders
 
         public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
         {
-            if(!gatewayEvent.Member.HasValue 
+            if (!gatewayEvent.Member.HasValue
                || !gatewayEvent.Member.Value.User.HasValue)
                 return Result.FromSuccess();
 
-            if(gatewayEvent.Member.Value.User.Value.IsBot.HasValue)
+            if (gatewayEvent.Member.Value.User.Value.IsBot.HasValue)
                 return Result.FromSuccess();
 
-            IEvent type = gatewayEvent.ChannelID.HasValue 
-                ? new VoiceConnectedEvent(gatewayEvent.UserID.Value,
+            IEvent type = gatewayEvent.ChannelID.HasValue
+                ? new VoiceConnectedEvent(gatewayEvent.GuildID.Value.Value, 
+                    gatewayEvent.UserID.Value,
                     gatewayEvent.ChannelID.Value.Value,
                     gatewayEvent.SessionID,
                     DateTimeOffset.Now)
-                : new VoiceDisconnectedEvent(gatewayEvent.UserID.Value,
+                : new VoiceDisconnectedEvent(gatewayEvent.GuildID.Value.Value, 
+                    gatewayEvent.UserID.Value,
                     gatewayEvent.SessionID,
                     DateTimeOffset.Now);
 

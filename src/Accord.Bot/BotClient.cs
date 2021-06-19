@@ -11,6 +11,8 @@ using Remora.Results;
 
 namespace Accord.Bot
 {
+    // Gateway events: https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
+
     public class BotClient
     {
         private readonly ILogger<BotClient> _logger;

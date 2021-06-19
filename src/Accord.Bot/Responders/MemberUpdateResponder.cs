@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
+using Accord.Services.Helpers;
 using Accord.Services.Users;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -47,16 +48,13 @@ namespace Accord.Bot.Responders
 
                 if (!string.IsNullOrWhiteSpace(payload))
                 {
-                    var embed = new Embed(Title: "User update",
+                    var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
                         Description: $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
                         Thumbnail: image);
 
                     foreach (var channel in channels)
                     {
                         await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: ct);
-
-                        // Artificial delay because Discord
-                        await Task.Delay(TimeSpan.FromSeconds(3), ct);
                     }
                 }
             }

@@ -18,7 +18,8 @@ namespace Accord.Domain.Model
         BanKickLogs = 3,
         RaidLogs = 4,
         IgnoredFromMessageTracking = 5,
-        BotLogs = 6,
+        VoiceLogs = 6,
+        BotLogs = 7,
     }
 
     public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>
