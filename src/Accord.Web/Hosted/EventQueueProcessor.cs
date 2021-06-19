@@ -61,10 +61,10 @@ namespace Accord.Web.Hosted
                                 => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
 
                             VoiceConnectedEvent voiceConnected
-                                => new StartVoiceSessionRequest(voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
+                                => new StartVoiceSessionRequest(voiceConnected.DiscordGuildId, voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
 
                             VoiceDisconnectedEvent voiceDisconnected
-                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
+                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordGuildId, voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
 
                             _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
                         };

@@ -5,6 +5,7 @@ using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services;
 using Accord.Services.ChannelFlags;
+using Accord.Services.Helpers;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -46,7 +47,7 @@ namespace Accord.Bot.Responders
 
             var image = _discordAvatarHelper.GetAvatar(user);
 
-            var embed = new Embed(Title: "User joined",
+            var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined",
                 Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
@@ -70,7 +71,7 @@ namespace Accord.Bot.Responders
 
             var image = _discordAvatarHelper.GetAvatar(gatewayEvent.User);
 
-            var embed = new Embed(Title: "User left", 
+            var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(gatewayEvent.User.Username, gatewayEvent.User.Discriminator)} left", 
                 Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", 
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));

@@ -26,11 +26,13 @@ namespace Accord.Bot.CommandGroups
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly DiscordAvatarHelper _discordAvatarHelper;
+        private readonly CommandResponder _commandResponder;
 
         public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext, 
             IDiscordRestChannelAPI channelApi, IDiscordRestWebhookAPI webhookApi,
             IDiscordRestGuildAPI guildApi,
-            DiscordAvatarHelper discordAvatarHelper)
+            DiscordAvatarHelper discordAvatarHelper,
+            CommandResponder commandResponder)
         {
             _mediator = mediator;
             _commandContext = commandContext;
@@ -38,6 +40,7 @@ namespace Accord.Bot.CommandGroups
             _webhookApi = webhookApi;
             _guildApi = guildApi;
             _discordAvatarHelper = discordAvatarHelper;
+            _commandResponder = commandResponder;
         }
 
         [RequireContext(ChannelContext.Guild), Command("profile"), Description("Get your profile")]
@@ -47,7 +50,7 @@ namespace Accord.Bot.CommandGroups
 
             if (!response.Success)
             {
-                await Respond(response.ErrorMessage);
+                await _commandResponder.Respond(response.ErrorMessage);
                 return Result.FromSuccess();
             }
 
@@ -55,7 +58,7 @@ namespace Accord.Bot.CommandGroups
 
             if (!guildUserEntity.IsSuccess || guildUserEntity.Entity is null || !guildUserEntity.Entity.User.HasValue)
             {
-                await Respond("Couldn't find user in Guild");
+                await _commandResponder.Respond("Couldn't find user in Guild");
                 return Result.FromSuccess();
             }
 
@@ -123,28 +126,9 @@ namespace Accord.Bot.CommandGroups
                 Thumbnail: avatarImage,
                 Description: builder.ToString());
 
-            if (_commandContext is InteractionContext interactionContext)
-            {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] {embed});
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
-            }
+            await _commandResponder.Respond(embed);
 
             return Result.FromSuccess();
-        }
-
-        private async Task Respond(string message)
-        {
-            if (_commandContext is InteractionContext interactionContext)
-            {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
-            }
         }
     }
 }

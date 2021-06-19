@@ -26,6 +26,7 @@ namespace Accord.Bot.Infrastructure
                 .AddLogging()
                 .AddTransient<BotClient>()
                 .AddScoped<DiscordAvatarHelper>()
+                .AddScoped<CommandResponder>()
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
                 {
