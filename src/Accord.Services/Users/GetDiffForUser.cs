@@ -39,7 +39,7 @@ namespace Accord.Services.Users
 
             var handle = DiscordHandleHelper.BuildHandle(request.DiscordUsername, request.DiscordDiscriminator);
 
-            if (user.UsernameWithDiscriminator != handle)
+            if (!string.IsNullOrWhiteSpace(user.UsernameWithDiscriminator) && user.UsernameWithDiscriminator != handle)
             {
                 diffMessages.Add($"Changed handle from {user.UsernameWithDiscriminator} to {handle}");
             }
@@ -48,7 +48,7 @@ namespace Accord.Services.Users
             {
                 if (string.IsNullOrWhiteSpace(user.Nickname))
                 {
-                    diffMessages.Add($"Set nickname to `{request.DiscordNickname}`");
+                    diffMessages.Add($"Set nickname to {request.DiscordNickname}");
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace Accord.Services.Users
                 }
             }
 
-            return new UserDiffResponse(true, diffMessages);
+            return new UserDiffResponse(diffMessages.Any(), diffMessages);
         }
     }
 }
