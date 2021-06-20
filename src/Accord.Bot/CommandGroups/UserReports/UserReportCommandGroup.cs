@@ -19,7 +19,7 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Core;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups
+namespace Accord.Bot.CommandGroups.UserReports
 {
     [Group("userreport")]
     public class UserReportCommandGroup : CommandGroup
@@ -28,16 +28,19 @@ namespace Accord.Bot.CommandGroups
         private readonly IMediator _mediator;
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly CommandResponder _commandResponder;
+        private readonly DiscordCache _discordCache;
 
         public UserReportCommandGroup(ICommandContext commandContext,
             IMediator mediator,
             IDiscordRestGuildAPI guildApi,
-            CommandResponder commandResponder)
+            CommandResponder commandResponder,
+            DiscordCache discordCache)
         {
             _commandContext = commandContext;
             _mediator = mediator;
             _guildApi = guildApi;
             _commandResponder = commandResponder;
+            _discordCache = discordCache;
         }
 
         [RequireContext(ChannelContext.Guild), Command("setup"), Description("Sets up user reports for Guild usage")]
@@ -77,7 +80,7 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromError(channelsInGuild.Error!);
             }
 
-            var roleSetup = await SetUpAgentRole(rolesInGuild);
+            var roleSetup = await SetUpAgentRole(rolesInGuild.Entity);
 
             if (!roleSetup.IsSuccess)
             {
@@ -91,7 +94,7 @@ namespace Accord.Bot.CommandGroups
                 return outboxSetup;
             }
 
-            var inboxSetup = await SetUpInbox(rolesInGuild.Entity, channelsInGuild.Entity);
+            var inboxSetup = await SetUpInbox(channelsInGuild.Entity);
 
             if (!inboxSetup.IsSuccess)
             {
@@ -103,12 +106,12 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        private async Task<IResult> SetUpAgentRole(Result<IReadOnlyList<IRole>> rolesInGuild)
+        private async Task<IResult> SetUpAgentRole(IReadOnlyList<IRole> rolesInGuild)
         {
             var agentRoleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
 
             if (agentRoleId is null
-                || rolesInGuild.Entity!.All(x => x.ID.Value != agentRoleId))
+                || rolesInGuild.All(x => x.ID.Value != agentRoleId))
             {
                 var roleCreation = await _guildApi.CreateGuildRoleAsync(_commandContext.GuildID.Value, "(Accord) User Reports Agent");
 
@@ -154,13 +157,13 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        private async Task<IResult> SetUpInbox(IReadOnlyList<IRole> rolesInGuild, IReadOnlyList<IChannel> channelsInGuild)
+        private async Task<IResult> SetUpInbox(IReadOnlyList<IChannel> channelsInGuild)
         {
             var inboxCategoryId = await _mediator.Send(new GetUserReportsInboxCategoryIdRequest());
 
             var roleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
 
-            var everyoneRole = rolesInGuild.Single(x => x.Name == "@everyone");
+            var everyoneRole = await _discordCache.GetEveryoneRole(_commandContext.GuildID.Value);
 
             if (inboxCategoryId is null
                 || channelsInGuild.All(x => x.ID.Value != inboxCategoryId))

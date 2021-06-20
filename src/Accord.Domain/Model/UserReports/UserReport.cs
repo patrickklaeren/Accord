@@ -7,8 +7,8 @@ namespace Accord.Domain.Model.UserReports
     {
         public int Id { get; set; }
 
-        public ulong ReporterDiscordChannelId { get; set; }
-        public ulong ModeratorDiscordChannelId { get; set; }
+        public ulong OutboxDiscordChannelId { get; set; }
+        public ulong InboxDiscordChannelId { get; set; }
 
         public ulong OpenedByUserId { get; set; }
         public virtual User OpenedByUser { get; set; } = null!;

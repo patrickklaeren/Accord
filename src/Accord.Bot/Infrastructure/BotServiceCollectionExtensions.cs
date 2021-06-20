@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Accord.Bot.CommandGroups;
+using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
 using Accord.Bot.Responders;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,7 @@ namespace Accord.Bot.Infrastructure
                 .AddLogging()
                 .AddTransient<BotClient>()
                 .AddScoped<DiscordAvatarHelper>()
+                .AddScoped<DiscordCache>()
                 .AddScoped<CommandResponder>()
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
@@ -43,7 +45,8 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddCommandGroup<NamePatternCommandGroup>()
                 .AddCommandGroup<ProfileCommandGroup>()
-                .AddCommandGroup<UserReportCommandGroup>();
+                .AddCommandGroup<UserReportCommandGroup>()
+                .AddCommandGroup<ReportCommandGroup>();
 
             var responderTypes = typeof(BotClient).Assembly
                 .GetExportedTypes()

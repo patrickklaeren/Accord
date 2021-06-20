@@ -9,7 +9,7 @@ namespace Accord.Domain.Model.UserReports
         [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
 
-        public int UserThreadId { get; set; }
+        public int UserReportId { get; set; }
         public virtual UserReport UserReport { get; set; } = null!;
 
         public ulong AuthorUserId { get; set; }
