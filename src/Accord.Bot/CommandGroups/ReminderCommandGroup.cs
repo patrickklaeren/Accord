@@ -61,9 +61,6 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [Group("list")]
-        public class ReminderListCommandGroup : CommandGroup { }
-
         [RequireContext(ChannelContext.Guild), Command("list"), Description("List the reminders of the invoking user.")]
         public async Task<IResult> ListUserReminders(int page = 1)
         {
