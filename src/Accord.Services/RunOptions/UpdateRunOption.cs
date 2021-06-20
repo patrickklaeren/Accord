@@ -11,12 +11,12 @@ namespace Accord.Services.RunOptions
 {
     public sealed record UpdateRunOptionRequest(RunOptionType Type, string RawValue) : IRequest<ServiceResponse>;
 
-    public class UpdateRunOption : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
+    public class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
     {
         private readonly AccordContext _db;
         private readonly IMediator _mediator;
 
-        public UpdateRunOption(AccordContext db, IMediator mediator)
+        public UpdateRunOptionHandler(AccordContext db, IMediator mediator)
         {
             _db = db;
             _mediator = mediator;
@@ -64,8 +64,13 @@ namespace Accord.Services.RunOptions
                     success = true;
                     break;
 
+                case RunOptionType.UserReportsAgentRoleId when ulong.TryParse(request.RawValue, out var actualValue):
+                    runOption.Value = actualValue.ToString();
+                    success = true;
+                    break;
+
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(request.Type), request.Type, null);
+                    throw new ArgumentOutOfRangeException(nameof(request.Type), $"{request.Type} has not been configured to be updated, add the type to {nameof(UpdateRunOptionHandler)}", null);
             }
 
             if (!success)

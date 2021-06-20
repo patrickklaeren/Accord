@@ -17,34 +17,38 @@ namespace Accord.Domain.Model
                 .HasKey(x => x.Type);
 
             builder.HasData(new RunOption()
-                {
-                    Type = RunOptionType.RaidModeEnabled,
-                    Value = "False"
-                }, new RunOption()
-                {
-                    Type = RunOptionType.AutoRaidModeEnabled,
-                    Value = "False"
-                }, new RunOption()
-                {
-                    Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
-                    Value = "10"
-                }, new RunOption()
-                {
-                    Type = RunOptionType.UserReportsEnabled,
-                    Value = "False"
-                }, new RunOption()
-                {
-                    Type = RunOptionType.UserReportsOutboxCategoryId,
-                    Value = ""
-                }, new RunOption()
-                {
-                    Type = RunOptionType.UserReportsInboxCategoryId,
-                    Value = ""
-                }
+            {
+                Type = RunOptionType.RaidModeEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
+                Type = RunOptionType.AutoRaidModeEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
+                Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
+                Value = "10"
+            }, new RunOption()
+            {
+                Type = RunOptionType.UserReportsEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
+                Type = RunOptionType.UserReportsOutboxCategoryId,
+                Value = ""
+            }, new RunOption()
+            {
+                Type = RunOptionType.UserReportsInboxCategoryId,
+                Value = ""
+            }, new RunOption()
+            {
+                Type = RunOptionType.UserReportsAgentRoleId,
+                Value = ""
+            }
             );
         }
     }
-    
+
     public enum RunOptionType
     {
         RaidModeEnabled = 0,
@@ -54,5 +58,6 @@ namespace Accord.Domain.Model
         UserReportsEnabled = 3,
         UserReportsOutboxCategoryId = 4,
         UserReportsInboxCategoryId = 5,
+        UserReportsAgentRoleId = 6,
     }
 }
