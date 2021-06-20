@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.Permissions;
+using Accord.Services.RunOptions;
 using Accord.Services.UserReports;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
@@ -65,21 +67,58 @@ namespace Accord.Bot.CommandGroups
             if (!channelsInGuild.IsSuccess || channelsInGuild.Entity is null)
             {
                 await Respond("Failed getting channels in Guild");
-                return Result.FromSuccess();
+                return Result.FromError(channelsInGuild.Error!);
             }
 
-            var userCategory = await _mediator.Send(new GetUserReportsReporterCategoryIdRequest());
+            var userCategory = await _mediator.Send(new GetUserReportsOutboxCategoryIdRequest());
 
-            if (userCategory is null)
+            if (userCategory is null 
+                || channelsInGuild.Entity!.All(x => x.ID.Value != userCategory))
             {
+                var result = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value, "User Reports", type: ChannelType.GuildCategory);
 
+                if (!result.IsSuccess)
+                {
+                    await Respond("Failed creating category for outbox");
+                    return Result.FromError(result.Error);
+                }
+
+                var howToChannelCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value, 
+                    "how-to-report", ChannelType.GuildText);
+
+                if (!howToChannelCreation.IsSuccess)
+                {
+                    await Respond("Failed creating how-to-report channel under report under outbox category");
+                    return Result.FromError(howToChannelCreation.Error);
+                }
+
+                await _mediator.Send(new UpdateRunOptionRequest(RunOptionType.UserReportsOutboxCategoryId, result.Entity.ID.Value.ToString()));
             }
-            else if (channelsInGuild.Entity!.All(x => x.ID.Value != userCategory))
+
+            var moderatorCategory = await _mediator.Send(new GetUserReportsInboxCategoryIdRequest());
+
+            if (moderatorCategory is null 
+                || channelsInGuild.Entity!.All(x => x.ID.Value != moderatorCategory))
             {
+                var result = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value, "User Reports Inbox", type: ChannelType.GuildCategory);
 
+                if (!result.IsSuccess)
+                {
+                    await Respond("Failed creating category for inbox");
+                    return Result.FromError(result.Error);
+                }
+
+                var howToChannelCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
+                    "inbox-how-to", ChannelType.GuildText);
+
+                if (!howToChannelCreation.IsSuccess)
+                {
+                    await Respond("Failed creating how-to-report channel under report under inbox category");
+                    return Result.FromError(howToChannelCreation.Error);
+                }
+
+                await _mediator.Send(new UpdateRunOptionRequest(RunOptionType.UserReportsInboxCategoryId, result.Entity.ID.Value.ToString()));
             }
-
-            var moderatorCategory = await _mediator.Send(new GetUserReportsModeratorCategoryIdRequest());
 
             await Respond("Set up!");
 

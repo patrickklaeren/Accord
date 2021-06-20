@@ -8,21 +8,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserReports
 {
-    public sealed record GetUserReportsModeratorCategoryIdRequest : IRequest<ulong?>;
+    public sealed record GetUserReportsInboxCategoryIdRequest : IRequest<ulong?>;
 
-    public class GetUserReportsModeratorCategoryIdHandler : IRequestHandler<GetUserReportsModeratorCategoryIdRequest, ulong?>
+    public class GetUserReportsInboxCategoryIdHandler : IRequestHandler<GetUserReportsInboxCategoryIdRequest, ulong?>
     {
         private readonly AccordContext _db;
 
-        public GetUserReportsModeratorCategoryIdHandler(AccordContext db)
+        public GetUserReportsInboxCategoryIdHandler(AccordContext db)
         {
             _db = db;
         }
 
-        public async Task<ulong?> Handle(GetUserReportsModeratorCategoryIdRequest request, CancellationToken cancellationToken)
+        public async Task<ulong?> Handle(GetUserReportsInboxCategoryIdRequest request, CancellationToken cancellationToken)
         {
             var runOption = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.UserReportsModeratorCategoryId)
+                .Where(x => x.Type == RunOptionType.UserReportsInboxCategoryId)
                 .Select(x => x.Value)
                 .SingleAsync(cancellationToken: cancellationToken);
 

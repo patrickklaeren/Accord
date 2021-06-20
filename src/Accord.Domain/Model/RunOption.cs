@@ -34,11 +34,11 @@ namespace Accord.Domain.Model
                     Value = "False"
                 }, new RunOption()
                 {
-                    Type = RunOptionType.UserReportsReporterCategoryId,
+                    Type = RunOptionType.UserReportsOutboxCategoryId,
                     Value = ""
                 }, new RunOption()
                 {
-                    Type = RunOptionType.UserReportsModeratorCategoryId,
+                    Type = RunOptionType.UserReportsInboxCategoryId,
                     Value = ""
                 }
             );
@@ -52,7 +52,7 @@ namespace Accord.Domain.Model
         JoinsToTriggerRaidModePerMinute = 2,
 
         UserReportsEnabled = 3,
-        UserReportsReporterCategoryId = 4,
-        UserReportsModeratorCategoryId = 5,
+        UserReportsOutboxCategoryId = 4,
+        UserReportsInboxCategoryId = 5,
     }
 }

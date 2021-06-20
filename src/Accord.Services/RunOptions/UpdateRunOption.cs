@@ -54,12 +54,12 @@ namespace Accord.Services.RunOptions
                     success = true;
                     break;
 
-                case RunOptionType.UserReportsReporterCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
+                case RunOptionType.UserReportsOutboxCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     success = true;
                     break;
 
-                case RunOptionType.UserReportsModeratorCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
+                case RunOptionType.UserReportsInboxCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     success = true;
                     break;
