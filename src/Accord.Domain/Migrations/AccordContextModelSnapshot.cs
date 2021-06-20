@@ -171,6 +171,36 @@ namespace Accord.Domain.Migrations
                     b.ToTable("UserMessages");
                 });
 
+            modelBuilder.Entity("Accord.Domain.Model.UserReminder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscordChannelId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("RemindAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserReminders");
+                });
+
             modelBuilder.Entity("Accord.Domain.Model.VoiceSession", b =>
                 {
                     b.Property<int>("Id")
@@ -247,6 +277,17 @@ namespace Accord.Domain.Migrations
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserMessage", b =>
+                {
+                    b.HasOne("Accord.Domain.Model.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Accord.Domain.Model.UserReminder", b =>
                 {
                     b.HasOne("Accord.Domain.Model.User", "User")
                         .WithMany()
