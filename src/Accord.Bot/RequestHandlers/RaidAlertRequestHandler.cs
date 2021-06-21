@@ -41,9 +41,6 @@ namespace Accord.Bot.RequestHandlers
                 foreach (var channel in channelsToPostTo)
                 {
                     await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
-
-                    // Artificial delay because Discord
-                    await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
                 }
             }
         }

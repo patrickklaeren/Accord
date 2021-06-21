@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid
 {
-    public sealed record RaidCalculationRequest(DateTimeOffset UserJoinedDateTime) : IRequest<ServiceResponse>;
+    public sealed record RaidCalculationRequest(ulong DiscordUserId, DateTimeOffset UserJoinedDateTime) : IRequest<ServiceResponse>;
     public sealed record RaidAlertRequest(bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
 
     public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, ServiceResponse>
@@ -27,7 +27,7 @@ namespace Accord.Services.Raid
         public async Task<ServiceResponse> Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
         {
             var limitPerOneMinute = await _mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
-            var isRaid = _raidCalculator.CalculateIsRaid(request.UserJoinedDateTime, limitPerOneMinute);
+            var isRaid = _raidCalculator.CalculateIsRaid(new UserJoin(request.DiscordUserId, request.UserJoinedDateTime.DateTime), limitPerOneMinute);
             var isAutoRaidModeEnabled = await _mediator.Send(new GetIsAutoRaidModeEnabledRequest(), cancellationToken);
             var isInExistingRaidMode = await _mediator.Send(new GetIsInRaidModeRequest(), cancellationToken);
 

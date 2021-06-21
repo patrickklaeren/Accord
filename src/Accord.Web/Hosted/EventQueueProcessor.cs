@@ -55,7 +55,7 @@ namespace Accord.Web.Hosted
                         IRequest<ServiceResponse> action = queuedItem switch
                         {
                             RaidCalculationEvent raidCalculation
-                                => new RaidCalculationRequest(raidCalculation.QueuedDateTime),
+                                => new RaidCalculationRequest(raidCalculation.DiscordUserId, raidCalculation.QueuedDateTime),
 
                             MessageSentEvent messageSent
                                 => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
