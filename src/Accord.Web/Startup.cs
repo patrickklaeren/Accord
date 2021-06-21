@@ -1,11 +1,10 @@
+using System;
 using Accord.Bot;
+using Accord.Bot.Helpers;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
-using Accord.Services.ChannelFlags;
-using Accord.Services.Permissions;
 using Accord.Services.Raid;
-using Accord.Services.Xp;
 using Accord.Web.Hosted;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Remora.Commands.Extensions;
 
 namespace Accord.Web
 {
@@ -36,6 +36,9 @@ namespace Accord.Web
                 .AddDiscordBot(_configuration)
                 .AddSingleton<RaidCalculator>()
                 .AddSingleton<IEventQueue, EventQueue>();
+
+            services
+                .AddParser<TimeSpan, TimeSpanParser>();
 
             // Configure hosted services
             services

@@ -24,5 +24,6 @@ namespace Accord.Domain
         public virtual DbSet<RunOption> RunOptions { get; set; } = null!;
         public virtual DbSet<UserMessage> UserMessages { get; set; } = null!;
         public virtual DbSet<NamePattern> NamePatterns { get; set; } = null!;
+        public virtual DbSet<UserReminder> UserReminders { get; set; } = null!;
     }
 }
