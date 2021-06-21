@@ -1,4 +1,5 @@
-﻿using Accord.Bot.CommandGroups;
+﻿using System;
+using Accord.Bot.CommandGroups;
 using Accord.Bot.Helpers;
 using Accord.Bot.Responders;
 using Accord.Services.Reminder;
@@ -38,6 +39,7 @@ namespace Accord.Bot.Infrastructure
                 })
                 .AddHostedService<RemindersHostedService>()
                 .AddDiscordCommands(true)
+                .AddParser<TimeSpan, TimeSpanParser>()
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()

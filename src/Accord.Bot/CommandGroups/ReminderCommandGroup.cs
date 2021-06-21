@@ -27,33 +27,37 @@ namespace Accord.Bot.CommandGroups
     {
         private readonly ICommandContext _commandContext;
         private readonly IMediator _mediator;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly DiscordAvatarHelper _discordAvatarHelper;
         private readonly CommandResponder _commandResponder;
 
         public ReminderCommandGroup(ICommandContext commandContext,
             IMediator mediator,
-            IDiscordRestWebhookAPI webhookApi,
-            IDiscordRestChannelAPI channelApi,
             IDiscordRestGuildAPI guildApi,
             CommandResponder commandResponder,
             DiscordAvatarHelper discordAvatarHelper)
         {
             _commandContext = commandContext;
             _mediator = mediator;
-            _webhookApi = webhookApi;
-            _channelApi = channelApi;
             _guildApi = guildApi;
             _commandResponder = commandResponder;
             _discordAvatarHelper = discordAvatarHelper;
         }
 
         [RequireContext(ChannelContext.Guild), Command("me"), Description("Add a reminder for the invoking user.")]
-        public async Task<IResult> DeleteReminder(TimeSpan time, String message)
+        public async Task<IResult> DeleteReminder(String time, String message)
         {
-            var response = await _mediator.Send(new AddReminderRequest(_commandContext.User.ID.Value, _commandContext.ChannelID.Value, time, message));
+            var timeSpanResult = await new TimeSpanParser().TryParse(time, default);
+            
+            if (!timeSpanResult.IsSuccess)
+            {
+                await _commandResponder.Respond("Please provide a valid time span for your Reminder.");
+                return Result.FromSuccess();
+            }
+
+            var timeSpan = timeSpanResult.Entity;
+
+            var response = await _mediator.Send(new AddReminderRequest(_commandContext.User.ID.Value, _commandContext.ChannelID.Value, timeSpan, message));
 
             await response.GetAction(async () => await _commandResponder.Respond($"You will be reminded about it in {time.Humanize()}"),
                 async () => await _commandResponder.Respond(response.ErrorMessage));
