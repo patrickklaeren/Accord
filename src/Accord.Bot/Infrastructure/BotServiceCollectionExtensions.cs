@@ -51,7 +51,8 @@ namespace Accord.Bot.Infrastructure
                 .AddCommandGroup<NamePatternCommandGroup>()
                 .AddCommandGroup<ProfileCommandGroup>()
                 .AddCommandGroup<UserReportCommandGroup>()
-                .AddCommandGroup<ReportCommandGroup>();
+                .AddCommandGroup<ReportCommandGroup>()
+                .AddCommandGroup<ModerationCommandGroup>();
 
             var responderTypes = typeof(BotClient).Assembly
                 .GetExportedTypes()

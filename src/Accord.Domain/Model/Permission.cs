@@ -25,6 +25,7 @@ namespace Accord.Domain.Model
         ManageFlags = 0,
         ManageUserReports = 1,
         ManagePatterns = 2,
+        ListRiskyUsers = 3,
     }
 
     public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>

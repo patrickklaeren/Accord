@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,5 +19,7 @@ namespace Accord.Domain.Model
         public DateTimeOffset LastSeenDateTime { get; set; }
 
         public float Xp { get; set; }
+
+        public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
     }
 }

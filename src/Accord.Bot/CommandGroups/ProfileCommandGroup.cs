@@ -23,21 +23,16 @@ namespace Accord.Bot.CommandGroups
         private readonly IMediator _mediator;
         private readonly ICommandContext _commandContext;
         private readonly IDiscordRestGuildAPI _guildApi;
-        private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly DiscordAvatarHelper _discordAvatarHelper;
         private readonly CommandResponder _commandResponder;
 
-        public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext, 
-            IDiscordRestChannelAPI channelApi, IDiscordRestWebhookAPI webhookApi,
+        public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext,
             IDiscordRestGuildAPI guildApi,
             DiscordAvatarHelper discordAvatarHelper,
             CommandResponder commandResponder)
         {
             _mediator = mediator;
             _commandContext = commandContext;
-            _channelApi = channelApi;
-            _webhookApi = webhookApi;
             _guildApi = guildApi;
             _discordAvatarHelper = discordAvatarHelper;
             _commandResponder = commandResponder;
