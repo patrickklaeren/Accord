@@ -11,11 +11,11 @@ using Remora.Discord.Core;
 
 namespace Accord.Services.Reminder
 {
-    public class ReminderService : BackgroundService
+    public class RemindersHostedService : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public ReminderService(IServiceScopeFactory serviceScopeFactory)
+        public RemindersHostedService(IServiceScopeFactory serviceScopeFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
         }
