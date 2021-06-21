@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Accord.Domain.Migrations
 {
-    public partial class AddUserReminder : Migration
+    public partial class AddUserReminders : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

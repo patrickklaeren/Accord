@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 
 namespace Accord.Services.Reminder
@@ -44,16 +45,21 @@ namespace Accord.Services.Reminder
 
             foreach (var reminder in processableReminders)
             {
-                if ((discard && (DateTime.Now - reminder.RemindAt).Minutes < 1) || !discard)
+                if ((discard && (DateTime.Now - reminder.RemindAt) < TimeSpan.FromMinutes(1)) || !discard)
                 {
-                    await channelApi.CreateMessageAsync(new Snowflake(reminder.DiscordChannelId),
-                        $"[Reminder] <@{reminder.UserId}> -- {reminder.Message}", ct: stoppingToken);
+                    var embed = new Embed
+                    {
+                        Title = "Reminder",
+                        Description = reminder.Message
+                    };
+
+                    await channelApi.CreateMessageAsync(new Snowflake(reminder.DiscordChannelId), $"<@{reminder.UserId}>", embed: embed, ct: stoppingToken);
                 }
 
                 await mediator.Send(new DeleteReminderRequest(reminder.UserId, reminder.Id), stoppingToken);
             }
 
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
         }
     }
 }
