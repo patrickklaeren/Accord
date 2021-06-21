@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,10 +44,9 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("me"), Description("Add a reminder for the invoking user.")]
-        public async Task<IResult> DeleteReminder(String time, String message)
+        public async Task<IResult> AddReminder(string time, string message)
         {
             var timeSpanResult = await new TimeSpanParser().TryParse(time, default);
-            
             if (!timeSpanResult.IsSuccess)
             {
                 await _commandResponder.Respond("Please provide a valid time span for your Reminder.");
@@ -56,11 +54,19 @@ namespace Accord.Bot.CommandGroups
             }
 
             var timeSpan = timeSpanResult.Entity;
+            var sanitizedMessage = message.DiscordSanitize();
 
-            var response = await _mediator.Send(new AddReminderRequest(_commandContext.User.ID.Value, _commandContext.ChannelID.Value, timeSpan, message));
+            var response = await _mediator.Send(new AddReminderRequest(
+                _commandContext.User.ID.Value,
+                _commandContext.ChannelID.Value,
+                timeSpan,
+                sanitizedMessage
+            ));
 
-            await response.GetAction(async () => await _commandResponder.Respond($"You will be reminded about it in {time.Humanize()}"),
-                async () => await _commandResponder.Respond(response.ErrorMessage));
+            await response.GetAction(
+                async () => await _commandResponder.Respond($"You will be reminded about it in {time.Humanize()}"),
+                async () => await _commandResponder.Respond(response.ErrorMessage)
+            );
 
             return Result.FromSuccess();
         }
@@ -75,7 +81,8 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("list-user"), Description("List the reminders of a user.")]
+        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("list-user"),
+         Description("List the reminders of the specified user.")]
         public async Task<IResult> ListUserReminders(IGuildMember member, int page = 1)
         {
             var embed = await GetUserReminders(member.User.Value!.ID, page - 1);
@@ -98,7 +105,7 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("delete-user"), RequireUserGuildPermission(DiscordPermission.Administrator),
-         Description("Deletes a reminder of the invoking user.")]
+         Description("Deletes a reminder of the specified user.")]
         public async Task<IResult> DeleteReminder(IGuildMember guildMember, int reminderId)
         {
             var response = await _mediator.Send(new DeleteReminderRequest(guildMember.User.Value!.ID.Value, reminderId));
@@ -121,7 +128,7 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("delete-user-all"), RequireUserGuildPermission(DiscordPermission.Administrator),
-         Description("Deletes all the reminders of a user.")]
+         Description("Deletes all the reminders of the specified user.")]
         public async Task<IResult> DeleteAllReminders(IGuildMember guildMember)
         {
             var response = await _mediator.Send(new DeleteAllRemindersRequest(guildMember.User.Value!.ID.Value));
@@ -194,7 +201,7 @@ namespace Accord.Bot.CommandGroups
             {
                 title += $" ({(start != end ? $"{start}-{end}" : $"{start}")}/{totalReminders})";
             }
-            else
+            else if (page > 0)
             {
                 content = "User has no more reminders";
             }
