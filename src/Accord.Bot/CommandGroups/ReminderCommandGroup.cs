@@ -114,7 +114,7 @@ namespace Accord.Bot.CommandGroups
         {
             var response = await _mediator.Send(new DeleteAllRemindersRequest(_commandContext.User.ID.Value));
 
-            await response.GetAction(async () => await _commandResponder.Respond($"Your reminders has been deleted."),
+            await response.GetAction(async () => await _commandResponder.Respond($"Your reminders have been deleted."),
                 async () => await _commandResponder.Respond(response.ErrorMessage));
 
             return Result.FromSuccess();
