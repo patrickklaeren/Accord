@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -8,7 +9,6 @@ using Accord.Services.ChannelFlags;
 using Accord.Services.Helpers;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
@@ -47,17 +47,21 @@ namespace Accord.Bot.Responders
 
             var image = _discordAvatarHelper.GetAvatar(user);
 
+            var builder = new StringBuilder()
+                .AppendLine("**User Information**")
+                .AppendLine($"ID: {user.ID.Value}")
+                .AppendLine($"Profile: {user.ID.ToUserMention()}")
+                .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}")
+                .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(user.ID.Value):yyy-MM-dd HH:mm:ss}");
+
             var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined",
-                Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
+                Description: builder.ToString(),
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
                 await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: ct);
-
-                // Artificial delay because Discord
-                await Task.Delay(TimeSpan.FromSeconds(3), ct);
             }
 
             await queueTask;
@@ -71,17 +75,22 @@ namespace Accord.Bot.Responders
 
             var image = _discordAvatarHelper.GetAvatar(gatewayEvent.User);
 
-            var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(gatewayEvent.User.Username, gatewayEvent.User.Discriminator)} left", 
-                Description: $"{gatewayEvent.User.ID.ToUserMention()} ({gatewayEvent.User.ID.Value})", 
+            var user = gatewayEvent.User;
+
+            var builder = new StringBuilder()
+                .AppendLine("**User Information**")
+                .AppendLine($"ID: {user.ID.Value}")
+                .AppendLine($"Profile: {user.ID.ToUserMention()}")
+                .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}");
+
+            var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} left",
+                Description: builder.ToString(),
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channels)
             {
                 await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: ct);
-
-                // Artificial delay because Discord
-                await Task.Delay(TimeSpan.FromSeconds(3), ct);
             }
 
             return Result.FromSuccess();
