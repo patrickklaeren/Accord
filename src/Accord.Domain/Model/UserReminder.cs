@@ -16,8 +16,6 @@ namespace Accord.Domain.Model
 
         public DateTime CreatedAt { get; set; }
         public DateTime RemindAt { get; set; }
-
-        [Column(TypeName = "text")]
         public string Message { get; set; } = null!;
     }
 }

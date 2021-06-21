@@ -1,6 +1,4 @@
-using System;
 using Accord.Bot;
-using Accord.Bot.Helpers;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
@@ -14,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Remora.Commands.Extensions;
 
 namespace Accord.Web
 {
@@ -36,9 +33,6 @@ namespace Accord.Web
                 .AddDiscordBot(_configuration)
                 .AddSingleton<RaidCalculator>()
                 .AddSingleton<IEventQueue, EventQueue>();
-
-            services
-                .AddParser<TimeSpan, TimeSpanParser>();
 
             // Configure hosted services
             services
