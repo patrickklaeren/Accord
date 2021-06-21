@@ -1,8 +1,10 @@
 ﻿using System.Linq;
+using System;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
 using Accord.Bot.Responders;
+using Accord.Services.Reminder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
@@ -38,11 +40,14 @@ namespace Accord.Bot.Infrastructure
                     o.Intents |= GatewayIntents.GuildMembers;
                     o.Intents |= GatewayIntents.GuildMessages;
                 })
+                .AddHostedService<RemindersHostedService>()
                 .AddDiscordCommands(true)
+                .AddParser<TimeSpan, TimeSpanParser>()
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
+                .AddCommandGroup<ReminderCommandGroup>()
                 .AddCommandGroup<NamePatternCommandGroup>()
                 .AddCommandGroup<ProfileCommandGroup>()
                 .AddCommandGroup<UserReportCommandGroup>()
