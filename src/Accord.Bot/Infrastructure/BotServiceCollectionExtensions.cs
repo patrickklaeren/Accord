@@ -36,7 +36,7 @@ namespace Accord.Bot.Infrastructure
                     o.Intents |= GatewayIntents.GuildMembers;
                     o.Intents |= GatewayIntents.GuildMessages;
                 })
-                .AddHostedService<ReminderService>()
+                .AddHostedService<RemindersHostedService>()
                 .AddDiscordCommands(true)
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
