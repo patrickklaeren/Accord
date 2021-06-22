@@ -2,6 +2,7 @@
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Results;
 
 namespace Accord.Bot.Helpers
 {
@@ -18,28 +19,42 @@ namespace Accord.Bot.Helpers
             _commandContext = commandContext;
         }
 
-        public async Task Respond(string message)
+        public async Task<IResult> Respond(string message)
         {
             if (_commandContext is InteractionContext interactionContext)
             {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
+                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
             }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
-            }
+
+            return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
         }
 
-        public async Task Respond(Embed embed)
+        public async Task<IResult> Respond(Embed embed)
         {
             if (_commandContext is InteractionContext interactionContext)
             {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] { embed });
+                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] { embed });
             }
-            else
+
+            return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+        }
+
+        public async Task<IResult> Respond(params Embed[] embeds)
+        {
+            if (_commandContext is InteractionContext interactionContext)
             {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: embeds);
             }
+
+            foreach (var embed in embeds)
+            {
+                var response = await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+
+                if (!response.IsSuccess)
+                    return response;
+            }
+
+            return Result.FromSuccess();
         }
     }
 }

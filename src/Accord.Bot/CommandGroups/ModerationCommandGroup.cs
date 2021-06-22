@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
-using Accord.Services.Helpers;
 using Accord.Services.Users;
-using Humanizer;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -49,21 +48,24 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
-            var payload = string.Join($"{Environment.NewLine}{Environment.NewLine}", 
-                response.Value.Select((x, i) => 
-                    $"**User {i}**" +
-                    $"ID: {x.DiscordUserId}" +
-                    $"Profile: {DiscordMentionHelper.UserIdToMention(x.DiscordUserId)}" +
-                    $"Handle: {x.UsernameWithDiscriminator}" +
-                    $"Joined: {x.JoinedDateTime:yyyy-MM-dd HH:mm:ss}" +
-                    $"Created: {x.CreatedDateTime:yyyy-MM-dd HH:mm:ss}"));
+            var batches = response.Value.Batch(10);
 
-            var embed = new Embed(Title: "Risky Users",
-                Description: payload);
+            var embeds = new List<Embed>();
 
-            await _commandResponder.Respond(embed);
+            foreach (var batch in batches)
+            {
+                var payload = string.Join($"{Environment.NewLine}",
+                    batch.Select((x, i) => new StringBuilder()
+                        .AppendLine($"**{x.UsernameWithDiscriminator}**")
+                        .AppendLine($"Profile: {DiscordMentionHelper.UserIdToMention(x.DiscordUserId)}")
+                        .AppendLine($"Joined: {x.JoinedDateTime:yyyy-MM-dd HH:mm:ss}")
+                        .AppendLine($"Created: {x.CreatedDateTime:yyyy-MM-dd HH:mm:ss}")
+                        .ToString()));
 
-            return Result.FromSuccess();
+                embeds.Add(new Embed(Title: "Risky Users", Description: payload));
+            }
+
+            return await _commandResponder.Respond(embeds.ToArray());
         }
     }
 }
