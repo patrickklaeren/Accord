@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Microsoft.AspNetCore.Hosting;
@@ -56,16 +57,16 @@ namespace Accord.Web
                             logConfiguration.WriteTo.Console();
                         }
 
-                        if (context.HostingEnvironment.IsProduction())
-                        {
-                            var section = context.Configuration.GetSection("SentryConfiguration");
+                        var sentrySection = context.Configuration.GetSection("SentryConfiguration");
 
+                        if (!string.IsNullOrWhiteSpace(sentrySection["Dsn"]))
+                        {
                             logConfiguration.WriteTo.Sentry(o =>
                             {
                                 o.MinimumBreadcrumbLevel = LogEventLevel.Information;
                                 o.MinimumEventLevel = LogEventLevel.Warning;
-                                o.Dsn = section["Dsn"];
-                                o.Environment = section["Environment"];
+                                o.Dsn = sentrySection["Dsn"];
+                                o.Environment = sentrySection["Environment"];
                                 o.BeforeSend = BeforeSend;
                             });
                         }
@@ -74,8 +75,20 @@ namespace Accord.Web
                     webBuilder.UseStartup<Startup>();
                 });
 
+        private static readonly string[] IgnoredLogMessages = new[]
+        {
+            // Remora no command found error
+            "No matching command could be found.",
+        };
+
         private static SentryEvent? BeforeSend(SentryEvent arg)
         {
+            if (arg.Message?.Formatted is not null 
+                && IgnoredLogMessages.Any(x => arg.Message.Formatted.Contains(x)))
+            {
+                return null;
+            }
+
             var hasCode = arg.Extra.TryGetValue("StatusCode", out var code);
 
             // Don't log 404's

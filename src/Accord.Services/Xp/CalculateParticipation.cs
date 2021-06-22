@@ -23,6 +23,16 @@ namespace Accord.Services.Xp
             _mediator = mediator;
         }
 
+        public enum PointType
+        {
+            Consistency,
+        }
+
+        private readonly Dictionary<PointType, int> _typePoints = new()
+        {
+            [PointType.Consistency] = 5,
+        };
+
         public async Task Calculate()
         {
             var calculateFromDate = DateTimeOffset.Now;
@@ -73,9 +83,14 @@ namespace Accord.Services.Xp
                     .ToList();
 
                 var dateToCalculateFromForUser = DateTimeHelper.Max(userStats.FirstSeenDateTime, calculateFromDate);
-                var daysInCalculation = (DateTimeOffset.Now - calculateFromDate).Days;
+                var daysInCalculation = (DateTimeOffset.Now - dateToCalculateFromForUser).Days;
 
-                var consistencyScale = messagesSentByUser.GroupBy(x => x.Select(q => q.SentDateTime.Date));
+                var consistencyScale = messagesSentByUser
+                    .SelectMany(x => x.Select(q => q.SentDateTime.Date))
+                    .Distinct()
+                    .ToList();
+
+                var consistencyPoints = _typePoints[PointType.Consistency] * consistencyScale.Count;
 
                 // TODO Calculate participation
             }
