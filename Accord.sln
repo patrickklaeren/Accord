@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Bot", "src\Accord.Bo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Domain", "src\Accord.Domain\Accord.Domain.csproj", "{547C46E2-C002-4D0D-8D55-8747A1A12E25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accord.Services", "src\Accord.Services\Accord.Services.csproj", "{BB59B909-FB6E-4866-8D69-96CFFA9E15C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Accord.Services", "src\Accord.Services\Accord.Services.csproj", "{BB59B909-FB6E-4866-8D69-96CFFA9E15C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accord.Tests", "src\Accord.Tests\Accord.Tests.csproj", "{E3FA1293-FF40-4DF3-9FC9-4F4D2CF19186}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{BB59B909-FB6E-4866-8D69-96CFFA9E15C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB59B909-FB6E-4866-8D69-96CFFA9E15C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB59B909-FB6E-4866-8D69-96CFFA9E15C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3FA1293-FF40-4DF3-9FC9-4F4D2CF19186}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3FA1293-FF40-4DF3-9FC9-4F4D2CF19186}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3FA1293-FF40-4DF3-9FC9-4F4D2CF19186}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3FA1293-FF40-4DF3-9FC9-4F4D2CF19186}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
