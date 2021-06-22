@@ -1,4 +1,4 @@
-﻿namespace Accord.Bot.Helpers
+﻿namespace Accord.Bot.Extensions
 {
     public static class UShortExtensions
     {

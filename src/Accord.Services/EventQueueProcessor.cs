@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Services;
 using Accord.Services.Raid;
 using Accord.Services.Users;
 using Accord.Services.VoiceSessions;
@@ -12,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Accord.Web.Hosted
+namespace Accord.Services
 {
     public class EventQueueProcessor : BackgroundService
     {

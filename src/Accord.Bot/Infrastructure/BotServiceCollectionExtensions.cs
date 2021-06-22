@@ -3,7 +3,6 @@ using System;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
-using Accord.Bot.Responders;
 using Accord.Services.Reminder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

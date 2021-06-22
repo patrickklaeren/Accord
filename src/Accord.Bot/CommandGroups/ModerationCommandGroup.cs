@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Services.Users;
 using MediatR;

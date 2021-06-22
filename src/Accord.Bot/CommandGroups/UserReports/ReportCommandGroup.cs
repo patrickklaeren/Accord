@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Numerics;
 using System.Threading.Tasks;
+using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Services.UserReports;
 using MediatR;

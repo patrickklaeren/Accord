@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Accord.Domain;
-using Accord.Web.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

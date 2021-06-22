@@ -3,7 +3,6 @@ using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.Raid;
-using Accord.Web.Hosted;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

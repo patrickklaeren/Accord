@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;

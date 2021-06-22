@@ -1,9 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Accord.Bot;
 using Microsoft.Extensions.Hosting;
 
-namespace Accord.Web.Hosted
+namespace Accord.Bot.Infrastructure
 {
     public class BotHostedService : IHostedService
     {
