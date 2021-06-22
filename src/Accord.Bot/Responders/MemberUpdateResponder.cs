@@ -36,7 +36,7 @@ namespace Accord.Bot.Responders
             var user = gatewayEvent.User;
 
             var diff = await _mediator.Send(new GetDiffForUserRequest(user.ID.Value, user.Username,
-                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.Value));
+                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null));
 
             if (diff.HasDiff)
             {
@@ -60,7 +60,7 @@ namespace Accord.Bot.Responders
             }
 
             await _mediator.Send(new UpdateUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username,
-                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.Value, gatewayEvent.JoinedAt), ct);
+                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null, gatewayEvent.JoinedAt), ct);
 
             return Result.FromSuccess();
         }
