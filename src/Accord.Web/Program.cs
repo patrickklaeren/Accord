@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Sentry;
 using Serilog;
 using Serilog.Events;
 
@@ -14,12 +15,6 @@ namespace Accord.Web
     {
         public static async Task Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()                               
-                .CreateLogger();
-
             Log.Information("Starting up...");
 
             var host = CreateHostBuilder(args).Build();
@@ -43,13 +38,6 @@ namespace Accord.Web
 
             Log.Information("Ready to run");
 
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.Mediatr(host.Services.GetRequiredService<IServiceScopeFactory>())
-                .CreateLogger();
-
             await host.RunAsync();
         }
 
@@ -58,7 +46,44 @@ namespace Accord.Web
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseSerilog((context, logConfiguration) =>
+                    {
+                        logConfiguration.MinimumLevel.Debug()
+                            .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+                            .Enrich.FromLogContext();
+
+                        if (context.HostingEnvironment.IsDevelopment())
+                        {
+                            logConfiguration.WriteTo.Console();
+                        }
+
+                        if (context.HostingEnvironment.IsProduction())
+                        {
+                            var section = context.Configuration.GetSection("SentryConfiguration");
+
+                            logConfiguration.WriteTo.Sentry(o =>
+                            {
+                                o.MinimumBreadcrumbLevel = LogEventLevel.Information;
+                                o.MinimumEventLevel = LogEventLevel.Warning;
+                                o.Dsn = section["Dsn"];
+                                o.Environment = section["Environment"];
+                                o.BeforeSend = BeforeSend;
+                            });
+                        }
+                    });
+
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static SentryEvent? BeforeSend(SentryEvent arg)
+        {
+            var hasCode = arg.Extra.TryGetValue("StatusCode", out var code);
+
+            // Don't log 404's
+            if (hasCode && code?.ToString() == "404")
+                return null;
+
+            return arg;
+        }
     }
 }
