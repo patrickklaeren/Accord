@@ -65,7 +65,7 @@ namespace Accord.Bot.CommandGroups
             ));
 
             await response.GetAction(
-                async () => await _commandResponder.Respond($"You will be reminded about it in {time.Humanize()}"),
+                async () => await _commandResponder.Respond($"You will be reminded about it in {timeSpan.Humanize()}"),
                 async () => await _commandResponder.Respond(response.ErrorMessage)
             );
 
