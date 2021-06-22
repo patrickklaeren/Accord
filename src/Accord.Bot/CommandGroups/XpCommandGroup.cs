@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services;
 using Accord.Services.Xp;
+using Humanizer;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -52,7 +53,7 @@ namespace Accord.Bot.CommandGroups
             stringBuilder.AppendLine("**Voice Minutes**");
 
             var voiceUsers = string.Join(Environment.NewLine, leaderboard.VoiceUsers
-                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.MinutesInVoiceChannel:0.00}"));
+                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {TimeSpan.FromMinutes(x.MinutesInVoiceChannel).Humanize()}"));
 
             stringBuilder.Append(voiceUsers);
 
