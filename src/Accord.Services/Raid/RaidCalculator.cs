@@ -19,6 +19,10 @@ namespace Accord.Services.Raid
             {
                 _joinsInLastRecordedCooldown = 1;
             }
+            else
+            {
+                _joinsInLastRecordedCooldown++;
+            }
 
             var accountCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userJoin.DiscordUserId);
 
@@ -38,7 +42,6 @@ namespace Accord.Services.Raid
             }
 
             _lastJoin = userJoin.JoinedDateTime;
-            _joinsInLastRecordedCooldown++;
             _lastJoinAccountCreated = accountCreated;
 
             return _joinsInLastRecordedCooldown >= limit 

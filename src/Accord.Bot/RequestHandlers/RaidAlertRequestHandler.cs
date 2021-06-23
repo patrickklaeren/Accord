@@ -40,7 +40,7 @@ namespace Accord.Bot.RequestHandlers
 
                 foreach (var channel in channelsToPostTo)
                 {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
+                    await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.PatrickSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
                 }
             }
         }
