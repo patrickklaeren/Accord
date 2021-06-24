@@ -23,7 +23,7 @@ namespace Accord.Bot.Responders
         {
             var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
             {
-                new Activity("for Patrick", ActivityType.Watching)
+                new Activity("for script kiddies", ActivityType.Watching)
             });
 
             _discordGatewayClient.SubmitCommandAsync(updateCommand);

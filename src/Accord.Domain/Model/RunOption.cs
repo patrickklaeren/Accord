@@ -26,7 +26,7 @@ namespace Accord.Domain.Model
                 Value = "False"
             }, new RunOption()
             {
-                Type = RunOptionType.JoinsToTriggerRaidModePerMinute,
+                Type = RunOptionType.SequentialJoinsToTriggerRaidMode,
                 Value = "10"
             }, new RunOption()
             {
@@ -44,6 +44,10 @@ namespace Accord.Domain.Model
             {
                 Type = RunOptionType.UserReportsAgentRoleId,
                 Value = ""
+            }, new RunOption()
+            {
+                Type = RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode,
+                Value = "3"
             }
             );
         }
@@ -53,11 +57,13 @@ namespace Accord.Domain.Model
     {
         RaidModeEnabled = 0,
         AutoRaidModeEnabled = 1,
-        JoinsToTriggerRaidModePerMinute = 2,
+        SequentialJoinsToTriggerRaidMode = 2,
 
         UserReportsEnabled = 3,
         UserReportsOutboxCategoryId = 4,
         UserReportsInboxCategoryId = 5,
         UserReportsAgentRoleId = 6,
+
+        AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
     }
 }

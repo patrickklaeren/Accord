@@ -12,7 +12,7 @@ namespace Accord.Services.Raid
 
         private static readonly TimeSpan JoinCooldown = TimeSpan.FromSeconds(90);
 
-        public bool CalculateIsRaid(UserJoin userJoin, int limit)
+        public bool CalculateIsRaid(UserJoin userJoin, int sequentialLimit, int accountCreationSimilarityLimit)
         {
             if (_lastJoin is null 
                 || (userJoin.JoinedDateTime - _lastJoin) > JoinCooldown)
@@ -44,8 +44,8 @@ namespace Accord.Services.Raid
             _lastJoin = userJoin.JoinedDateTime;
             _lastJoinAccountCreated = accountCreated;
 
-            return _joinsInLastRecordedCooldown >= limit 
-                   || _joinsWithSimilarDegreeCreation >= limit;
+            return _joinsInLastRecordedCooldown >= sequentialLimit 
+                   || _joinsWithSimilarDegreeCreation >= accountCreationSimilarityLimit;
         }
     }
 

@@ -39,7 +39,7 @@ namespace Accord.Services.Raid
         private async Task<int> GetLimitPerOneMinute()
         {
             var value = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.JoinsToTriggerRaidModePerMinute)
+                .Where(x => x.Type == RunOptionType.SequentialJoinsToTriggerRaidMode)
                 .Select(x => x.Value)
                 .SingleAsync();
 

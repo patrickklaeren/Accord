@@ -35,7 +35,7 @@ namespace Accord.Tests.Services.Raid.RaidCalculator
 
             foreach (var join in joins)
             {
-                isRaid = sut.CalculateIsRaid(join, LIMIT);
+                isRaid = sut.CalculateIsRaid(join, LIMIT, LIMIT);
             }
 
             isRaid.Should().BeTrue();
@@ -59,7 +59,7 @@ namespace Accord.Tests.Services.Raid.RaidCalculator
 
             foreach (var join in joins)
             {
-                isRaid = sut.CalculateIsRaid(join, LIMIT);
+                isRaid = sut.CalculateIsRaid(join, LIMIT, LIMIT);
             }
 
             isRaid.Should().BeFalse();
@@ -83,7 +83,7 @@ namespace Accord.Tests.Services.Raid.RaidCalculator
 
             foreach (var join in joins)
             {
-                isRaid = sut.CalculateIsRaid(join, LIMIT);
+                isRaid = sut.CalculateIsRaid(join, LIMIT, LIMIT);
             }
 
             isRaid.Should().BeTrue();
@@ -107,7 +107,7 @@ namespace Accord.Tests.Services.Raid.RaidCalculator
 
             foreach (var join in joins)
             {
-                isRaid = sut.CalculateIsRaid(join, LIMIT);
+                isRaid = sut.CalculateIsRaid(join, LIMIT, LIMIT);
             }
 
             isRaid.Should().BeFalse();

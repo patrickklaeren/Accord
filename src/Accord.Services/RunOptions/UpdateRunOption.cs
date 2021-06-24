@@ -43,9 +43,15 @@ namespace Accord.Services.RunOptions
                     success = true;
                     break;
 
-                case RunOptionType.JoinsToTriggerRaidModePerMinute when int.TryParse(request.RawValue, out var actualValue):
+                case RunOptionType.SequentialJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     await _mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
+                    success = true;
+                    break;
+
+                case RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
+                    runOption.Value = actualValue.ToString();
+                    await _mediator.Send(new InvalidateGetAccountCreationSimilarityLimitRequest(), cancellationToken);
                     success = true;
                     break;
 
