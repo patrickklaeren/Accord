@@ -23,16 +23,6 @@ namespace Accord.Services.Xp
             _mediator = mediator;
         }
 
-        public enum PointType
-        {
-            Consistency,
-        }
-
-        private readonly Dictionary<PointType, int> _typePoints = new()
-        {
-            [PointType.Consistency] = 5,
-        };
-
         public async Task Calculate()
         {
             var calculateFromDate = DateTimeOffset.Now;
@@ -56,17 +46,20 @@ namespace Accord.Services.Xp
                 .GroupBy(x => x.UserId)
                 .ToListAsync();
 
-            var rankedMessengers = messagesQuery.OrderByDescending(x => x.Count()).Take(10).ToList();
-            var rankedTalkers = voicesQuery.OrderByDescending(x => x.Sum(q => q.MinutesInVoiceChannel)).Take(10).ToList();
+            var rankedMessengers = messagesQuery.OrderByDescending(x => x.Count()).ToList();
+            var rankedVoiceUsers = voicesQuery.OrderByDescending(x => x.Sum(q => q.MinutesInVoiceChannel)).ToList();
 
-            var allUserIds = messagesQuery
+            var userParticipation = messagesQuery
                 .Select(x => x.Key)
                 .Concat(voicesQuery.Select(d => d.Key))
                 .Distinct()
-                .Select(id => new UserParticipation(id));
+                .Select(id => new UserParticipation(id))
+                .ToList();
 
-            foreach (var user in allUserIds)
+            foreach (var user in userParticipation)
             {
+                var pointsForUser = 0;
+
                 var userStats = await _db.Users
                     .Where(x => x.Id == user.DiscordUserId)
                     .Select(x => new
@@ -78,24 +71,78 @@ namespace Accord.Services.Xp
                     .Where(x => x.Key == user.DiscordUserId)
                     .ToList();
 
-                var voiceSessions = messagesQuery
+                var voiceSessions = voicesQuery
                     .Where(x => x.Key == user.DiscordUserId)
                     .ToList();
 
                 var dateToCalculateFromForUser = DateTimeHelper.Max(userStats.FirstSeenDateTime, calculateFromDate);
-                var daysInCalculation = (DateTimeOffset.Now - dateToCalculateFromForUser).Days;
 
-                var consistencyScale = messagesSentByUser
+                var activityDates = messagesSentByUser
                     .SelectMany(x => x.Select(q => q.SentDateTime.Date))
+                    .Concat(voiceSessions.SelectMany(q => q.Select(c => c.StartDateTime.Date)))
                     .Distinct()
                     .ToList();
 
-                var consistencyPoints = _typePoints[PointType.Consistency] * consistencyScale.Count;
+                foreach (var day in EachDay(dateToCalculateFromForUser.Date, DateTime.Today))
+                {
+                    var hasActivityInDay = activityDates.Any(date => date == day);
+                    var hasActivityNextDay = activityDates.Any(date => date == day.AddDays(1));
 
-                // TODO Calculate participation
+                    if (hasActivityInDay && hasActivityNextDay)
+                    {
+                        pointsForUser += 5;
+                    }
+                }
+
+                var rankedMessengerPosition = rankedMessengers.SingleOrDefault(x => x.Key == user.DiscordUserId);
+                var rankedVoiceUserPosition = rankedVoiceUsers.SingleOrDefault(x => x.Key == user.DiscordUserId);
+
+                if (rankedMessengerPosition is not null)
+                {
+                    pointsForUser += rankedMessengers.Count - rankedMessengers.IndexOf(rankedMessengerPosition);
+                }
+
+                if (rankedVoiceUserPosition is not null)
+                {
+                    pointsForUser += rankedVoiceUsers.Count - rankedVoiceUsers.IndexOf(rankedVoiceUserPosition);
+                }
+
+                if (rankedMessengerPosition is not null
+                    && rankedVoiceUserPosition is not null)
+                {
+                    pointsForUser += (rankedMessengers.Count - rankedMessengers.IndexOf(rankedMessengerPosition))
+                        + (rankedVoiceUsers.Count - rankedVoiceUsers.IndexOf(rankedVoiceUserPosition));
+                }
+
+                user.Points = pointsForUser;
+            }
+
+            var orderedParticipation = userParticipation.OrderByDescending(x => x.Points).ToList();
+
+            foreach (var user in orderedParticipation)
+            {
+                var rank = orderedParticipation.IndexOf(user) + 1;
+                double percentile = (1 - (rank / orderedParticipation.Count)) * 100;
+                user.Percentile = percentile;
+            }
+
+            static IEnumerable<DateTime> EachDay(DateTime from, DateTime until)
+            {
+                for (var day = from.Date; day.Date <= until.Date; day = day.AddDays(1))
+                    yield return day;
             }
         }
     }
 
-    internal sealed record UserParticipation(ulong DiscordUserId, int Points = 0);
+    internal class UserParticipation
+    {
+        public UserParticipation(ulong id)
+        {
+            DiscordUserId = id;
+        }
+
+        public ulong DiscordUserId { get; set; }
+        public int Points { get; set; }
+        public double Percentile { get; set; }
+    }
 }
