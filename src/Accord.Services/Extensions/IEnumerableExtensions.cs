@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Accord.Bot.Extensions
+namespace Accord.Services.Extensions
 {
     public static class IEnumerableExtensions
     {

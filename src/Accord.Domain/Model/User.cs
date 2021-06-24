@@ -20,6 +20,10 @@ namespace Accord.Domain.Model
 
         public float Xp { get; set; }
 
+        public int ParticipationRank { get; set; }
+        public int ParticipationPoints { get; set; }
+        public double ParticipationPercentile { get; set; }
+
         public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
     }
 }

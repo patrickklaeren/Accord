@@ -4,14 +4,16 @@ using Accord.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    partial class AccordContextModelSnapshot : ModelSnapshot
+    [Migration("20210624191005_AddUserParticipation")]
+    partial class AddUserParticipation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,9 +165,6 @@ namespace Accord.Domain.Migrations
                         .HasColumnType("float");
 
                     b.Property<int>("ParticipationPoints")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ParticipationRank")
                         .HasColumnType("int");
 
                     b.Property<string>("UsernameWithDiscriminator")

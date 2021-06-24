@@ -10,9 +10,8 @@ namespace Accord.Services.Xp
 {
     public sealed record GetLeaderboardRequest : IRequest<Leaderboard>;
 
-    public sealed record Leaderboard(List<MessageUser> MessageUsers, List<VoiceUser> VoiceUsers);
-    public record MessageUser(ulong DiscordUserId, float Xp);
-    public record VoiceUser(ulong DiscordUserId, double MinutesInVoiceChannel);
+    public sealed record Leaderboard(List<MessageUser> MessageUsers);
+    public record MessageUser(ulong DiscordUserId, float ParticipationPoints);
 
     public class GetLeaderboardHandler : IRequestHandler<GetLeaderboardRequest, Leaderboard>
     {
@@ -25,22 +24,14 @@ namespace Accord.Services.Xp
 
         public async Task<Leaderboard> Handle(GetLeaderboardRequest request, CancellationToken cancellationToken)
         {
-            var messageUsers = await _db.Users
-                .OrderByDescending(x => x.Xp)
+            var users = await _db.Users
+                .OrderByDescending(x => x.ParticipationPoints)
                 .ThenBy(x => x.LastSeenDateTime)
                 .Take(10)
-                .Select(x => new MessageUser(x.Id, x.Xp))
+                .Select(x => new MessageUser(x.Id, x.ParticipationPoints))
                 .ToListAsync(cancellationToken: cancellationToken);
 
-            var voiceUsers = await _db.VoiceConnections
-                .Where(x => x.MinutesInVoiceChannel != null)
-                .GroupBy(x => x.UserId)
-                .OrderByDescending(x => x.Sum(q => q.MinutesInVoiceChannel!.Value))
-                .Take(10)
-                .Select(x => new VoiceUser(x.Key, x.Sum(q => q.MinutesInVoiceChannel!.Value)))
-                .ToListAsync(cancellationToken: cancellationToken);
-
-            return new Leaderboard(messageUsers, voiceUsers);
+            return new Leaderboard(users);
         }
     }
 }

@@ -8,12 +8,15 @@ using Accord.Services.Helpers;
 using Accord.Services.Users;
 using Humanizer;
 using MediatR;
+using Polly.Caching;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Core;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
@@ -39,9 +42,17 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("profile"), Description("Get your profile")]
-        public async Task<IResult> GetProfile()
+        public async Task<IResult> GetProfile(IGuildMember? member = null)
         {
-            var response = await _mediator.Send(new GetUserRequest(_commandContext.User.ID.Value));
+            if (member is not null && !member.User.HasValue)
+            {
+                await _commandResponder.Respond("Failed finding user");
+                Result.FromSuccess();
+            }
+
+            var userId = member?.User.Value!.ID.Value ?? _commandContext.User.ID.Value;
+
+            var response = await _mediator.Send(new GetUserRequest(userId));
 
             if (!response.Success)
             {
@@ -49,7 +60,7 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
-            var guildUserEntity = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, _commandContext.User.ID);
+            var guildUserEntity = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, new Snowflake(userId));
 
             if (!guildUserEntity.IsSuccess || guildUserEntity.Entity is null || !guildUserEntity.Entity.User.HasValue)
             {
@@ -91,7 +102,12 @@ namespace Accord.Bot.CommandGroups
 
             builder
                 .AppendLine()
-                .AppendLine("**Message Experience**")
+                .AppendLine("**Guild Participation**")
+                .AppendLine($"Rank: {userDto.ParticipationRank}")
+                .AppendLine($"Points: {userDto.ParticipationPoints}")
+                .AppendLine($"Percentile: {Math.Round(userDto.ParticipationPercentile, 1)}%")
+                .AppendLine()
+                .AppendLine("**Message Participation**")
                 .AppendLine($"Last 30 days: {userMessagesInChannelDtos.Sum(x => x.NumberOfMessages)} messages");
 
             if (userMessagesInChannelDtos.Any())
@@ -105,8 +121,8 @@ namespace Accord.Bot.CommandGroups
 
             builder
                 .AppendLine()
-                .AppendLine("**Voice Experience**")
-                .AppendLine($"Last 30 days: {Math.Round(userVoiceMinutesInChannelDtos.Sum(x => x.NumberOfMinutes), 0)} minutes");
+                .AppendLine("**Voice Participation**")
+                .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceMinutesInChannelDtos.Sum(x => x.NumberOfMinutes)).Humanize()}");
 
             if (userVoiceMinutesInChannelDtos.Any())
             {
@@ -114,7 +130,7 @@ namespace Accord.Bot.CommandGroups
                     .OrderByDescending(x => x.NumberOfMinutes)
                     .First();
 
-                builder.AppendLine($"Most active voice channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({Math.Round(numberOfMinutes, 0)} minutes)");
+                builder.AppendLine($"Most active voice channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
             }
 
             var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),

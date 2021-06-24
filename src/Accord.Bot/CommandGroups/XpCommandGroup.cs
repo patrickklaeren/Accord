@@ -4,16 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
-using Accord.Services;
 using Accord.Services.Xp;
-using Humanizer;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
-using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;
-using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
@@ -21,17 +18,12 @@ namespace Accord.Bot.CommandGroups
     public class XpCommandGroup : CommandGroup
     {
         private readonly IMediator _mediator;
-        private readonly ICommandContext _commandContext;
-        private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
+        private readonly CommandResponder _commandResponder;
 
-        public XpCommandGroup(IMediator mediator, ICommandContext commandContext, 
-            IDiscordRestChannelAPI channelApi, IDiscordRestWebhookAPI webhookApi)
+        public XpCommandGroup(IMediator mediator, CommandResponder commandResponder)
         {
             _mediator = mediator;
-            _commandContext = commandContext;
-            _channelApi = channelApi;
-            _webhookApi = webhookApi;
+            _commandResponder = commandResponder;
         }
 
         [RequireContext(ChannelContext.Guild), Command("leaderboard"), Description("Get a leaderboard of XP")]
@@ -41,32 +33,24 @@ namespace Accord.Bot.CommandGroups
 
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("**Messages XP**");
+            var leaderboardPayload = string.Join(Environment.NewLine, leaderboard.MessageUsers
+                .Select((user, position) => $"[{position + 1}] {DiscordMentionHelper.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
 
-            var messageUsers = string.Join(Environment.NewLine, leaderboard.MessageUsers
-                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {x.Xp}"));
+            stringBuilder.Append(leaderboardPayload);
 
-            stringBuilder.Append(messageUsers);
+            var embed = new Embed(Title: "Leaderboard", Description: leaderboardPayload, Footer: new EmbedFooter("See individual statistics via the /profile command"));
 
-            stringBuilder.AppendLine(string.Empty);
+            await _commandResponder.Respond(embed);
 
-            stringBuilder.AppendLine("**Voice Minutes**");
+            return Result.FromSuccess();
+        }
 
-            var voiceUsers = string.Join(Environment.NewLine, leaderboard.VoiceUsers
-                .Select(x => $"{DiscordMentionHelper.UserIdToMention(x.DiscordUserId)} {TimeSpan.FromMinutes(x.MinutesInVoiceChannel).Humanize()}"));
+        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
+        public async Task<IResult> CalculateXp()
+        {
+            await _mediator.Send(new CalculateParticipationRequest());
 
-            stringBuilder.Append(voiceUsers);
-
-            var embed = new Embed(Title: "Leaderboard", Description: stringBuilder.ToString());
-
-            if (_commandContext is InteractionContext interactionContext)
-            {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] {embed});
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
-            }
+            await _commandResponder.Respond("Calculated!");
 
             return Result.FromSuccess();
         }

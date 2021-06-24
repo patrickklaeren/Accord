@@ -13,7 +13,7 @@ namespace Accord.Services.Users
     public sealed record GetUserRequest(ulong DiscordUserId) : IRequest<ServiceResponse<GetUserDto>>;
     public sealed record GetUserDto(UserDto User, List<UserMessagesInChannelDto> Messages, List<UserVoiceMinutesInChannelDto> VoiceMinutes);
 
-    public sealed record UserDto(ulong Id, string? UsernameWithDiscriminator, string? Nickname, DateTimeOffset? JoinedGuildDateTime, DateTimeOffset FirstSeenDateTime, float Xp);
+    public sealed record UserDto(ulong Id, string? UsernameWithDiscriminator, string? Nickname, DateTimeOffset? JoinedGuildDateTime, DateTimeOffset FirstSeenDateTime, int ParticipationRank, int ParticipationPoints, double ParticipationPercentile);
     public sealed record UserMessagesInChannelDto(ulong DiscordChannelId, int NumberOfMessages);
     public sealed record UserVoiceMinutesInChannelDto(ulong DiscordChannelId, double NumberOfMinutes);
 
@@ -40,15 +40,15 @@ namespace Accord.Services.Users
 
             var user = await _appCache.GetOrAddAsync(BuildGetUserCacheKey(request.DiscordUserId), 
                 () => GetUser(request.DiscordUserId), 
-                DateTimeOffset.Now.AddMinutes(1));
+                DateTimeOffset.Now.AddMinutes(5));
 
             var messagesSent = await _appCache.GetOrAddAsync(BuildGetMessagesCacheKey(request.DiscordUserId),
                 () => GetMessages(request.DiscordUserId),
-                DateTimeOffset.Now.AddMinutes(1));
+                DateTimeOffset.Now.AddMinutes(5));
 
             var voice = await _appCache.GetOrAddAsync(BuildGetVoiceMinutesCacheKey(request.DiscordUserId),
                 () => GetVoiceMinutes(request.DiscordUserId),
-                DateTimeOffset.Now.AddMinutes(1));
+                DateTimeOffset.Now.AddMinutes(5));
 
             return ServiceResponse.Ok(new GetUserDto(user, messagesSent, voice));
         }
@@ -62,7 +62,9 @@ namespace Accord.Services.Users
         {
             return await _db.Users
                 .Where(x => x.Id == discordUserId)
-                .Select(x => new UserDto(x.Id, x.UsernameWithDiscriminator, x.Nickname, x.JoinedGuildDateTime, x.FirstSeenDateTime, x.Xp))
+                .Select(x => new UserDto(x.Id, x.UsernameWithDiscriminator, x.Nickname, 
+                    x.JoinedGuildDateTime, x.FirstSeenDateTime, x.ParticipationRank, 
+                    x.ParticipationPoints, x.ParticipationPercentile))
                 .SingleAsync();
         }
 
