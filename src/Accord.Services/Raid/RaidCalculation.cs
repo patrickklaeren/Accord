@@ -1,17 +1,15 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
+using Accord.Services.Moderation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid
 {
     public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest<ServiceResponse>;
-    public sealed record GuildUserDto(ulong Id, string Username, string Discriminator, DateTimeOffset JoinedDateTime);
     public sealed record RaidAlertRequest(ulong DiscordGuildId, bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
-    public sealed record KickRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest;
 
     public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, ServiceResponse>
     {
@@ -58,7 +56,11 @@ namespace Accord.Services.Raid
             if (isRaid && isAutoRaidModeEnabled)
             {
                 await _mediator.Send(new KickRequest(request.DiscordGuildId, 
-                    new GuildUserDto(request.User.Id, request.User.Username, request.User.Discriminator, request.User.JoinedDateTime)), 
+                    new GuildUserDto(request.User.Id, request.User.Username, 
+                        request.User.Discriminator, 
+                        null,
+                        request.User.JoinedDateTime),
+                    "Detected as part of Raid"), 
                     cancellationToken);
             }
 

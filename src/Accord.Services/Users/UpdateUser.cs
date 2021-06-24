@@ -2,7 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Services.Moderation;
 using Accord.Services.NamePatterns;
+using Accord.Services.Raid;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,7 +37,8 @@ namespace Accord.Services.Users
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, user.Id, user.UsernameWithDiscriminator, user.Nickname), cancellationToken);
+            await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
+                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, request.DiscordNickname, request.JoinedDateTime!.Value)), cancellationToken);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Services.Moderation;
 using Accord.Services.Raid;
 using Accord.Services.UserMessages;
 using Accord.Services.Users;
@@ -58,7 +59,11 @@ namespace Accord.Services
                         {
                             RaidCalculationEvent raidCalculation
                                 => new RaidCalculationRequest(raidCalculation.DiscordGuildId, 
-                                    new GuildUserDto(raidCalculation.DiscordUserId, raidCalculation.DiscordUsername, raidCalculation.DiscordUserDiscriminator, raidCalculation.QueuedDateTime)),
+                                    new GuildUserDto(raidCalculation.DiscordUserId, 
+                                        raidCalculation.DiscordUsername, 
+                                        raidCalculation.DiscordUserDiscriminator, 
+                                        null,
+                                        raidCalculation.QueuedDateTime)),
 
                             AddMessageEvent addMessage
                                 => new AddMessageRequest(addMessage.DiscordMessageId, addMessage.DiscordUserId, 

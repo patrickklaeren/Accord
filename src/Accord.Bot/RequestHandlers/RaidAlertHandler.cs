@@ -11,12 +11,12 @@ using Remora.Discord.Core;
 
 namespace Accord.Bot.RequestHandlers
 {
-    public class RaidAlertRequestHandler : AsyncRequestHandler<RaidAlertRequest>
+    public class RaidAlertHandler : AsyncRequestHandler<RaidAlertRequest>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IMediator _mediator;
 
-        public RaidAlertRequestHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
+        public RaidAlertHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
         {
             _channelApi = channelApi;
             _mediator = mediator;

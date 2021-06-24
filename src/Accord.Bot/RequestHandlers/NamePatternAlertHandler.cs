@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -38,7 +37,7 @@ namespace Accord.Bot.RequestHandlers
                 return;
 
             var guildUser = await _guildApi.GetGuildMemberAsync(new Snowflake(request.DiscordGuildId),
-                new Snowflake(request.DiscordUserId),
+                new Snowflake(request.User.Id),
                 cancellationToken);
 
             if (!guildUser.IsSuccess || guildUser.Entity is null || !guildUser.Entity.User.HasValue)
@@ -56,9 +55,6 @@ namespace Accord.Bot.RequestHandlers
             foreach (var channel in channelsToPostTo)
             {
                 await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
-
-                // Artificial delay because Discord
-                await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
             }
         }
     }
