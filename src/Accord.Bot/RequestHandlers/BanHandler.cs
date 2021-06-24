@@ -14,7 +14,7 @@ using Remora.Discord.Core;
 
 namespace Accord.Bot.RequestHandlers
 {
-    public class BanHandler : AsyncRequestHandler<KickRequest>
+    public class BanHandler : AsyncRequestHandler<BanRequest>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestGuildAPI _guildApi;
@@ -28,7 +28,7 @@ namespace Accord.Bot.RequestHandlers
             _guildApi = guildApi;
         }
 
-        protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
+        protected override async Task Handle(BanRequest request, CancellationToken cancellationToken)
         {
             await _guildApi.CreateGuildBanAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), reason: request.Reason, ct: cancellationToken);
 
