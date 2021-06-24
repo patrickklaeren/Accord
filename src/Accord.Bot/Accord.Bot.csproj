@@ -1,10 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" Version="2.11.10" />
     <PackageReference Include="LazyCache" Version="2.1.3" />

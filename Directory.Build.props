@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>c485d4ee-5d66-4543-8a06-977f2843399c</UserSecretsId>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
