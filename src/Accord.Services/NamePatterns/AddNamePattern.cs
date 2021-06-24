@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -43,6 +44,7 @@ namespace Accord.Services.NamePatterns
                 Type = request.Type,
                 OnDiscovery = request.OnDiscovery,
                 AddedByUserId = request.User.DiscordUserId,
+                AddedDateTime = DateTimeOffset.Now,
             };
 
             _db.Add(pattern);

@@ -1,10 +1,7 @@
-﻿using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Domain.Model;
-using Accord.Services.ChannelFlags;
-using Accord.Services.UserMessages;
-using MediatR;
+using Accord.Services;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
@@ -15,11 +12,11 @@ namespace Accord.Bot.Responders
         IResponder<IMessageDelete>, 
         IResponder<IMessageDeleteBulk>
     {
-        private readonly IMediator _mediator;
+        private readonly IEventQueue _eventQueue;
 
-        public MessageCreateDeleteResponder(IMediator mediator)
+        public MessageCreateDeleteResponder(IEventQueue eventQueue)
         {
-            _mediator = mediator;
+            _eventQueue = eventQueue;
         }
 
         public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
@@ -27,38 +24,24 @@ namespace Accord.Bot.Responders
             if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
                 return Result.FromSuccess();
 
-            var channelsIgnored = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromMessageTracking), ct);
-
-            if (channelsIgnored.Any(id => id == gatewayEvent.ChannelID.Value))
-                return Result.FromSuccess();
-
-            await _mediator.Send(new AddMessageRequest(gatewayEvent.ID.Value, gatewayEvent.Author.ID.Value, 
-                gatewayEvent.ChannelID.Value, gatewayEvent.Timestamp), ct);
+            await _eventQueue.Queue(new AddMessageEvent(gatewayEvent.ID.Value,
+                gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value,
+                gatewayEvent.Timestamp));
 
             return Result.FromSuccess();
         }
 
         public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = new CancellationToken())
         {
-            var channelsIgnored = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromMessageTracking), ct);
-
-            if (channelsIgnored.Any(id => id == gatewayEvent.ChannelID.Value))
-                return Result.FromSuccess();
-
-            await _mediator.Send(new DeleteMessageRequest(gatewayEvent.ID.Value), ct);
+            await _eventQueue.Queue(new DeleteMessageEvent(gatewayEvent.ID.Value, DateTimeOffset.Now));
             return Result.FromSuccess();
         }
 
         public async Task<Result> RespondAsync(IMessageDeleteBulk gatewayEvent, CancellationToken ct = new CancellationToken())
         {
-            var channelsIgnored = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromMessageTracking), ct);
-
-            if (channelsIgnored.Any(id => id == gatewayEvent.ChannelID.Value))
-                return Result.FromSuccess();
-
             foreach (var id in gatewayEvent.IDs)
             {
-                await _mediator.Send(new DeleteMessageRequest(id.Value), ct);
+                await _eventQueue.Queue(new DeleteMessageEvent(id.Value, DateTimeOffset.Now));
             }
 
             return Result.FromSuccess();

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services.Raid;
+using Accord.Services.UserMessages;
 using Accord.Services.Users;
 using Accord.Services.VoiceSessions;
 using Accord.Services.Xp;
@@ -48,21 +49,36 @@ namespace Accord.Services
                     }
                     else
                     {
-                        await mediator.Send(new EnsureUserExistsRequest(queuedItem.DiscordUserId), stoppingToken);
+                        if (queuedItem is IUserEvent userEvent)
+                        {
+                            await mediator.Send(new EnsureUserExistsRequest(userEvent.DiscordUserId), stoppingToken);
+                        }
 
                         IRequest<ServiceResponse> action = queuedItem switch
                         {
                             RaidCalculationEvent raidCalculation
-                                => new RaidCalculationRequest(raidCalculation.DiscordUserId, raidCalculation.QueuedDateTime),
+                                => new RaidCalculationRequest(raidCalculation.DiscordGuildId, 
+                                    new GuildUserDto(raidCalculation.DiscordUserId, raidCalculation.DiscordUsername, raidCalculation.DiscordUserDiscriminator, raidCalculation.QueuedDateTime)),
 
-                            MessageSentEvent messageSent
-                                => new AddXpForMessageRequest(messageSent.DiscordUserId, messageSent.DiscordChannelId, messageSent.QueuedDateTime),
+                            AddMessageEvent addMessage
+                                => new AddMessageRequest(addMessage.DiscordMessageId, addMessage.DiscordUserId, 
+                                    addMessage.DiscordChannelId, addMessage.QueuedDateTime),
+
+                            DeleteMessageEvent addMessage
+                                => new DeleteMessageRequest(addMessage.DiscordMessageId),
+
+                            CalculateXpForUserEvent calculateXp
+                                => new AddXpForMessageRequest(calculateXp.DiscordUserId, 
+                                    calculateXp.DiscordChannelId, calculateXp.QueuedDateTime),
 
                             VoiceConnectedEvent voiceConnected
-                                => new StartVoiceSessionRequest(voiceConnected.DiscordGuildId, voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
+                                => new StartVoiceSessionRequest(voiceConnected.DiscordGuildId, 
+                                    voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, 
+                                    voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
 
                             VoiceDisconnectedEvent voiceDisconnected
-                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordGuildId, voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
+                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordGuildId, 
+                                    voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
 
                             _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))
                         };

@@ -8,8 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid
 {
-    public sealed record RaidCalculationRequest(ulong DiscordUserId, DateTimeOffset UserJoinedDateTime) : IRequest<ServiceResponse>;
-    public sealed record RaidAlertRequest(bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
+    public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest<ServiceResponse>;
+    public sealed record GuildUserDto(ulong Id, string Username, string Discriminator, DateTimeOffset JoinedDateTime);
+    public sealed record RaidAlertRequest(ulong DiscordGuildId, bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
+    public sealed record KickRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest;
 
     public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, ServiceResponse>
     {
@@ -27,7 +29,9 @@ namespace Accord.Services.Raid
         public async Task<ServiceResponse> Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
         {
             var limitPerOneMinute = await _mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
-            var isRaid = _raidCalculator.CalculateIsRaid(new UserJoin(request.DiscordUserId, request.UserJoinedDateTime.DateTime), limitPerOneMinute);
+
+            var isRaid = _raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.JoinedDateTime.DateTime), limitPerOneMinute);
+
             var isAutoRaidModeEnabled = await _mediator.Send(new GetIsAutoRaidModeEnabledRequest(), cancellationToken);
             var isInExistingRaidMode = await _mediator.Send(new GetIsInRaidModeRequest(), cancellationToken);
 
@@ -43,7 +47,20 @@ namespace Accord.Services.Raid
                 await _mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
             }
 
-            await _mediator.Send(new RaidAlertRequest(isRaid, isInExistingRaidMode, isAutoRaidModeEnabled), cancellationToken);
+            if (isRaid && !isInExistingRaidMode)
+            {
+                // If this is a raid and we haven't already detected a raid prior to this
+                // request, send the alert
+                await _mediator.Send(new RaidAlertRequest(request.DiscordGuildId, isRaid, isInExistingRaidMode, 
+                    isAutoRaidModeEnabled), cancellationToken);
+            }
+
+            if (isRaid && isAutoRaidModeEnabled)
+            {
+                await _mediator.Send(new KickRequest(request.DiscordGuildId, 
+                    new GuildUserDto(request.User.Id, request.User.Username, request.User.Discriminator, request.User.JoinedDateTime)), 
+                    cancellationToken);
+            }
 
             return ServiceResponse.Ok();
         }

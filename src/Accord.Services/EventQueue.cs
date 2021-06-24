@@ -40,17 +40,19 @@ namespace Accord.Services
 
     public interface IEvent
     {
-        ulong DiscordUserId { get; }
         DateTimeOffset QueuedDateTime { get; }
     }
 
-    public sealed record UserJoinedEvent(ulong DiscordGuildId, ulong DiscordUserId, DateTimeOffset QueuedDateTime, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IEvent;
+    public interface IUserEvent : IEvent
+    {
+        ulong DiscordUserId { get; }
+    }
 
-    public sealed record MessageSentEvent(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset QueuedDateTime) : IEvent;
-
-    public sealed record VoiceConnectedEvent(ulong DiscordGuildId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IEvent;
-
-    public sealed record VoiceDisconnectedEvent(ulong DiscordGuildId, ulong DiscordUserId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IEvent;
-
-    public sealed record RaidCalculationEvent(ulong DiscordUserId, DateTimeOffset QueuedDateTime) : IEvent;
+    public sealed record UserJoinedEvent(ulong DiscordGuildId, ulong DiscordUserId, DateTimeOffset QueuedDateTime, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IUserEvent;
+    public sealed record AddMessageEvent(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record DeleteMessageEvent(ulong DiscordMessageId, DateTimeOffset QueuedDateTime) : IEvent;
+    public sealed record CalculateXpForUserEvent(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record VoiceConnectedEvent(ulong DiscordGuildId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record VoiceDisconnectedEvent(ulong DiscordGuildId, ulong DiscordUserId, string DiscordSessionId, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record RaidCalculationEvent(ulong DiscordGuildId, ulong DiscordUserId, string DiscordUsername, string DiscordUserDiscriminator, DateTimeOffset QueuedDateTime) : IUserEvent;
 }

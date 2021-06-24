@@ -7,9 +7,9 @@ using MediatR;
 
 namespace Accord.Services.UserMessages
 {
-    public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) : IRequest;
+    public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) : IRequest<ServiceResponse>;
 
-    public class AddMessageHandler : AsyncRequestHandler<AddMessageRequest>
+    public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceResponse>
     {
         private readonly AccordContext _db;
 
@@ -18,7 +18,8 @@ namespace Accord.Services.UserMessages
             _db = db;
         }
 
-        protected override async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse> Handle(AddMessageRequest request, 
+            CancellationToken cancellationToken)
         {
             var message = new UserMessage
             {
@@ -31,6 +32,8 @@ namespace Accord.Services.UserMessages
             _db.Add(message);
 
             await _db.SaveChangesAsync(cancellationToken);
+
+            return ServiceResponse.Ok();
         }
     }
 }

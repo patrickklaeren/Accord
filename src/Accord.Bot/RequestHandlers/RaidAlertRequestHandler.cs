@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
 using Accord.Services.Raid;
@@ -25,23 +24,14 @@ namespace Accord.Bot.RequestHandlers
 
         protected override async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
         {
-            if (!request.IsRaidDetected)
-                return;
+            var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
 
-            if (request.IsRaidDetected && request.IsInExistingRaidMode)
-                return;
+            var embed = new Embed(Title: "🚨 Raid detected",
+                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
-            if (request.IsRaidDetected && !request.IsInExistingRaidMode)
+            foreach (var channel in channelsToPostTo)
             {
-                var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
-
-                var embed = new Embed(Title: "🚨 Raid detected",
-                    Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
-
-                foreach (var channel in channelsToPostTo)
-                {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.PatrickSnowflake.ToRoleMention(), embed: embed, ct: cancellationToken);
-                }
+                await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: cancellationToken);
             }
         }
     }
