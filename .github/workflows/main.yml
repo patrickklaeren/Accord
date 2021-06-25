@@ -5,6 +5,8 @@ name: Build & Deploy
 
 on:
   push:
+    paths-ignore:
+      - 'README.md'
     branches:
       - main
   workflow_dispatch:
