@@ -1,10 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
+using Accord.Services;
 using Accord.Services.Helpers;
 using Accord.Services.UserReports;
 using MediatR;
@@ -28,13 +30,17 @@ namespace Accord.Bot.CommandGroups.UserReports
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly CommandResponder _commandResponder;
         private readonly DiscordAvatarHelper _avatarHelper;
+        private readonly DiscordCache _discordCache;
+        private readonly IEventQueue _eventQueue;
 
         public ReportCommandGroup(ICommandContext commandContext,
             IMediator mediator,
             IDiscordRestGuildAPI guildApi,
             CommandResponder commandResponder,
             IDiscordRestChannelAPI channelApi,
-            DiscordAvatarHelper avatarHelper)
+            DiscordAvatarHelper avatarHelper,
+            DiscordCache discordCache,
+            IEventQueue eventQueue)
         {
             _commandContext = commandContext;
             _mediator = mediator;
@@ -42,10 +48,12 @@ namespace Accord.Bot.CommandGroups.UserReports
             _commandResponder = commandResponder;
             _channelApi = channelApi;
             _avatarHelper = avatarHelper;
+            _discordCache = discordCache;
+            _eventQueue = eventQueue;
         }
 
         [RequireContext(ChannelContext.Guild), Command("report"), Description("Start a user report")]
-        public async Task<IResult> Setup()
+        public async Task<IResult> Report()
         {
             var response = await _mediator.Send(new GetIsUserReportsEnabledRequest());
 
@@ -103,8 +111,8 @@ namespace Accord.Bot.CommandGroups.UserReports
                     return Result.FromError(inboxChannel.Error);
                 }
 
-                await _mediator.Send(new AddReportRequest(_commandContext.User.ID.Value, 
-                    outboxChannel.Entity.ID.Value, 
+                await _mediator.Send(new AddReportRequest(_commandContext.User.ID.Value,
+                    outboxChannel.Entity.ID.Value,
                     inboxChannel.Entity.ID.Value));
 
                 await _commandResponder.Respond($"Report created, go to {outboxChannel.Entity.ID.ToChannelMention()}");
@@ -127,7 +135,7 @@ namespace Accord.Bot.CommandGroups.UserReports
 
                 var infoEmbed = new Embed()
                 {
-                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), 
+                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator),
                         IconUrl: _avatarHelper.GetAvatarUrl(user)),
                     Description = userInfoPayload.ToString(),
                     Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
@@ -135,6 +143,45 @@ namespace Accord.Bot.CommandGroups.UserReports
 
                 await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordMentionHelper.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
             }
+
+            return Result.FromSuccess();
+        }
+
+        [RequireContext(ChannelContext.Guild), Command("reply"), Description("Reply to a user report, if in a user report channel")]
+        public async Task<IResult> Reply(string message)
+        {
+            var response = await _mediator.Send(new GetIsUserReportsEnabledRequest());
+
+            if (!response)
+            {
+                return Result.FromSuccess();
+            }
+
+            var userReportChannelType = await _mediator.Send(new GetUserReportChannelTypeRequest(_commandContext.ChannelID.Value));
+
+            if (userReportChannelType == UserReportChannelType.None)
+            {
+                await _commandResponder.Respond("Channel is not a report channel");
+                return Result.FromSuccess();
+            }
+
+            var member = await _discordCache.GetGuildMember(_commandContext.GuildID.Value.Value, _commandContext.User.ID.Value);
+
+            if (!member.IsSuccess || member.Entity is null)
+            {
+                await _commandResponder.Respond("Failed finding user");
+                return Result.FromSuccess();
+            }
+
+            var agentRoleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
+
+            if (member.Entity.Roles.All(snowflake => snowflake.Value != agentRoleId))
+            {
+                await _commandResponder.Respond("You are not an agent!");
+                return Result.FromSuccess();
+            }
+
+            // TODO Handle relay
 
             return Result.FromSuccess();
         }
