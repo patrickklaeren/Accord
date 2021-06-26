@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Accord.Services.Moderation;
 using Accord.Services.Raid;
 using Accord.Services.UserMessages;
+using Accord.Services.UserReports;
 using Accord.Services.Users;
 using Accord.Services.VoiceSessions;
 using Accord.Services.Xp;
@@ -68,6 +69,14 @@ namespace Accord.Services
                             AddMessageEvent addMessage
                                 => new AddMessageRequest(addMessage.DiscordMessageId, addMessage.DiscordUserId, 
                                     addMessage.DiscordChannelId, addMessage.QueuedDateTime),
+
+                            AddUserReportInboxMessageEvent addMessage
+                                => new AddUserReportInboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
+                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.QueuedDateTime),
+
+                            AddUserReportOutboxMessageEvent addMessage
+                                => new AddUserReportOutboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
+                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.QueuedDateTime),
 
                             DeleteMessageEvent addMessage
                                 => new DeleteMessageRequest(addMessage.DiscordMessageId),

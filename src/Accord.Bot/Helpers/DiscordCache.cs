@@ -5,6 +5,7 @@ using LazyCache;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Accord.Bot.Helpers
 {
@@ -18,6 +19,10 @@ namespace Accord.Bot.Helpers
             _guildApi = guildApi;
             _appCache = appCache;
         }
+
+        public Snowflake GetSelfSnowflake() => _appCache.Get<Snowflake>("SelfSnowflake");
+
+        public void SetSelfSnowflake(Snowflake snowflake) => _appCache.Add("SelfSnowflake", snowflake);
 
         public async Task<IRole> GetEveryoneRole(Snowflake guildSnowflake)
         {
@@ -36,6 +41,13 @@ namespace Accord.Bot.Helpers
             }
 
             return roles.Entity.Single(x => x.Name == "@everyone");
+        }
+
+        public async Task<Result<IGuildMember>> GetGuildMember(ulong discordGuildId, ulong discordUserId)
+        {
+            return await _appCache.GetOrAddAsync($"GetGuildMember/{discordGuildId}/{discordUserId}",
+                () => _guildApi.GetGuildMemberAsync(new Snowflake(discordGuildId), new Snowflake(discordUserId)), 
+                DateTimeOffset.Now.AddMinutes(5));
         }
     }
 }

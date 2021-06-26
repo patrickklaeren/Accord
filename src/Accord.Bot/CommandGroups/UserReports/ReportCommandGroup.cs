@@ -1,8 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Numerics;
+using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
+using Accord.Services.Helpers;
 using Accord.Services.UserReports;
 using MediatR;
 using Remora.Commands.Attributes;
@@ -24,21 +27,21 @@ namespace Accord.Bot.CommandGroups.UserReports
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly CommandResponder _commandResponder;
-        private readonly DiscordCache _discordCache;
+        private readonly DiscordAvatarHelper _avatarHelper;
 
         public ReportCommandGroup(ICommandContext commandContext,
             IMediator mediator,
             IDiscordRestGuildAPI guildApi,
             CommandResponder commandResponder,
-            DiscordCache discordCache,
-            IDiscordRestChannelAPI channelApi)
+            IDiscordRestChannelAPI channelApi,
+            DiscordAvatarHelper avatarHelper)
         {
             _commandContext = commandContext;
             _mediator = mediator;
             _guildApi = guildApi;
             _commandResponder = commandResponder;
-            _discordCache = discordCache;
             _channelApi = channelApi;
+            _avatarHelper = avatarHelper;
         }
 
         [RequireContext(ChannelContext.Guild), Command("report"), Description("Start a user report")]
@@ -60,12 +63,15 @@ namespace Accord.Bot.CommandGroups.UserReports
             }
             else
             {
-                var everyoneRole = await _discordCache.GetEveryoneRole(_commandContext.GuildID.Value);
-
                 var outboxCategoryId = await _mediator.Send(new GetUserReportsOutboxCategoryIdRequest());
                 var inboxCategoryId = await _mediator.Send(new GetUserReportsInboxCategoryIdRequest());
-
                 var agentRoleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
+
+                if (agentRoleId is null)
+                {
+                    // TODO Figure out how to panic here
+                    throw new InvalidOperationException("Cannot create report when there is no agent role");
+                }
 
                 var reporterPermissionOverwrite = new PermissionOverwrite(
                     _commandContext.User.ID,
@@ -73,23 +79,11 @@ namespace Accord.Bot.CommandGroups.UserReports
                     new DiscordPermissionSet(DiscordPermission.ViewChannel, DiscordPermission.SendMessages),
                     new DiscordPermissionSet(BigInteger.Zero));
 
-                var agentsPermissionOverwrite = new PermissionOverwrite(
-                    new Snowflake(agentRoleId!.Value),
-                    PermissionOverwriteType.Role,
-                    new DiscordPermissionSet(DiscordPermission.ViewChannel, DiscordPermission.SendMessages),
-                    new DiscordPermissionSet(BigInteger.Zero));
-
-                var everyonePermissionOverwrite = new PermissionOverwrite(
-                    everyoneRole.ID,
-                    PermissionOverwriteType.Role,
-                    new DiscordPermissionSet(BigInteger.Zero),
-                    new DiscordPermissionSet(DiscordPermission.ViewChannel));
-
                 var outboxChannel = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
                     $"{_commandContext.User.Username}-{_commandContext.User.Discriminator.ToPaddedDiscriminator()}",
                     ChannelType.GuildText,
                     parentID: new Snowflake(outboxCategoryId!.Value),
-                    permissionOverwrites: new[] { reporterPermissionOverwrite, everyonePermissionOverwrite });
+                    permissionOverwrites: new[] { reporterPermissionOverwrite });
 
                 if (!outboxChannel.IsSuccess)
                 {
@@ -100,8 +94,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                 var inboxChannel = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
                     $"{_commandContext.User.Username}-{_commandContext.User.Discriminator.ToPaddedDiscriminator()}-inbox",
                     ChannelType.GuildText,
-                    parentID: new Snowflake(inboxCategoryId!.Value),
-                    permissionOverwrites: new[] { agentsPermissionOverwrite, everyonePermissionOverwrite });
+                    parentID: new Snowflake(inboxCategoryId!.Value));
 
                 if (!inboxChannel.IsSuccess)
                 {
@@ -117,6 +110,30 @@ namespace Accord.Bot.CommandGroups.UserReports
                 await _commandResponder.Respond($"Report created, go to {outboxChannel.Entity.ID.ToChannelMention()}");
 
                 await _channelApi.CreateMessageAsync(outboxChannel.Entity.ID, $"Start your report here {_commandContext.User.ID.ToUserMention()}");
+
+                var user = _commandContext.User;
+
+                var reportStatisticsForUser = await _mediator.Send(new GetUserReportsStatisticsForUserRequest(_commandContext.User.ID.Value));
+
+                var userInfoPayload = new StringBuilder()
+                    .AppendLine("**User Information**")
+                    .AppendLine($"ID: {user.ID.Value}")
+                    .AppendLine($"Profile: {user.ID.ToUserMention()}")
+                    .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}")
+                    .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(user.ID.Value):yyy-MM-dd HH:mm:ss}")
+                    .AppendLine()
+                    .AppendLine("**Report Statistics**")
+                    .AppendLine($"Previous reports: {reportStatisticsForUser}");
+
+                var infoEmbed = new Embed()
+                {
+                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), 
+                        IconUrl: _avatarHelper.GetAvatarUrl(user)),
+                    Description = userInfoPayload.ToString(),
+                    Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
+                };
+
+                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordMentionHelper.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
             }
 
             return Result.FromSuccess();

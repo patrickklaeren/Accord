@@ -28,7 +28,7 @@ namespace Accord.Domain
         public virtual DbSet<UserReminder> UserReminders { get; set; } = null!;
 
         public virtual DbSet<UserReport> UserReports { get; set; } = null!;
-        public virtual DbSet<UserReportMessage> UserThreadMessages { get; set; } = null!;
-        public virtual DbSet<UserReportBlock> UserThreadBlocks { get; set; } = null!;
+        public virtual DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
+        public virtual DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
     }
 }

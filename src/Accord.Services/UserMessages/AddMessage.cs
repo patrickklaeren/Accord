@@ -7,7 +7,8 @@ using MediatR;
 
 namespace Accord.Services.UserMessages
 {
-    public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) : IRequest<ServiceResponse>;
+    public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
+        : IRequest<ServiceResponse>;
 
     public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceResponse>
     {

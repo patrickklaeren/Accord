@@ -134,7 +134,41 @@ namespace Accord.Bot.CommandGroups.UserReports
             if (userCategory is null
                 || channelsInGuild.All(x => x.ID.Value != userCategory))
             {
-                var categoryCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value, "User Reports", type: ChannelType.GuildCategory);
+                var agentRoleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
+
+                var everyoneRole = await _discordCache.GetEveryoneRole(_commandContext.GuildID.Value);
+
+                var selfBotPermissionOverwrite = new PermissionOverwrite(
+                    _discordCache.GetSelfSnowflake(),
+                    PermissionOverwriteType.Member,
+                    new DiscordPermissionSet(DiscordPermission.ViewChannel,
+                        DiscordPermission.SendMessages,
+                        DiscordPermission.ManageChannels,
+                        DiscordPermission.ManageMessages),
+                    new DiscordPermissionSet(BigInteger.Zero));
+
+                var agentsPermissionOverwrite = new PermissionOverwrite(
+                    new Snowflake(agentRoleId!.Value),
+                    PermissionOverwriteType.Role,
+                    new DiscordPermissionSet(DiscordPermission.ViewChannel, DiscordPermission.SendMessages),
+                    new DiscordPermissionSet(BigInteger.Zero));
+
+                var everyonePermissionOverwrite = new PermissionOverwrite(
+                    everyoneRole.ID,
+                    PermissionOverwriteType.Role,
+                    new DiscordPermissionSet(BigInteger.Zero),
+                    new DiscordPermissionSet(DiscordPermission.ViewChannel, DiscordPermission.SendMessages));
+
+                var howToPermissionOverwrite = new PermissionOverwrite(
+                    everyoneRole.ID,
+                    PermissionOverwriteType.Role,
+                    new DiscordPermissionSet(DiscordPermission.ViewChannel),
+                    new DiscordPermissionSet(BigInteger.Zero));
+
+                var categoryCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
+                    "User Reports",
+                    type: ChannelType.GuildCategory,
+                    permissionOverwrites: new[] { selfBotPermissionOverwrite, agentsPermissionOverwrite, everyonePermissionOverwrite });
 
                 if (!categoryCreation.IsSuccess)
                 {
@@ -143,7 +177,10 @@ namespace Accord.Bot.CommandGroups.UserReports
                 }
 
                 var howToChannelCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
-                    "how-to-report", ChannelType.GuildText, parentID: categoryCreation.Entity.ID);
+                    "how-to-report",
+                    ChannelType.GuildText,
+                    parentID: categoryCreation.Entity.ID,
+                    permissionOverwrites: new[] { howToPermissionOverwrite });
 
                 if (!howToChannelCreation.IsSuccess)
                 {
@@ -168,6 +205,15 @@ namespace Accord.Bot.CommandGroups.UserReports
             if (inboxCategoryId is null
                 || channelsInGuild.All(x => x.ID.Value != inboxCategoryId))
             {
+                var selfBotPermissionOverwrite = new PermissionOverwrite(
+                    _discordCache.GetSelfSnowflake(),
+                    PermissionOverwriteType.Member,
+                    new DiscordPermissionSet(DiscordPermission.ViewChannel,
+                        DiscordPermission.SendMessages,
+                        DiscordPermission.ManageChannels,
+                        DiscordPermission.ManageMessages),
+                    new DiscordPermissionSet(BigInteger.Zero));
+
                 var agentPermissionOverwrite = new PermissionOverwrite(
                     new Snowflake(roleId!.Value),
                     PermissionOverwriteType.Role,
@@ -182,7 +228,7 @@ namespace Accord.Bot.CommandGroups.UserReports
 
                 var categoryCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
                     "User Reports Inbox", type: ChannelType.GuildCategory,
-                    permissionOverwrites: new[] { agentPermissionOverwrite, everyonePermissionOverwrite });
+                    permissionOverwrites: new[] { selfBotPermissionOverwrite, agentPermissionOverwrite, everyonePermissionOverwrite });
 
                 if (!categoryCreation.IsSuccess)
                 {
