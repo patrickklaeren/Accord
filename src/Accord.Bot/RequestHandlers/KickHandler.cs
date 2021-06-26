@@ -34,7 +34,7 @@ namespace Accord.Bot.RequestHandlers
 
             var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
 
-            if (!channelsToPostTo.Any())
+            if (channelsToPostTo.Any())
             {
                 var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
                     Description: $"{DiscordMentionHelper.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
