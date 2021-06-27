@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Services.Helpers;
 using Accord.Services.Users;
@@ -93,19 +94,17 @@ namespace Accord.Bot.CommandGroups
 
             if (userDto.JoinedGuildDateTime is not null)
             {
-                var joinedSince = DateTimeOffset.Now - userDto.JoinedGuildDateTime.Value;
-                builder.AppendLine($"Joined: {joinedSince.Humanize()} ago ({userDto.JoinedGuildDateTime.Value})");
+                builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToDiscordDateMarkdown()}");
             }
 
-            var firstSeenSince = DateTimeOffset.Now - userDto.FirstSeenDateTime;
-            builder.AppendLine($"First tracked: {firstSeenSince.Humanize()} ago ({userDto.FirstSeenDateTime})");
+            builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToDiscordDateMarkdown()}");
 
             builder
                 .AppendLine()
                 .AppendLine("**Guild Participation**")
                 .AppendLine($"Rank: {userDto.ParticipationRank}")
                 .AppendLine($"Points: {userDto.ParticipationPoints}")
-                .AppendLine($"Percentile: {Math.Round(userDto.ParticipationPercentile, 1)}%")
+                .AppendLine($"Percentile: {Math.Round(userDto.ParticipationPercentile, 0)}")
                 .AppendLine()
                 .AppendLine("**Message Participation**")
                 .AppendLine($"Last 30 days: {userMessagesInChannelDtos.Sum(x => x.NumberOfMessages)} messages");
