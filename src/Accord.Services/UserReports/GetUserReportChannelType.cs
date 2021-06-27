@@ -45,6 +45,9 @@ namespace Accord.Services.UserReports
                     x.InboxDiscordChannelId
                 }).FirstOrDefaultAsync();
 
+            if (userReport is null)
+                return UserReportChannelType.None;
+
             if (userReport.InboxDiscordChannelId == discordChannelId)
                 return UserReportChannelType.Inbox;
 
