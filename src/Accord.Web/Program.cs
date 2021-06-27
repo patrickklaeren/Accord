@@ -77,8 +77,9 @@ namespace Accord.Web
 
         private static readonly string[] IgnoredLogMessages = new[]
         {
-            // Remora no command found error
             "No matching command could be found.",
+            "Guild User requesting the command does not have the required Administrator permission",
+            "Unknown interaction"
         };
 
         private static SentryEvent? BeforeSend(SentryEvent arg)
