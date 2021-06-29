@@ -59,7 +59,7 @@ namespace Accord.Bot.CommandGroups
                 var payload = string.Join($"{Environment.NewLine}",
                     batch.Select((x, i) => new StringBuilder()
                         .AppendLine($"**{x.UsernameWithDiscriminator}**")
-                        .AppendLine($"Profile: {DiscordMentionHelper.UserIdToMention(x.DiscordUserId)}")
+                        .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(x.DiscordUserId)}")
                         .AppendLine($"Joined: {x.JoinedDateTime:yyyy-MM-dd HH:mm:ss}")
                         .AppendLine($"Created: {x.CreatedDateTime:yyyy-MM-dd HH:mm:ss}")
                         .ToString()));

@@ -37,7 +37,7 @@ namespace Accord.Bot.RequestHandlers
             if (channelsToPostTo.Any())
             {
                 var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
-                    Description: $"{DiscordMentionHelper.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
+                    Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
                     Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
 
                 foreach (var channel in channelsToPostTo)

@@ -34,7 +34,7 @@ namespace Accord.Bot.CommandGroups
             var stringBuilder = new StringBuilder();
 
             var leaderboardPayload = string.Join(Environment.NewLine, leaderboard.MessageUsers
-                .Select((user, position) => $"[{position + 1}] {DiscordMentionHelper.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
+                .Select((user, position) => $"[{position + 1}] {DiscordFormatter.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
 
             stringBuilder.Append(leaderboardPayload);
 

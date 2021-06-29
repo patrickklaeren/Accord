@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,10 +11,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.UserReports
 {
     public sealed record AddUserReportInboxMessageRequest(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, 
-            string DiscordMessageContent, DateTimeOffset SentDateTime) 
+            string DiscordMessageContent, List<DiscordAttachmentDto> DiscordAttachments, DateTimeOffset SentDateTime) 
         : IRequest<ServiceResponse>;
 
-    public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId, ulong ToDiscordChannelId, string Content, ulong AuthorDiscordUserId, DateTimeOffset SentDateTime) : IRequest;
+    public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId, ulong ToDiscordChannelId, string Content, 
+        List<DiscordAttachmentDto> DiscordAttachments, ulong AuthorDiscordUserId, DateTimeOffset SentDateTime) 
+        : IRequest;
 
     public class AddUserReportInboxMessageHandler : IRequestHandler<AddUserReportInboxMessageRequest, ServiceResponse>
     {
@@ -52,7 +55,7 @@ namespace Accord.Services.UserReports
             await _db.SaveChangesAsync(cancellationToken);
 
             await _mediator.Send(new RelayUserReportMessageRequest(request.DiscordGuildId, 
-                userReportData.OutboxDiscordChannelId, request.DiscordMessageContent, 
+                userReportData.OutboxDiscordChannelId, request.DiscordMessageContent, request.DiscordAttachments, 
                     request.DiscordUserId, request.SentDateTime), cancellationToken);
 
             return ServiceResponse.Ok();

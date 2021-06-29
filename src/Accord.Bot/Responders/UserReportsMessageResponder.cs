@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
@@ -30,21 +31,16 @@ namespace Accord.Bot.Responders
 
             var reportChannelType = await _mediator.Send(new GetUserReportChannelTypeRequest(gatewayEvent.ChannelID.Value), ct);
 
-            if (reportChannelType == UserReportChannelType.None)
+            if (reportChannelType != UserReportChannelType.Outbox)
                 return Result.FromSuccess();
 
-            if (reportChannelType == UserReportChannelType.Outbox)
-            {
-                await _eventQueue.Queue(new AddUserReportOutboxMessageEvent(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
-                    gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, gatewayEvent.Content,
-                    gatewayEvent.Timestamp));
-            }
-            else if (reportChannelType == UserReportChannelType.Inbox)
-            {
-                await _eventQueue.Queue(new AddUserReportInboxMessageEvent(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
-                    gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, gatewayEvent.Content,
-                    gatewayEvent.Timestamp));
-            }
+            var attachments = gatewayEvent.Attachments
+                .Select(x => new DiscordAttachmentDto(x.Url, x.ContentType.HasValue ? x.ContentType.Value : null))
+                .ToList();
+
+            await _eventQueue.Queue(new AddUserReportOutboxMessageEvent(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
+                gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, gatewayEvent.Content, attachments,
+                gatewayEvent.Timestamp));
 
             return Result.FromSuccess();
         }

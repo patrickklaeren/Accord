@@ -84,7 +84,7 @@ namespace Accord.Bot.CommandGroups
             builder
                 .AppendLine("**User Information**")
                 .AppendLine($"ID: {userDto.Id}")
-                .AppendLine($"Profile: {DiscordMentionHelper.UserIdToMention(userDto.Id)}")
+                .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(userDto.Id)}")
                 .AppendLine($"Handle: {userHandle}");
 
             if (!string.IsNullOrWhiteSpace(userDto.Nickname))
@@ -115,7 +115,7 @@ namespace Accord.Bot.CommandGroups
                     .OrderByDescending(x => x.NumberOfMessages)
                     .First();
 
-                builder.AppendLine($"Most active text channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({numberOfMessages} messages)");
+                builder.AppendLine($"Most active text channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({numberOfMessages} messages)");
             }
 
             builder
@@ -129,7 +129,7 @@ namespace Accord.Bot.CommandGroups
                     .OrderByDescending(x => x.NumberOfMinutes)
                     .First();
 
-                builder.AppendLine($"Most active voice channel: {DiscordMentionHelper.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
+                builder.AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
             }
 
             var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),

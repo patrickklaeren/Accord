@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserReports
 {
-    public sealed record AddUserReportOutboxMessageRequest(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordMessageContent, DateTimeOffset SentDateTime) 
+    public sealed record AddUserReportOutboxMessageRequest(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, 
+            ulong DiscordChannelId, string DiscordMessageContent, List<DiscordAttachmentDto> DiscordAttachments, DateTimeOffset SentDateTime) 
         : IRequest<ServiceResponse>;
 
     public class AddUserReportOutboxMessageHandler : IRequestHandler<AddUserReportOutboxMessageRequest, ServiceResponse>
@@ -49,8 +51,9 @@ namespace Accord.Services.UserReports
             await _db.SaveChangesAsync(cancellationToken);
 
             await _mediator.Send(new RelayUserReportMessageRequest(request.DiscordGuildId,
-                userReportData.InboxDiscordChannelId, request.DiscordMessageContent,
-                request.DiscordUserId, request.SentDateTime), cancellationToken);
+                userReportData.InboxDiscordChannelId, request.DiscordMessageContent, 
+                request.DiscordAttachments, request.DiscordUserId, 
+                request.SentDateTime), cancellationToken);
 
             return ServiceResponse.Ok();
         }

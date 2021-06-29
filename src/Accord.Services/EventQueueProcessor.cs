@@ -72,11 +72,11 @@ namespace Accord.Services
 
                             AddUserReportInboxMessageEvent addMessage
                                 => new AddUserReportInboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
-                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.QueuedDateTime),
+                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.QueuedDateTime),
 
                             AddUserReportOutboxMessageEvent addMessage
                                 => new AddUserReportOutboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
-                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.QueuedDateTime),
+                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.QueuedDateTime),
 
                             DeleteMessageEvent addMessage
                                 => new DeleteMessageRequest(addMessage.DiscordMessageId),

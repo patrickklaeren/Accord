@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
@@ -141,7 +142,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                     Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
                 };
 
-                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordMentionHelper.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
+                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordFormatter.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
             }
 
             return Result.FromSuccess();
@@ -181,9 +182,21 @@ namespace Accord.Bot.CommandGroups.UserReports
                 return Result.FromSuccess();
             }
 
-            // TODO Handle relay
+            var messageId = _commandContext is InteractionContext interaction
+                ? interaction.ID.Value
+                : _commandContext is MessageContext messageContext
+                    ? messageContext.MessageID.Value
+                    : throw new InvalidOperationException("Cannot determine message ID from unknown dispatch");
 
-            return Result.FromSuccess();
+            await _eventQueue.Queue(new AddUserReportInboxMessageEvent(_commandContext.GuildID.Value.Value,
+                messageId,
+                _commandContext.User.ID.Value,
+                _commandContext.ChannelID.Value,
+                message,
+                new List<DiscordAttachmentDto>(),
+                DateTimeOffset.Now));
+
+            return await _commandResponder.Respond(message);
         }
     }
 }

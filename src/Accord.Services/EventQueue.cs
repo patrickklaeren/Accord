@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -50,8 +51,8 @@ namespace Accord.Services
 
     public sealed record UserJoinedEvent(ulong DiscordGuildId, ulong DiscordUserId, DateTimeOffset QueuedDateTime, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IUserEvent;
     public sealed record AddMessageEvent(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset QueuedDateTime) : IUserEvent;
-    public sealed record AddUserReportOutboxMessageEvent(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordMessageContent, DateTimeOffset QueuedDateTime) : IUserEvent;
-    public sealed record AddUserReportInboxMessageEvent(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordMessageContent, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record AddUserReportOutboxMessageEvent(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordMessageContent, List<DiscordAttachmentDto> Attachments, DateTimeOffset QueuedDateTime) : IUserEvent;
+    public sealed record AddUserReportInboxMessageEvent(ulong DiscordGuildId, ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, string DiscordMessageContent, List<DiscordAttachmentDto> Attachments, DateTimeOffset QueuedDateTime) : IUserEvent;
     public sealed record DeleteMessageEvent(ulong DiscordMessageId, DateTimeOffset QueuedDateTime) : IEvent;
     public sealed record DeleteUserReportOutboxMessageEvent(ulong DiscordMessageId, DateTimeOffset QueuedDateTime) : IEvent;
     public sealed record DeleteUserReportInboxMessageEvent(ulong DiscordMessageId, DateTimeOffset QueuedDateTime) : IEvent;

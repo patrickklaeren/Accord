@@ -50,7 +50,7 @@ namespace Accord.Bot.RequestHandlers
             var span = (request.DisconnectedDateTime - request.ConnectedDateTime).Humanize();
 
             var embed = new Embed(Title: $"📢 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} left voice",
-                Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) left {DiscordMentionHelper.ChannelIdToMention(request.DiscordChannelId)} after {span}",
+                Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) left {DiscordFormatter.ChannelIdToMention(request.DiscordChannelId)} after {span}",
                 Footer: new EmbedFooter($"Session ID: {request.DiscordSessionId}"),
                 Thumbnail: avatar);
 
