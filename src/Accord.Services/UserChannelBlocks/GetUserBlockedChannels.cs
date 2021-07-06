@@ -39,7 +39,10 @@ namespace Accord.Services.UserChannelBlocks
             _appCache.Remove(BuildGetUserBlockedChannelsById(request.DiscordUserId));
 
         private async Task<List<ulong>> GetUserBlockedChannelsById(ulong userId) =>
-            await _db.UserBlockedChannels.Where(x => x.UserId == userId).Select(x => x.DiscordChannelId).ToListAsync();
+            await _db.UserBlockedChannels
+                .Where(x => x.UserId == userId)
+                .Select(x => x.DiscordChannelId)
+                .ToListAsync();
 
         private static string BuildGetUserBlockedChannelsById(ulong discordUserId) =>
             $"{nameof(GetUserBlockedChannelsHandler)}/{nameof(GetUserBlockedChannelsById)}/{discordUserId}";

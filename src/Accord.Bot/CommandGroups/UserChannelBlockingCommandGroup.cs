@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Services.Helpers;
 using Accord.Services.UserChannelBlocks;
 using MediatR;
 using Remora.Commands.Attributes;
@@ -25,23 +27,58 @@ namespace Accord.Bot.CommandGroups
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly CommandResponder _commandResponder;
-
+        private readonly DiscordCache _discordCache;
+        private readonly DiscordAvatarHelper _discordAvatarHelper;
 
         public UserChannelBlockingCommandGroup(ICommandContext commandContext,
             IMediator mediator,
             IDiscordRestChannelAPI channelApi,
             IDiscordRestGuildAPI guildApi,
-            CommandResponder commandResponder)
+            CommandResponder commandResponder,
+            DiscordCache discordCache,
+            DiscordAvatarHelper discordAvatarHelper)
         {
             _commandContext = commandContext;
             _mediator = mediator;
             _channelApi = channelApi;
             _guildApi = guildApi;
             _commandResponder = commandResponder;
+            _discordCache = discordCache;
+            _discordAvatarHelper = discordAvatarHelper;
+        }
+
+        [RequireContext(ChannelContext.Guild), Command("hidden"), Description("Display your hidden channels")]
+        public async Task<IResult> GetHiddenChannels()
+        {
+            var usersBlockedChannels = await _mediator.Send(new GetUserBlockedChannelsRequest(_commandContext.User.ID.Value));
+
+            if (usersBlockedChannels.Count == 0)
+            {
+                await _commandResponder.Respond("You don't have any hidden channel yet");
+            }
+            else
+            {
+                StringBuilder sb = new();
+                foreach (var blockedChannel in usersBlockedChannels)
+                {
+                    sb.AppendLine($"{DiscordFormatter.ChannelIdToMention(blockedChannel)}");
+                }
+
+                await _commandResponder.Respond(new Embed
+                {
+                    Author = new EmbedAuthor(
+                        DiscordHandleHelper.BuildHandle(_commandContext.User.Username, _commandContext.User.Discriminator),
+                        IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User)),
+                    Title = "Hidden Channels",
+                    Description = sb.ToString()
+                });
+            }
+
+            return Result.FromSuccess();
         }
 
 
-        [RequireContext(ChannelContext.Guild), Command("hide"), Description("Get your profile")]
+        [RequireContext(ChannelContext.Guild), Command("hide"), Description("Hide a channel for you")]
         public async Task<IResult> HideChannel(IChannel channel)
         {
             var actionResult = await _mediator.Send(new AddUserBlockedChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
@@ -82,9 +119,10 @@ namespace Accord.Bot.CommandGroups
                 if (channelsResult.IsSuccess)
                 {
                     var result = channelsResult.Entity
-                                     .SingleOrDefault(x => String.Equals(
-                                         x.Name.Value.Replace("#", ""),
-                                         channelText.Replace("#", ""), StringComparison.InvariantCultureIgnoreCase)
+                                     .SingleOrDefault(x => x.PermissionOverwrites.HasValue
+                                                           && x.PermissionOverwrites.Value.Any(y => y.ID.Value == x.ID.Value)
+                                                           && String.Equals(x.Name.Value.Replace("#", ""), channelText.Replace("#", ""),
+                                                               StringComparison.InvariantCultureIgnoreCase)
                                      )
                                  ?? channelsResult.Entity
                                      .Select(x => new
