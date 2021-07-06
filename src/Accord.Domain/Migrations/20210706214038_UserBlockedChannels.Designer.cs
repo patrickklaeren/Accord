@@ -4,14 +4,16 @@ using Accord.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    partial class AccordContextModelSnapshot : ModelSnapshot
+    [Migration("20210706214038_UserBlockedChannels")]
+    partial class UserBlockedChannels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,6 +273,13 @@ namespace Accord.Domain.Migrations
                     b.Property<decimal>("InboxDiscordChannelId")
                         .HasColumnType("decimal(20,0)");
 
+                    b.Property<decimal>("InboxDiscordMessageProxyWebhookId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<string>("InboxDiscordMessageProxyWebhookToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("OpenedByUserId")
                         .HasColumnType("decimal(20,0)");
 
@@ -279,6 +288,13 @@ namespace Accord.Domain.Migrations
 
                     b.Property<decimal>("OutboxDiscordChannelId")
                         .HasColumnType("decimal(20,0)");
+
+                    b.Property<decimal>("OutboxDiscordMessageProxyWebhookId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<string>("OutboxDiscordMessageProxyWebhookToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -318,6 +334,9 @@ namespace Accord.Domain.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("DiscordProxyMessageId")
+                        .HasColumnType("decimal(20,0)");
 
                     b.Property<bool>("IsInternal")
                         .HasColumnType("bit");

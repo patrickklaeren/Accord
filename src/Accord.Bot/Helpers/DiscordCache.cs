@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LazyCache;
@@ -45,8 +46,15 @@ namespace Accord.Bot.Helpers
 
         public async Task<Result<IGuildMember>> GetGuildMember(ulong discordGuildId, ulong discordUserId)
         {
-            return await _appCache.GetOrAddAsync($"GetGuildMember/{discordGuildId}/{discordUserId}",
+            return await _appCache.GetOrAddAsync($"{nameof(GetGuildMember)}/{discordGuildId}/{discordUserId}",
                 () => _guildApi.GetGuildMemberAsync(new Snowflake(discordGuildId), new Snowflake(discordUserId)), 
+                DateTimeOffset.Now.AddMinutes(5));
+        }
+        
+        public async Task<Result<IReadOnlyList<IRole>>> GetRoles(ulong discordGuildId)
+        {
+            return await _appCache.GetOrAddAsync($"{nameof(GetRoles)}/{discordGuildId}",
+                () => _guildApi.GetGuildRolesAsync(new Snowflake(discordGuildId)), 
                 DateTimeOffset.Now.AddMinutes(5));
         }
     }

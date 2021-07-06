@@ -44,6 +44,7 @@ namespace Accord.Bot.Infrastructure
                 .AddParser<TimeSpan, TimeSpanParser>()
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
+                .AddCommandGroup<UserChannelBlockingCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddCommandGroup<ReminderCommandGroup>()
