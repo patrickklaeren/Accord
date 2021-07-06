@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -7,6 +8,7 @@ using Accord.Services.ChannelFlags;
 using Accord.Services.Helpers;
 using Accord.Services.VoiceSessions;
 using MediatR;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
@@ -53,7 +55,7 @@ namespace Accord.Bot.RequestHandlers
 
             foreach (var channel in channels)
             {
-                await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: cancellationToken);
+                await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new List<IEmbed>{embed}, ct: cancellationToken);
             }
         }
     }

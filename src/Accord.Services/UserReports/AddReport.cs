@@ -9,7 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserReports
 {
-    public sealed record AddReportRequest(ulong DiscordUserId, ulong OutboxDiscordChannelId, ulong InboxDiscordChannelId) : IRequest;
+    public sealed record AddReportRequest(ulong DiscordUserId,
+        ulong OutboxDiscordChannelId,
+        ulong OutboxDiscordMessageProxyWebhookId,
+        string OutboxDiscordMessageProxyWebhookToken,
+        ulong InboxDiscordChannelId,
+        ulong InboxDiscordMessageProxyWebhookId,
+        string InboxDiscordMessageProxyWebhookToken) : IRequest;
 
     public class AddReportHandler : AsyncRequestHandler<AddReportRequest>
     {
@@ -42,7 +48,11 @@ namespace Accord.Services.UserReports
             {
                 OpenedByUserId = request.DiscordUserId,
                 OutboxDiscordChannelId = request.OutboxDiscordChannelId,
+                OutboxDiscordMessageProxyWebhookId = request.OutboxDiscordMessageProxyWebhookId,
+                OutboxDiscordMessageProxyWebhookToken = request.OutboxDiscordMessageProxyWebhookToken,
                 InboxDiscordChannelId = request.InboxDiscordChannelId,
+                InboxDiscordMessageProxyWebhookId = request.InboxDiscordMessageProxyWebhookId,
+                InboxDiscordMessageProxyWebhookToken = request.InboxDiscordMessageProxyWebhookToken,
                 OpenedDateTime = DateTimeOffset.Now,
             };
 

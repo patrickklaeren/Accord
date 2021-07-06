@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Accord.Services.Reminder;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
@@ -54,7 +56,7 @@ namespace Accord.Bot.Infrastructure
                         Description = reminder.Message
                     };
 
-                    await channelApi.CreateMessageAsync(new Snowflake(reminder.DiscordChannelId), $"<@{reminder.UserId}>", embed: embed, ct: stoppingToken);
+                    await channelApi.CreateMessageAsync(new Snowflake(reminder.DiscordChannelId), $"<@{reminder.UserId}>", embeds: new List<IEmbed>{embed}, ct: stoppingToken);
                 }
 
                 await mediator.Send(new DeleteReminderRequest(reminder.UserId, reminder.Id), stoppingToken);

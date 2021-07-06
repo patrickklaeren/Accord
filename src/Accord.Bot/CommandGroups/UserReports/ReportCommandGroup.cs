@@ -29,6 +29,7 @@ namespace Accord.Bot.CommandGroups.UserReports
         private readonly IMediator _mediator;
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly CommandResponder _commandResponder;
         private readonly DiscordAvatarHelper _avatarHelper;
         private readonly DiscordCache _discordCache;
@@ -41,7 +42,8 @@ namespace Accord.Bot.CommandGroups.UserReports
             IDiscordRestChannelAPI channelApi,
             DiscordAvatarHelper avatarHelper,
             DiscordCache discordCache,
-            IEventQueue eventQueue)
+            IEventQueue eventQueue,
+            IDiscordRestWebhookAPI webhookApi)
         {
             _commandContext = commandContext;
             _mediator = mediator;
@@ -51,6 +53,7 @@ namespace Accord.Bot.CommandGroups.UserReports
             _avatarHelper = avatarHelper;
             _discordCache = discordCache;
             _eventQueue = eventQueue;
+            _webhookApi = webhookApi;
         }
 
         [RequireContext(ChannelContext.Guild), Command("report"), Description("Start a user report")]
@@ -92,12 +95,25 @@ namespace Accord.Bot.CommandGroups.UserReports
                     $"{_commandContext.User.Username}-{_commandContext.User.Discriminator.ToPaddedDiscriminator()}",
                     ChannelType.GuildText,
                     parentID: new Snowflake(outboxCategoryId!.Value),
-                    permissionOverwrites: new[] { reporterPermissionOverwrite });
+                    permissionOverwrites: new[] {reporterPermissionOverwrite});
 
                 if (!outboxChannel.IsSuccess)
                 {
                     await _commandResponder.Respond("Failed creating report!");
                     return Result.FromError(outboxChannel.Error);
+                }
+
+                var outboxChannelMessageProxyWebhook = await _webhookApi.CreateWebhookAsync(
+                    outboxChannel.Entity!.ID,
+                    $"{outboxChannel.Entity.Name.Value}Proxy",
+                    null
+                );
+
+                if (!outboxChannelMessageProxyWebhook.IsSuccess)
+                {
+                    // TODO In the event the inbox proxy doesn't get created, delete the outbox channel
+                    await _commandResponder.Respond("Failed creating report!");
+                    return Result.FromError(outboxChannelMessageProxyWebhook.Error);
                 }
 
                 var inboxChannel = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
@@ -112,9 +128,25 @@ namespace Accord.Bot.CommandGroups.UserReports
                     return Result.FromError(inboxChannel.Error);
                 }
 
+                var inboxChannelMessageProxyWebhook = await _webhookApi.CreateWebhookAsync(
+                    inboxChannel.Entity!.ID,
+                    $"{inboxChannel.Entity.Name.Value}Proxy",
+                    null);
+
+                if (!inboxChannelMessageProxyWebhook.IsSuccess)
+                {
+                    // TODO In the event the inbox proxy doesn't get created, delete the outbox pair channel & proxy
+                    await _commandResponder.Respond("Failed creating report!");
+                    return Result.FromError(inboxChannelMessageProxyWebhook.Error);
+                }
+
                 await _mediator.Send(new AddReportRequest(_commandContext.User.ID.Value,
                     outboxChannel.Entity.ID.Value,
-                    inboxChannel.Entity.ID.Value));
+                    outboxChannelMessageProxyWebhook.Entity.ID.Value,
+                    outboxChannelMessageProxyWebhook.Entity.Token.Value!,
+                    inboxChannel.Entity.ID.Value,
+                    inboxChannelMessageProxyWebhook.Entity.ID.Value,
+                    inboxChannelMessageProxyWebhook.Entity.Token.Value!));
 
                 await _commandResponder.Respond($"Report created, go to {outboxChannel.Entity.ID.ToChannelMention()}");
 
@@ -142,7 +174,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                     Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
                 };
 
-                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordFormatter.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
+                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordFormatter.RoleIdToMention(agentRoleId!.Value)}", embeds: new List<IEmbed>{infoEmbed});
             }
 
             return Result.FromSuccess();
@@ -194,7 +226,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                 _commandContext.ChannelID.Value,
                 message,
                 new List<DiscordAttachmentDto>(),
-                DateTimeOffset.Now));
+                DateTimeOffset.UtcNow));
 
             return await _commandResponder.Respond(message);
         }

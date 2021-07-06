@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Accord.Services.NamePatterns;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;
@@ -67,7 +69,7 @@ namespace Accord.Bot.CommandGroups
             }
             else
             {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embeds: new List<IEmbed>{embed});
             }
 
             return Result.FromSuccess();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
@@ -55,7 +56,7 @@ namespace Accord.Bot.Responders
 
                     foreach (var channel in channels)
                     {
-                        await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: ct);
+                        await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new List<IEmbed>{embed}, ct: ct);
                     }
                 }
             }
