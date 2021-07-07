@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -88,11 +89,28 @@ namespace Accord.Bot.CommandGroups
                 await _commandResponder.Respond(actionResult.ErrorMessage);
                 return Result.FromSuccess();
             }
+            
+            var isCascadeEnabled = await _mediator.Send(new GetIsUserBlockedChannelsCascadeHideEnabledRequest());
 
-            var result = await _channelApi.EditChannelPermissionsAsync(channel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
-                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel));
+            var resultList = new List<Result>();
+            if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
+            {
+                var channels = await _discordCache.GetChannels(_commandContext.GuildID.Value.Value);
+                foreach (var inheritedChannel in channels.Entity)
+                {
+                    if (inheritedChannel.ParentID == channel.ID)
+                    {
+                        resultList.Add(await _channelApi.EditChannelPermissionsAsync(inheritedChannel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
+                            deny: new DiscordPermissionSet(DiscordPermission.ViewChannel)));
+                    }
+                }
+            }
 
-            if (!result.IsSuccess)
+            resultList.Add(await _channelApi.EditChannelPermissionsAsync(channel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
+                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel)));
+
+
+            if (!resultList.Select(x => x.IsSuccess).All(x => x))
             {
                 await _commandResponder.Respond("There was an error hiding this channel for you. Try again later.");
             }
@@ -160,6 +178,7 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
+
             var actionResult = await _mediator.Send(new DeleteUserBlockedChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
 
             if (actionResult.Failure)
@@ -168,10 +187,33 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
-            await _channelApi.DeleteChannelPermissionAsync(channel.ID, _commandContext.User.ID);
+            var isCascadeEnabled = await _mediator.Send(new GetIsUserBlockedChannelsCascadeHideEnabledRequest());
 
-            await _commandResponder.Respond(
-                $"{DiscordFormatter.ChannelIdToMention(channel.ID.Value!)} should visible to you, unless you didn't have access to it in the first place.");
+            var resultList = new List<Result>();
+            if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
+            {
+                var channels = await _discordCache.GetChannels(_commandContext.GuildID.Value.Value);
+                foreach (var inheritedChannel in channels.Entity)
+                {
+                    if (inheritedChannel.ParentID == channel.ID)
+                    {
+                        resultList.Add(await _channelApi.DeleteChannelPermissionAsync(inheritedChannel.ID, _commandContext.User.ID));
+                    }
+                }
+            }
+
+            resultList.Add(await _channelApi.DeleteChannelPermissionAsync(channel.ID, _commandContext.User.ID));
+
+
+            if (!resultList.Select(x => x.IsSuccess).All(x => x))
+            {
+                await _commandResponder.Respond("There was an error showing this channel for you. Try again later.");
+            }
+            else
+            {
+                await _commandResponder.Respond(
+                    $"Channel {DiscordFormatter.ChannelIdToMention(channel.ID.Value!)} should visible to you, unless you didn't have access to it in the first place.");
+            }
 
             return Result.FromSuccess();
         }
