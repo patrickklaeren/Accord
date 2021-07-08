@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using System;
+﻿using System;
+using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
-using Accord.Services.Reminder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
@@ -44,7 +43,7 @@ namespace Accord.Bot.Infrastructure
                 .AddParser<TimeSpan, TimeSpanParser>()
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
-                .AddCommandGroup<UserChannelBlockingCommandGroup>()
+                .AddCommandGroup<UserChannelHidingCommandGroup>()
                 .AddCommandGroup<PermissionCommandGroup>()
                 .AddCommandGroup<RunOptionCommandGroup>()
                 .AddCommandGroup<ReminderCommandGroup>()

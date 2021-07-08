@@ -2,7 +2,7 @@
 
 namespace Accord.Domain.Model
 {
-    public class UserBlockedChannel
+    public class UserHiddenChannel
     {
         [Key]
         public int Id { get; set; }

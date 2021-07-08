@@ -2,12 +2,12 @@
 
 namespace Accord.Domain.Migrations
 {
-    public partial class UserBlockedChannels : Migration
+    public partial class UserHiddenChannels : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "UserBlockedChannels",
+                name: "UserHiddenChannels",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -17,25 +17,35 @@ namespace Accord.Domain.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserBlockedChannels", x => x.Id);
+                    table.PrimaryKey("PK_UserHiddenChannels", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserBlockedChannels_Users_UserId",
+                        name: "FK_UserHiddenChannels_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "RunOptions",
+                columns: new[] { "Type", "Value" },
+                values: new object[] { 8, "False" });
+
             migrationBuilder.CreateIndex(
-                name: "IX_UserBlockedChannels_UserId",
-                table: "UserBlockedChannels",
+                name: "IX_UserHiddenChannels_UserId",
+                table: "UserHiddenChannels",
                 column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "UserBlockedChannels");
+                name: "UserHiddenChannels");
+
+            migrationBuilder.DeleteData(
+                table: "RunOptions",
+                keyColumn: "Type",
+                keyValue: 8);
         }
     }
 }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    [Migration("20210706214038_UserBlockedChannels")]
-    partial class UserBlockedChannels
+    [Migration("20210708161340_UserHiddenChannels")]
+    partial class UserHiddenChannels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -144,6 +144,11 @@ namespace Accord.Domain.Migrations
                         },
                         new
                         {
+                            Type = 8,
+                            Value = "False"
+                        },
+                        new
+                        {
                             Type = 7,
                             Value = "3"
                         });
@@ -186,7 +191,7 @@ namespace Accord.Domain.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.UserBlockedChannel", b =>
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -203,7 +208,7 @@ namespace Accord.Domain.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserBlockedChannels");
+                    b.ToTable("UserHiddenChannels");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserMessage", b =>
@@ -273,13 +278,6 @@ namespace Accord.Domain.Migrations
                     b.Property<decimal>("InboxDiscordChannelId")
                         .HasColumnType("decimal(20,0)");
 
-                    b.Property<decimal>("InboxDiscordMessageProxyWebhookId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<string>("InboxDiscordMessageProxyWebhookToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("OpenedByUserId")
                         .HasColumnType("decimal(20,0)");
 
@@ -288,13 +286,6 @@ namespace Accord.Domain.Migrations
 
                     b.Property<decimal>("OutboxDiscordChannelId")
                         .HasColumnType("decimal(20,0)");
-
-                    b.Property<decimal>("OutboxDiscordMessageProxyWebhookId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<string>("OutboxDiscordMessageProxyWebhookToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -334,9 +325,6 @@ namespace Accord.Domain.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("DiscordProxyMessageId")
-                        .HasColumnType("decimal(20,0)");
 
                     b.Property<bool>("IsInternal")
                         .HasColumnType("bit");
@@ -431,7 +419,7 @@ namespace Accord.Domain.Migrations
                     b.Navigation("AddedByUser");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.UserBlockedChannel", b =>
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
                 {
                     b.HasOne("Accord.Domain.Model.User", "User")
                         .WithMany()

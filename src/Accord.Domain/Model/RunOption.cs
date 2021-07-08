@@ -46,7 +46,7 @@ namespace Accord.Domain.Model
                 Value = ""
             }, new RunOption()
             {
-                Type = RunOptionType.UserBlockedChannelsCascadeBlockEnabled,
+                Type = RunOptionType.UserHiddenChannelsCascadeHideEnabled,
                 Value = "False"
             }, new RunOption()
             {
@@ -68,7 +68,7 @@ namespace Accord.Domain.Model
         UserReportsInboxCategoryId = 5,
         UserReportsAgentRoleId = 6,
 
-        UserBlockedChannelsCascadeBlockEnabled = 8,
+        UserHiddenChannelsCascadeHideEnabled = 8,
         
         AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
     }

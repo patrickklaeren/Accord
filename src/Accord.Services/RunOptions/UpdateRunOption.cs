@@ -75,7 +75,7 @@ namespace Accord.Services.RunOptions
                     success = true;
                     break;
                 
-                case RunOptionType.UserBlockedChannelsCascadeBlockEnabled when bool.TryParse(request.RawValue, out var actualValue):
+                case RunOptionType.UserHiddenChannelsCascadeHideEnabled when bool.TryParse(request.RawValue, out var actualValue):
                     runOption.Value = actualValue.ToString();
                     success = true;
                     break;

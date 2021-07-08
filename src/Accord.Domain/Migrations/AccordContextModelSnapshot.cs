@@ -142,6 +142,11 @@ namespace Accord.Domain.Migrations
                         },
                         new
                         {
+                            Type = 8,
+                            Value = "False"
+                        },
+                        new
+                        {
                             Type = 7,
                             Value = "3"
                         });
@@ -184,7 +189,7 @@ namespace Accord.Domain.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.UserBlockedChannel", b =>
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -201,7 +206,7 @@ namespace Accord.Domain.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserBlockedChannels");
+                    b.ToTable("UserHiddenChannels");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserMessage", b =>
@@ -412,7 +417,7 @@ namespace Accord.Domain.Migrations
                     b.Navigation("AddedByUser");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.UserBlockedChannel", b =>
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
                 {
                     b.HasOne("Accord.Domain.Model.User", "User")
                         .WithMany()

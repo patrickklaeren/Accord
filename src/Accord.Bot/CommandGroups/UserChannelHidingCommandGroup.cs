@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.Helpers;
-using Accord.Services.UserChannelBlocks;
+using Accord.Services.UserHiddenChannels;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -21,7 +21,7 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups
 {
     [Group("channel")]
-    public class UserChannelBlockingCommandGroup : CommandGroup
+    public class UserChannelHidingCommandGroup : CommandGroup
     {
         private readonly ICommandContext _commandContext;
         private readonly IMediator _mediator;
@@ -31,7 +31,7 @@ namespace Accord.Bot.CommandGroups
         private readonly DiscordCache _discordCache;
         private readonly DiscordAvatarHelper _discordAvatarHelper;
 
-        public UserChannelBlockingCommandGroup(ICommandContext commandContext,
+        public UserChannelHidingCommandGroup(ICommandContext commandContext,
             IMediator mediator,
             IDiscordRestChannelAPI channelApi,
             IDiscordRestGuildAPI guildApi,
@@ -51,38 +51,33 @@ namespace Accord.Bot.CommandGroups
         [RequireContext(ChannelContext.Guild), Command("hidden"), Description("Display your hidden channels")]
         public async Task<IResult> GetHiddenChannels()
         {
-            var usersBlockedChannels = await _mediator.Send(new GetUserBlockedChannelsRequest(_commandContext.User.ID.Value));
+            var hiddenChannelsForUser = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
 
-            if (usersBlockedChannels.Count == 0)
+            if (!hiddenChannelsForUser.Any())
             {
-                await _commandResponder.Respond("You don't have any hidden channel yet");
-            }
-            else
-            {
-                StringBuilder sb = new();
-                foreach (var blockedChannel in usersBlockedChannels)
-                {
-                    sb.AppendLine($"{DiscordFormatter.ChannelIdToMention(blockedChannel)}");
-                }
-
-                await _commandResponder.Respond(new Embed
-                {
-                    Author = new EmbedAuthor(
-                        DiscordHandleHelper.BuildHandle(_commandContext.User.Username, _commandContext.User.Discriminator),
-                        IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User)),
-                    Title = "Hidden Channels",
-                    Description = sb.ToString()
-                });
+                return await _commandResponder.Respond("You don't have any hidden channel yet");
             }
 
-            return Result.FromSuccess();
+            StringBuilder sb = new();
+            foreach (var blockedChannel in hiddenChannelsForUser)
+            {
+                sb.AppendLine($"{DiscordFormatter.ChannelIdToMention(blockedChannel)}");
+            }
+
+            return await _commandResponder.Respond(new Embed
+            {
+                Author = new EmbedAuthor(
+                    DiscordHandleHelper.BuildHandle(_commandContext.User.Username, _commandContext.User.Discriminator),
+                    IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User)),
+                Title = "Hidden Channels",
+                Description = sb.ToString()
+            });
         }
-
-
+        
         [RequireContext(ChannelContext.Guild), Command("hide"), Description("Hide a channel for you")]
         public async Task<IResult> HideChannel(IChannel channel)
         {
-            var actionResult = await _mediator.Send(new AddUserBlockedChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
+            var actionResult = await _mediator.Send(new AddUserHiddenChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
 
             if (actionResult.Failure)
             {
@@ -90,7 +85,7 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
             
-            var isCascadeEnabled = await _mediator.Send(new GetIsUserBlockedChannelsCascadeHideEnabledRequest());
+            var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
 
             var resultList = new List<Result>();
             if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
@@ -139,7 +134,7 @@ namespace Accord.Bot.CommandGroups
                     var result = channelsResult.Entity
                                      .SingleOrDefault(x => x.PermissionOverwrites.HasValue
                                                            && x.PermissionOverwrites.Value.Any(y => y.ID.Value == x.ID.Value)
-                                                           && String.Equals(x.Name.Value.Replace("#", ""), channelText.Replace("#", ""),
+                                                           && String.Equals(x.Name.Value!.Replace("#", ""), channelText.Replace("#", ""),
                                                                StringComparison.InvariantCultureIgnoreCase)
                                      )
                                  ?? channelsResult.Entity
@@ -148,7 +143,7 @@ namespace Accord.Bot.CommandGroups
                                          Channel = x,
                                          Score = channelText
                                              .Replace("#", "")
-                                             .GetDamerauLevenshteinDistance(x.Name.Value.Replace("#", ""))
+                                             .GetDamerauLevenshteinDistance(x.Name.Value!.Replace("#", ""))
                                      })
                                      .OrderBy(x => x.Score)
                                      .FirstOrDefault(x => x.Score <= 2)?.Channel;
@@ -179,7 +174,7 @@ namespace Accord.Bot.CommandGroups
             }
 
 
-            var actionResult = await _mediator.Send(new DeleteUserBlockedChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
+            var actionResult = await _mediator.Send(new DeleteUserHiddenChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
 
             if (actionResult.Failure)
             {
@@ -187,7 +182,7 @@ namespace Accord.Bot.CommandGroups
                 return Result.FromSuccess();
             }
 
-            var isCascadeEnabled = await _mediator.Send(new GetIsUserBlockedChannelsCascadeHideEnabledRequest());
+            var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
 
             var resultList = new List<Result>();
             if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
