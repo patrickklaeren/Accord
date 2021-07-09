@@ -8,6 +8,7 @@ namespace Accord.Services.Raid
     public class RaidCalculator
     {
         private DateTime? _lastJoin;
+        private ulong? _lastJoinId;
         private int _joinsInLastRecordedCooldown;
 
         private readonly List<AccountCreationRange> _accountCreationDateRanges = new();
@@ -17,6 +18,12 @@ namespace Accord.Services.Raid
 
         public bool CalculateIsRaid(UserJoin userJoin, int sequentialLimit, int accountCreationSimilarityLimit)
         {
+            // If the last join is the same user, we don't care
+            if (_lastJoinId == userJoin.DiscordUserId)
+                return false;
+
+            _lastJoinId = userJoin.DiscordUserId;
+
             if (_lastJoin is null
                 || (userJoin.JoinedDateTime - _lastJoin) > JoinCooldown)
             {
