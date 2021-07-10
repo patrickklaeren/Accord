@@ -73,7 +73,7 @@ namespace Accord.Bot.CommandGroups
                 Description = sb.ToString()
             });
         }
-        
+
         [RequireContext(ChannelContext.Guild), Command("hide"), Description("Hide a channel for you")]
         public async Task<IResult> HideChannel(IChannel channel)
         {
@@ -84,10 +84,10 @@ namespace Accord.Bot.CommandGroups
                 await _commandResponder.Respond(actionResult.ErrorMessage);
                 return Result.FromSuccess();
             }
-            
+
             var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
 
-            var resultList = new List<Result>();
+            var resultList = new List<(ulong Channel, Result Result)>();
             if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
             {
                 var channels = await _discordCache.GetChannels(_commandContext.GuildID.Value.Value);
@@ -95,19 +95,30 @@ namespace Accord.Bot.CommandGroups
                 {
                     if (inheritedChannel.ParentID == channel.ID)
                     {
-                        resultList.Add(await _channelApi.EditChannelPermissionsAsync(inheritedChannel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
-                            deny: new DiscordPermissionSet(DiscordPermission.ViewChannel)));
+                        resultList.Add((
+                            inheritedChannel.ID.Value,
+                            await _channelApi.EditChannelPermissionsAsync(inheritedChannel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
+                                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel))
+                        ));
                     }
                 }
             }
 
-            resultList.Add(await _channelApi.EditChannelPermissionsAsync(channel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
-                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel)));
+            resultList.Add((channel.ID.Value,
+                    await _channelApi.EditChannelPermissionsAsync(channel.ID, _commandContext.User.ID, type: PermissionOverwriteType.Member,
+                        deny: new DiscordPermissionSet(DiscordPermission.ViewChannel))
+                ));
 
 
-            if (!resultList.Select(x => x.IsSuccess).All(x => x))
+            if (!resultList.Select(x => x.Result.IsSuccess).All(x => x))
             {
-                await _commandResponder.Respond("There was an error hiding this channel for you. Try again later.");
+                StringBuilder sb = new StringBuilder();
+                foreach (var result in resultList.Where(x => !x.Result.IsSuccess))
+                {
+                    sb.AppendLine($"|-- Couldn't hide channel: {result.Channel} -> {result.Result.Error!.Message}");
+                }
+
+                await _commandResponder.Respond($"There was an error hiding these channel(s) for you. Try again later.\n{sb}");
             }
             else
             {
