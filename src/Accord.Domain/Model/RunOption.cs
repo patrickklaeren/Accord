@@ -46,6 +46,10 @@ namespace Accord.Domain.Model
                 Value = ""
             }, new RunOption()
             {
+                Type = RunOptionType.UserHiddenChannelsCascadeHideEnabled,
+                Value = "False"
+            }, new RunOption()
+            {
                 Type = RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode,
                 Value = "3"
             }
@@ -64,6 +68,8 @@ namespace Accord.Domain.Model
         UserReportsInboxCategoryId = 5,
         UserReportsAgentRoleId = 6,
 
+        UserHiddenChannelsCascadeHideEnabled = 8,
+        
         AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
     }
 }
