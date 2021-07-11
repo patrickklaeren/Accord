@@ -86,22 +86,21 @@ namespace Accord.Bot.CommandGroups
             var guildMember = await _discordCache.GetInvokingGuildMember();
             if (!guildMember.IsSuccess || guildMember.Entity == null)
                 return await _commandResponder.Respond("There was an error executing this command. Try again later.");
-            
+
             var activeHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
             if (activeHiddenChannels.Any(x => x.DiscordChannelId == channel.ID.Value))
                 return await _commandResponder.Respond("This channel is already hidden for you.");
 
             var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
-
-            var hasUserPermissionToViewTheChannel = _discordPermissionHelper.HasUserEffectivePermissionInChannel(
+            var hasUserPermissionToViewTheChannel = _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
                 _commandContext.GuildID.Value.Value,
                 guildMember.Entity,
                 channel,
                 DiscordPermission.ViewChannel);
-            var hasBotPermissionToManageTheChannel = _discordPermissionHelper.HasBotEffectivePermissionInChannel(
+            var hasBotPermissionToManageTheChannel = _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
                 _commandContext.GuildID.Value.Value,
                 channel,
-                DiscordPermission.ManageChannels);
+                DiscordPermission.ViewChannel, DiscordPermission.ManageRoles);
 
             if (!hasBotPermissionToManageTheChannel || !hasUserPermissionToViewTheChannel)
                 return await _commandResponder.Respond($"This channel cannot be hidden!");
@@ -125,16 +124,16 @@ namespace Accord.Bot.CommandGroups
                 {
                     if (inheritedChannel.ParentID == channel.ID)
                     {
-                        var hasUserPermissionToViewTheInheritedChannel = _discordPermissionHelper.HasUserEffectivePermissionInChannel(
+                        var hasUserPermissionToViewTheInheritedChannel = _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
                             _commandContext.GuildID.Value.Value,
                             guildMember.Entity,
                             inheritedChannel,
                             DiscordPermission.ViewChannel);
                         var hasBotPermissionToManageTheInheritedChannel =
-                            _discordPermissionHelper.HasBotEffectivePermissionInChannel(
+                            _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
                                 _commandContext.GuildID.Value.Value,
                                 inheritedChannel,
-                                DiscordPermission.ManageChannels);
+                                DiscordPermission.ViewChannel, DiscordPermission.ManageRoles);
 
                         if (!hasBotPermissionToManageTheInheritedChannel || !hasUserPermissionToViewTheInheritedChannel)
                             continue;

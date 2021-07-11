@@ -90,20 +90,20 @@ namespace Accord.Bot.Helpers
             DiscordPermissionType discordPermissionType = DiscordPermissionType.All
         ) => channel.HasUserPermissionOverwrites(user.ID.Value, discordPermissionType);
 
-        public bool HasBotEffectivePermissionInChannel(ulong discordGuildId, IChannel discordChannelId, DiscordPermission permission)
+        public bool HasBotEffectivePermissionsInChannel(ulong discordGuildId, IChannel discordChannelId, params DiscordPermission[] permissions)
         {
             var selfMember = _discordCache.GetGuildSelfMember(discordGuildId);
 
-            return HasUserEffectivePermissionInChannel(discordGuildId, selfMember, discordChannelId, permission);
+            return HasUserEffectivePermissionsInChannel(discordGuildId, selfMember, discordChannelId, permissions);
         }
 
-        public bool HasBotEffectivePermissionInChannel(ulong discordGuildId, ulong discordChannelId, DiscordPermission permission)
+        public bool HasBotEffectivePermissionsInChannel(ulong discordGuildId, ulong discordChannelId, params DiscordPermission[] permissions)
         {
             var guildChannel = _discordCache.GetGuildChannels(discordChannelId).SingleOrDefault(x => x.ID.Value == discordChannelId);
             if (guildChannel == null)
                 return false;
 
-            return HasBotEffectivePermissionInChannel(discordGuildId, guildChannel, permission);
+            return HasBotEffectivePermissionsInChannel(discordGuildId, guildChannel, permissions);
         }
 
         public IDiscordPermissionSet? GetBotEffectivePermissionsInChannel(ulong discordGuildId, ulong discordChannelId)
@@ -121,19 +121,20 @@ namespace Accord.Bot.Helpers
             return GetUserEffectivePermissionsInChannel(discordGuildId, selfMember, discordChannel);
         }
 
-        public bool HasUserEffectivePermissionInChannel(ulong discordGuildId, IGuildMember guildMember, IChannel discordChannel, DiscordPermission permission)
+        public bool HasUserEffectivePermissionsInChannel(ulong discordGuildId, IGuildMember guildMember, IChannel discordChannel, params DiscordPermission[] permissions)
         {
             var effectivePermissions = GetUserEffectivePermissionsInChannel(discordGuildId, guildMember, discordChannel);
-            return effectivePermissions.HasPermission(permission);
+            
+            return permissions.Select(x => effectivePermissions.HasPermission(x)).All(x => x);
         }
 
-        public async Task<bool> HasUserEffectivePermissionInChannel(ulong discordGuildId, ulong discordUserId, ulong discordChannelId, DiscordPermission permission)
+        public async Task<bool> HasUserEffectivePermissionsInChannel(ulong discordGuildId, ulong discordUserId, ulong discordChannelId, params DiscordPermission[] permissions)
         {
             var effectivePermissions = await GetUserEffectivePermissionsInChannel(discordGuildId, discordUserId, discordChannelId);
             if (effectivePermissions == null)
                 return false;
 
-            return effectivePermissions.HasPermission(permission);
+            return permissions.Select(x => effectivePermissions.HasPermission(x)).All(x => x);
         }
 
         public IDiscordPermissionSet GetUserEffectivePermissionsInChannel(ulong discordGuildId, IGuildMember guildMember, IChannel discordChannel)
