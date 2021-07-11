@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,16 +46,8 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("me"), Description("Add a reminder for the invoking user.")]
-        public async Task<IResult> AddReminder(string time, string message)
+        public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)
         {
-            var timeSpanResult = await new TimeSpanParser().TryParse(time, default);
-            if (!timeSpanResult.IsSuccess)
-            {
-                await _commandResponder.Respond("Please provide a valid time span for your Reminder.");
-                return Result.FromSuccess();
-            }
-
-            var timeSpan = timeSpanResult.Entity;
             var sanitizedMessage = message.DiscordSanitize();
 
             var response = await _mediator.Send(new AddReminderRequest(
@@ -183,7 +176,7 @@ namespace Accord.Bot.CommandGroups
                 foreach (var reminder in userReminders)
                 {
                     sb.AppendLine("```css");
-                    sb.AppendLine($"[{reminder.Id}] {reminder.Message.Truncate(10, "..."),-10} in {reminder.RemindAt.Humanize(false)}");
+                    sb.AppendLine($"[{reminder.Id}] {reminder.Message.Truncate(10, "..."),-10} in {reminder.RemindAt.Humanize()}");
                     sb.Append("```");
                 }
             }

@@ -14,8 +14,8 @@ namespace Accord.Domain.Model
         
         public ulong DiscordChannelId { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-        public DateTime RemindAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset RemindAt { get; set; }
         public string Message { get; set; } = null!;
     }
 }

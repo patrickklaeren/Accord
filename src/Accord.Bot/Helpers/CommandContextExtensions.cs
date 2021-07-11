@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Accord.Services.Permissions;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
 
 namespace Accord.Bot.Helpers

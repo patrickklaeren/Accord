@@ -28,7 +28,7 @@ namespace Accord.Services.Reminder
             if (!userExists)
                 return ServiceResponse.Fail<GetUserDto>("User does not exist");
 
-            var dateTime = DateTime.Now;
+            var dateTime = DateTimeOffset.Now;
             
             var reminder = new UserReminder
             {
