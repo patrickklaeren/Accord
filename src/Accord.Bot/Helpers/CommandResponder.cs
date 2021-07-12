@@ -36,7 +36,7 @@ namespace Accord.Bot.Helpers
                 return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] { embed });
             }
 
-            return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+            return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embeds: new[] { embed });
         }
 
         public async Task<IResult> Respond(params Embed[] embeds)
@@ -48,7 +48,7 @@ namespace Accord.Bot.Helpers
 
             foreach (var embed in embeds)
             {
-                var response = await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+                var response = await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embeds: new[] { embed });
 
                 if (!response.IsSuccess)
                     return response;

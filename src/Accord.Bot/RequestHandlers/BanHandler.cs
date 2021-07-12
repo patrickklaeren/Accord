@@ -42,7 +42,7 @@ namespace Accord.Bot.RequestHandlers
 
                 foreach (var channel in channelsToPostTo)
                 {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embed: embed, ct: cancellationToken);
+                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
                 }
             }
         }

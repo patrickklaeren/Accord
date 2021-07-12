@@ -56,7 +56,7 @@ namespace Accord.Bot.RequestHandlers
                 Footer = new EmbedFooter(request.SentDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
             };
 
-            await _channelApi.CreateMessageAsync(new Snowflake(request.ToDiscordChannelId), embed: embed, ct: cancellationToken);
+            await _channelApi.CreateMessageAsync(new Snowflake(request.ToDiscordChannelId), embeds: new[] { embed }, ct: cancellationToken);
         }
     }
 }

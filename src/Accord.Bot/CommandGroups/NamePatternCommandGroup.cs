@@ -67,7 +67,7 @@ namespace Accord.Bot.CommandGroups
             }
             else
             {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embed: embed);
+                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embeds: new[] { embed });
             }
 
             return Result.FromSuccess();

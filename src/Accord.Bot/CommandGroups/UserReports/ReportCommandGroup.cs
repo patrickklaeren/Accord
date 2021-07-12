@@ -142,7 +142,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                     Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
                 };
 
-                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordFormatter.RoleIdToMention(agentRoleId!.Value)}", embed: infoEmbed);
+                await _channelApi.CreateMessageAsync(inboxChannel.Entity.ID, $"{DiscordFormatter.RoleIdToMention(agentRoleId!.Value)}", embeds: new[] { infoEmbed });
             }
 
             return Result.FromSuccess();
