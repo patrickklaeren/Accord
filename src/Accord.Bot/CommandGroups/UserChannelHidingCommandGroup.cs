@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Bot.Helpers.Permissions;
 using Accord.Bot.Parsers;
 using Accord.Services.Helpers;
 using Accord.Services.UserHiddenChannels;

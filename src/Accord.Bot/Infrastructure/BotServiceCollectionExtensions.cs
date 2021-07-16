@@ -3,6 +3,7 @@ using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
+using Accord.Bot.Helpers.Permissions;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

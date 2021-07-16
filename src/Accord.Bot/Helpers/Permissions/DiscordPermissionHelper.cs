@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 
-namespace Accord.Bot.Helpers
+namespace Accord.Bot.Helpers.Permissions
 {
     public static class DiscordPermissionHelperExtensions
     {
