@@ -120,8 +120,7 @@ namespace Accord.Bot.CommandGroups
 
             builder
                 .AppendLine()
-                .AppendLine("**Voice Participation**")
-                .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceMinutesInChannelDtos.Sum(x => x.NumberOfMinutes)).Humanize()}");
+                .AppendLine("**Voice Participation**");
 
             if (userVoiceMinutesInChannelDtos.Any())
             {
@@ -129,7 +128,14 @@ namespace Accord.Bot.CommandGroups
                     .OrderByDescending(x => x.NumberOfMinutes)
                     .First();
 
-                builder.AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
+                builder
+                    .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceMinutesInChannelDtos.Sum(x => x.NumberOfMinutes)).Humanize()}")
+                    .AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
+            }
+            else
+            {
+                builder
+                    .AppendLine("No time spent in voice channels");
             }
 
             var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),

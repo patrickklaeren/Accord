@@ -131,7 +131,7 @@ namespace Accord.Services.Xp
 
                     if (hasActivityInDay && hasActivityNextDay)
                     {
-                        pointsForUser += 5;
+                        pointsForUser += 10;
                     }
                 }
 
@@ -142,17 +142,9 @@ namespace Accord.Services.Xp
                 {
                     pointsForUser += rankedMessengers.Count - rankedMessengers.IndexOf(rankedMessengerPosition);
                 }
-
                 if (rankedVoiceUserPosition is not null)
                 {
                     pointsForUser += rankedVoiceUsers.Count - rankedVoiceUsers.IndexOf(rankedVoiceUserPosition);
-                }
-
-                if (rankedMessengerPosition is not null
-                    && rankedVoiceUserPosition is not null)
-                {
-                    pointsForUser += (rankedMessengers.Count - rankedMessengers.IndexOf(rankedMessengerPosition))
-                        + (rankedVoiceUsers.Count - rankedVoiceUsers.IndexOf(rankedVoiceUserPosition));
                 }
 
                 user.Points = pointsForUser;
