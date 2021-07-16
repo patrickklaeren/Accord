@@ -6,7 +6,7 @@ using Remora.Commands.Parsers;
 using Remora.Commands.Results;
 using Remora.Results;
 
-namespace Accord.Bot.Helpers
+namespace Accord.Bot.Parsers
 {
     /// <summary>
     /// Parses instances of <see cref="TimeSpanParser"/>.

@@ -1,13 +1,15 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Domain.Model;
 using Accord.Services.Users;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserHiddenChannels
 {
-    public sealed record DeleteUserHiddenChannelRequest(ulong DiscordUserId, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+    public sealed record DeleteUserHiddenChannelRequest(ulong DiscordUserId, ulong DiscordChannelId, List<ulong>? DependentDiscordChannelIds = default) : IRequest<ServiceResponse>;
 
     public class DeleteUserHiddenChannelHandler : IRequestHandler<DeleteUserHiddenChannelRequest, ServiceResponse>
     {
@@ -29,16 +31,25 @@ namespace Accord.Services.UserHiddenChannels
 
             var userHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
 
-            if (!userHiddenChannels.Contains(request.DiscordChannelId))
+            UserHiddenChannel? hiddenChannel = null;
+
+            if (userHiddenChannels.Any(x => x.DiscordChannelId == request.DiscordChannelId))
             {
-                return ServiceResponse.Fail("This channel is not blocked");
+                hiddenChannel = userHiddenChannels
+                    .Single(x => x.DiscordChannelId == request.DiscordChannelId);
+                _accordContext.Remove(hiddenChannel);
             }
 
-            var hiddenChannel = await _accordContext.UserHiddenChannels.SingleAsync(x => x.UserId == request.DiscordUserId && x.DiscordChannelId == request.DiscordChannelId,
-                cancellationToken: cancellationToken);
+            var inheritedChannels = userHiddenChannels
+                .Where(x => hiddenChannel != null
+                            && x.ParentDiscordChannelId == hiddenChannel.DiscordChannelId
+                            || request.DependentDiscordChannelIds != null
+                            && request.DependentDiscordChannelIds.Contains(x.DiscordChannelId))
+                .ToList();
 
-            _accordContext.Remove(hiddenChannel);
-
+            if (inheritedChannels.Any())
+                _accordContext.RemoveRange(inheritedChannels);
+            
             await _mediator.Send(new InvalidateGetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
 
             await _accordContext.SaveChangesAsync(cancellationToken);

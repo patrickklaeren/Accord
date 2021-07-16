@@ -23,21 +23,51 @@ namespace Accord.Bot.Responders
         private readonly IMediator _mediator;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly DiscordAvatarHelper _discordAvatarHelper;
+        private readonly DiscordCache _discordCache;
 
-        public MemberUpdateResponder(IMediator mediator, 
-            IDiscordRestChannelAPI channelApi, DiscordAvatarHelper discordAvatarHelper)
+        public MemberUpdateResponder(IMediator mediator,
+            IDiscordRestChannelAPI channelApi,
+            DiscordAvatarHelper discordAvatarHelper,
+            DiscordCache discordCache)
         {
             _mediator = mediator;
             _channelApi = channelApi;
             _discordAvatarHelper = discordAvatarHelper;
+            _discordCache = discordCache;
         }
 
         public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
         {
             var user = gatewayEvent.User;
 
-            var diff = await _mediator.Send(new GetDiffForUserRequest(user.ID.Value, user.Username,
-                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null));
+            var selfMember = _discordCache.GetGuildSelfMember(gatewayEvent.GuildID);
+            var newMember = new GuildMember(
+                new Optional<IUser>(gatewayEvent.User),
+                gatewayEvent.Nickname,
+                gatewayEvent.Roles,
+                gatewayEvent.JoinedAt!.Value,
+                gatewayEvent.PremiumSince,
+                gatewayEvent.IsDeafened.HasValue && gatewayEvent.IsDeafened.Value,
+                gatewayEvent.IsMuted.HasValue && gatewayEvent.IsMuted.Value,
+                gatewayEvent.IsPending.HasValue && gatewayEvent.IsPending.Value
+            );
+
+            if (user.ID == selfMember.User.Value!.ID)
+            {
+                _discordCache.SetGuildSelfMember(gatewayEvent.GuildID, newMember);
+            }
+            else
+            {
+                _discordCache.SetGuildMember(gatewayEvent.GuildID.Value, user.ID.Value, newMember);
+            }
+
+            var diff = await _mediator.Send(
+                new GetDiffForUserRequest(
+                    user.ID.Value,
+                    user.Username,
+                    user.Discriminator.ToPaddedDiscriminator(),
+                    gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null),
+                ct);
 
             if (diff.HasDiff)
             {
@@ -49,7 +79,8 @@ namespace Accord.Bot.Responders
 
                 if (!string.IsNullOrWhiteSpace(payload))
                 {
-                    var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
+                    var embed = new Embed(
+                        Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
                         Description: $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
                         Thumbnail: image);
 
@@ -60,8 +91,15 @@ namespace Accord.Bot.Responders
                 }
             }
 
-            await _mediator.Send(new UpdateUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username,
-                user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null, gatewayEvent.JoinedAt), ct);
+            await _mediator.Send(
+                new UpdateUserRequest(
+                    gatewayEvent.GuildID.Value,
+                    user.ID.Value,
+                    user.Username,
+                    user.Discriminator.ToPaddedDiscriminator(),
+                    gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null,
+                    gatewayEvent.JoinedAt),
+                ct);
 
             return Result.FromSuccess();
         }

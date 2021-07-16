@@ -3,11 +3,12 @@ using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
+using Accord.Bot.Helpers.Permissions;
+using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
-using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 
@@ -25,10 +26,17 @@ namespace Accord.Bot.Infrastructure
                 .Configure<DiscordConfiguration>(discordConfigurationSection);
 
             services
+                .Configure<DiscordCommandResponderOptions>(o => o.Prefix = "!");
+            
+            services
                 .AddLogging()
                 .AddTransient<BotClient>()
+                .AddSingleton<BotState>()
+                .AddSingleton<DiscordCache>()
                 .AddScoped<DiscordAvatarHelper>()
-                .AddScoped<DiscordCache>()
+                .AddScoped<DiscordPermissionHelper>()
+                .AddScoped<DiscordScopedCache>()
+                .AddScoped<DiscordChannelParser>()
                 .AddScoped<CommandResponder>()
                 .AddDiscordGateway(_ => token)
                 .Configure<DiscordGatewayClientOptions>(o =>
