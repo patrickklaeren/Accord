@@ -3,17 +3,6 @@ using Remora.Discord.Core;
 
 namespace Accord.Bot.Helpers
 {
-    public enum TimeToMentionType
-    {
-        ShortTime = 't',
-        LongTime = 'T',
-        ShortDate = 'd',
-        LongDate = 'D',
-        ShortDateTime = 'f',
-        LongDateTime = 'F',
-        RelativeTime = 'R'
-    }
-
     public static class DiscordFormatter
     {
         // https://discord.com/developers/docs/reference#message-formatting

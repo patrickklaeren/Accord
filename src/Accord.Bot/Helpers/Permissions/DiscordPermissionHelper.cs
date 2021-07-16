@@ -6,13 +6,6 @@ using Remora.Discord.API.Objects;
 
 namespace Accord.Bot.Helpers
 {
-    public enum DiscordPermissionType
-    {
-        Allow,
-        Deny,
-        All
-    }
-
     public static class DiscordPermissionHelperExtensions
     {
         public static bool HasUserPermissionOverwrite(
