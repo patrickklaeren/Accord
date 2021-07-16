@@ -247,7 +247,7 @@ namespace Accord.Bot.Infrastructure
                 return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] {embed}, ct: ct);
             }
 
-            return await _channelApi.CreateMessageAsync(commandContext.ChannelID, embed: embed, ct: ct);
+            return await _channelApi.CreateMessageAsync(commandContext.ChannelID, embeds: new[] { embed }, ct: ct);
         }
 
         private async Task<Result> RelayResultToUserAsync<TResult>(
