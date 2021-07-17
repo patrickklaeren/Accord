@@ -88,7 +88,7 @@ namespace Accord.Bot.RequestHandlers
             }
 
             List<ServiceResponse> serviceResponses = new();
-            int messageCount = (int)Math.Min(1, Math.Ceiling(request.Content.Length / 2000f) + 1);
+            int messageCount = (int)Math.Max(1, Math.Ceiling(request.Content.Length / 2000f) + 1);
 
             if (messageCount == 1 && !embeds.Any() && fileData == default && String.IsNullOrEmpty(request.Content?.Trim()))
             {
