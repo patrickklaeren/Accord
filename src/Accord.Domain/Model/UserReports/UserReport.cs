@@ -8,7 +8,11 @@ namespace Accord.Domain.Model.UserReports
         public int Id { get; set; }
 
         public ulong OutboxDiscordChannelId { get; set; }
+        public ulong OutboxDiscordMessageProxyWebhookId { get; set; }
+        public string OutboxDiscordMessageProxyWebhookToken { get; set; }
         public ulong InboxDiscordChannelId { get; set; }
+        public ulong InboxDiscordMessageProxyWebhookId { get; set; }
+        public string InboxDiscordMessageProxyWebhookToken { get; set; }
 
         public ulong OpenedByUserId { get; set; }
         public virtual User OpenedByUser { get; set; } = null!;
