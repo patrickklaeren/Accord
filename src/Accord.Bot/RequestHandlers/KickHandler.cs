@@ -11,32 +11,27 @@ using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
-using Remora.Discord.Rest;
+using Remora.Discord.Rest.API;
 
 namespace Accord.Bot.RequestHandlers
 {
     public class KickHandler : AsyncRequestHandler<KickRequest>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IDiscordRestGuildAPI _guildApi;
+        private readonly DiscordRestGuildAPI _guildApi;
         private readonly IMediator _mediator;
-        private readonly DiscordHttpClient _discordHttpClient;
 
-        public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator, 
-            IDiscordRestGuildAPI guildApi,
-            DiscordHttpClient discordHttpClient)
+        public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
+            DiscordRestGuildAPI guildApi)
         {
             _channelApi = channelApi;
             _mediator = mediator;
             _guildApi = guildApi;
-            _discordHttpClient = discordHttpClient;
         }
 
         protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
         {
-            using (_ = _discordHttpClient.WithCustomization(r => r
-                .AddHeader("X-Audit-Log-Reason", request.Reason)
-                .AddContentHeader("X-Audit-Log-Reason", request.Reason)))
+            using (_ = _guildApi.WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
             {
                 await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), cancellationToken);
             }
