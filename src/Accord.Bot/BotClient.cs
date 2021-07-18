@@ -47,12 +47,12 @@ namespace Accord.Bot
                     case GatewayWebSocketError:
                     case GatewayDiscordError:
                     {
-                        _logger.LogError("Gateway error: {Message}", runResult.Unwrap().Message);
+                        _logger.LogError("Gateway error: {Message}", runResult.Error.Message);
                         break;
                     }
                     default:
                     {
-                        _logger.LogError("Unknown error: {Message}", runResult.Unwrap().Message);
+                        _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
                         break;
                     }
                 }
@@ -65,7 +65,7 @@ namespace Accord.Bot
 
             if (!slashSupport.IsSuccess)
             {
-                _logger.LogWarning("The registered commands of the bot don't support slash commands: {Reason}", slashSupport.Unwrap().Message);
+                _logger.LogWarning("The registered commands of the bot don't support slash commands: {Reason}", slashSupport.Error.Message);
             }
             else
             {
@@ -73,7 +73,7 @@ namespace Accord.Bot
 
                 if (!updateSlash.IsSuccess)
                 {
-                    _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Unwrap().Message);
+                    _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
                 }
             }
 

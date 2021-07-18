@@ -188,7 +188,7 @@ namespace Accord.Bot.Infrastructure
                 result = result.Inner;
             }
 
-            var error = result.Unwrap();
+            var error = result.Error;
             switch (error)
             {
                 case ParameterParsingError:
@@ -204,7 +204,7 @@ namespace Accord.Bot.Infrastructure
                     }
                 default:
                     {
-                        return Result.FromError(commandResult.Unwrap());
+                        return Result.FromError(commandResult.Error!);
                     }
             }
         }

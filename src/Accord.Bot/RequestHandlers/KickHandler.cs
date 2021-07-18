@@ -34,7 +34,7 @@ namespace Accord.Bot.RequestHandlers
 
         protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
         {
-            using (_ = _discordHttpClient.AddCustomization(r => r
+            using (_ = _discordHttpClient.WithCustomization(r => r
                 .AddHeader("X-Audit-Log-Reason", request.Reason)
                 .AddContentHeader("X-Audit-Log-Reason", request.Reason)))
             {

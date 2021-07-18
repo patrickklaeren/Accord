@@ -14,17 +14,18 @@ namespace Accord.Bot.Helpers
             _discordConfiguration = discordConfiguration.Value;
         }
 
-        public EmbedThumbnail? GetAvatar(IUser user)
+        public EmbedThumbnail GetAvatar(IUser user)
         {
             var url = GetAvatarUrl(user);
-            return string.IsNullOrWhiteSpace(url) ? null : new EmbedThumbnail(url);
+            return new EmbedThumbnail(url);
         }
 
-        public string? GetAvatarUrl(IUser user)
+        public string GetAvatarUrl(IUser user)
         {
             if (user.Avatar is null)
             {
-                return null;
+                var resultModulus = user.Discriminator % 5;
+                return $"{_discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
             }
 
             var extension = "png";

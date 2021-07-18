@@ -12,6 +12,7 @@ using Accord.Services.Helpers;
 using Accord.Services.Raid;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
