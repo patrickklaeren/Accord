@@ -46,7 +46,7 @@ namespace Accord.Bot.Responders
                 : gatewayEvent.Content).TrimStart();
 
             var attachments = gatewayEvent.Attachments
-                .Select(x => new DiscordAttachmentDto(x.Url, x.Filename, x.ContentType.HasValue ? x.ContentType.Value : null))
+                .Select(x => new DiscordAttachmentDto(x.Url, x.ContentType.HasValue ? x.ContentType.Value : null))
                 .ToList();
 
             ulong? messageReference = gatewayEvent.MessageReference.HasValue ? gatewayEvent.MessageReference.Value.MessageID.Value.Value : null;
@@ -124,7 +124,7 @@ namespace Accord.Bot.Responders
                 : gatewayEvent.Content.Value).TrimStart();
 
             var attachments = (gatewayEvent.Attachments.HasValue ? gatewayEvent.Attachments.Value : new List<IAttachment>())
-                .Select(x => new DiscordAttachmentDto(x.Url, x.Filename, x.ContentType.HasValue ? x.ContentType.Value : null))
+                .Select(x => new DiscordAttachmentDto(x.Url, x.ContentType.HasValue ? x.ContentType.Value : null))
                 .ToList();
 
             if (reportChannelType == UserReportChannelType.Outbox)

@@ -61,7 +61,7 @@ namespace Accord.Bot.RequestHandlers
             if (textSnippet is not null)
             {
                 var stream = await new HttpClient().GetStreamAsync(textSnippet.Url, cancellationToken);
-                var fileNameExtension = Path.GetExtension(textSnippet.FileName);
+                var fileNameExtension = Path.GetExtension(textSnippet.Url);
                 fileData = new FileData($"{Guid.NewGuid()}{(String.IsNullOrEmpty(fileNameExtension) ? "" : $".{fileNameExtension}")}", stream);
             }
 
