@@ -18,7 +18,7 @@ namespace Accord.Bot.RequestHandlers
     public class KickHandler : AsyncRequestHandler<KickRequest>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly DiscordRestGuildAPI _guildApi;
+        private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IMediator _mediator;
 
         public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
@@ -31,10 +31,7 @@ namespace Accord.Bot.RequestHandlers
 
         protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
         {
-            using (_ = _guildApi.WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
-            {
-                await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), cancellationToken);
-            }
+            await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), cancellationToken);
 
             var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
 
@@ -46,7 +43,7 @@ namespace Accord.Bot.RequestHandlers
 
                 foreach (var channel in channelsToPostTo)
                 {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[]{ embed }, ct: cancellationToken);
+                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
                 }
             }
         }
