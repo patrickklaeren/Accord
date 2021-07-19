@@ -21,8 +21,8 @@ namespace Accord.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IEventQueue _eventQueue;
 
-        public EventQueueProcessor(ILogger<EventQueueProcessor> logger, 
-            IServiceScopeFactory serviceScopeFactory, 
+        public EventQueueProcessor(ILogger<EventQueueProcessor> logger,
+            IServiceScopeFactory serviceScopeFactory,
             IEventQueue eventQueue)
         {
             _logger = logger;
@@ -46,7 +46,7 @@ namespace Accord.Services
 
                     if (queuedItem is UserJoinedEvent userJoined)
                     {
-                        await mediator.Send(new AddUserRequest(userJoined.DiscordGuildId, userJoined.DiscordUserId, userJoined.DiscordUsername, 
+                        await mediator.Send(new AddUserRequest(userJoined.DiscordGuildId, userJoined.DiscordUserId, userJoined.DiscordUsername,
                             userJoined.DiscordDiscriminator, userJoined.DiscordNickname, userJoined.QueuedDateTime), stoppingToken);
                     }
                     else
@@ -59,39 +59,55 @@ namespace Accord.Services
                         IRequest<ServiceResponse> action = queuedItem switch
                         {
                             RaidCalculationEvent raidCalculation
-                                => new RaidCalculationRequest(raidCalculation.DiscordGuildId, 
-                                    new GuildUserDto(raidCalculation.DiscordUserId, 
-                                        raidCalculation.DiscordUsername, 
-                                        raidCalculation.DiscordUserDiscriminator, 
+                                => new RaidCalculationRequest(raidCalculation.DiscordGuildId,
+                                    new GuildUserDto(raidCalculation.DiscordUserId,
+                                        raidCalculation.DiscordUsername,
+                                        raidCalculation.DiscordUserDiscriminator,
                                         null,
                                         raidCalculation.QueuedDateTime)),
 
                             AddMessageEvent addMessage
-                                => new AddMessageRequest(addMessage.DiscordMessageId, addMessage.DiscordUserId, 
+                                => new AddMessageRequest(addMessage.DiscordMessageId, addMessage.DiscordUserId,
                                     addMessage.DiscordChannelId, addMessage.QueuedDateTime),
 
                             AddUserReportInboxMessageEvent addMessage
-                                => new AddUserReportInboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
-                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.QueuedDateTime),
+                                => new AddUserReportMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId,
+                                    addMessage.DiscordChannelId, UserReportChannelType.Inbox, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.DiscordMessageReferenceId, addMessage.QueuedDateTime),
 
                             AddUserReportOutboxMessageEvent addMessage
-                                => new AddUserReportOutboxMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId, 
-                                    addMessage.DiscordChannelId, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.QueuedDateTime),
+                                => new AddUserReportMessageRequest(addMessage.DiscordGuildId, addMessage.DiscordMessageId, addMessage.DiscordUserId,
+                                    addMessage.DiscordChannelId, UserReportChannelType.Outbox, addMessage.DiscordMessageContent, addMessage.Attachments, addMessage.DiscordMessageReferenceId, addMessage.QueuedDateTime),
+
+                            EditUserReportOutboxMessageEvent editMessage
+                                => new EditUserReportMessageRequest(editMessage.DiscordMessageId, editMessage.DiscordChannelId, UserReportChannelType.Outbox,
+                                    editMessage.DiscordMessageContent,
+                                    editMessage.Attachments),
+
+                            EditUserReportInboxMessageEvent editMessage
+                                => new EditUserReportMessageRequest(editMessage.DiscordMessageId, editMessage.DiscordChannelId, UserReportChannelType.Inbox,
+                                    editMessage.DiscordMessageContent,
+                                    editMessage.Attachments),
+
+                            DeleteUserReportInboxMessageEvent deleteMessage
+                                => new DeleteUserReportMessageRequest(deleteMessage.DiscordMessageId, deleteMessage.DiscordChannelId, UserReportChannelType.Inbox),
+
+                            DeleteUserReportOutboxMessageEvent deleteMessage
+                                => new DeleteUserReportMessageRequest(deleteMessage.DiscordMessageId, deleteMessage.DiscordChannelId, UserReportChannelType.Outbox),
 
                             DeleteMessageEvent addMessage
                                 => new DeleteMessageRequest(addMessage.DiscordMessageId),
 
                             CalculateXpForUserEvent calculateXp
-                                => new AddXpForMessageRequest(calculateXp.DiscordUserId, 
+                                => new AddXpForMessageRequest(calculateXp.DiscordUserId,
                                     calculateXp.DiscordChannelId, calculateXp.QueuedDateTime),
 
                             VoiceConnectedEvent voiceConnected
-                                => new StartVoiceSessionRequest(voiceConnected.DiscordGuildId, 
-                                    voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId, 
+                                => new StartVoiceSessionRequest(voiceConnected.DiscordGuildId,
+                                    voiceConnected.DiscordUserId, voiceConnected.DiscordChannelId,
                                     voiceConnected.DiscordSessionId, voiceConnected.QueuedDateTime),
 
                             VoiceDisconnectedEvent voiceDisconnected
-                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordGuildId, 
+                                => new FinishVoiceSessionRequest(voiceDisconnected.DiscordGuildId,
                                     voiceDisconnected.DiscordSessionId, voiceDisconnected.QueuedDateTime),
 
                             _ => throw new ArgumentOutOfRangeException(nameof(queuedItem))

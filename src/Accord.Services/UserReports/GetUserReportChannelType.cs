@@ -57,11 +57,4 @@ namespace Accord.Services.UserReports
             return UserReportChannelType.None;
         }
     }
-
-    public enum UserReportChannelType
-    {
-        None,
-        Inbox,
-        Outbox
-    }
 }

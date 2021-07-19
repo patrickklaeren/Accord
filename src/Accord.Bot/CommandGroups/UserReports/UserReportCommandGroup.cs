@@ -144,6 +144,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                     new DiscordPermissionSet(DiscordPermission.ViewChannel,
                         DiscordPermission.SendMessages,
                         DiscordPermission.ManageChannels,
+                        DiscordPermission.ManageWebhooks,
                         DiscordPermission.ManageMessages),
                     new DiscordPermissionSet(BigInteger.Zero));
 
@@ -168,7 +169,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                 var categoryCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
                     "User Reports",
                     type: ChannelType.GuildCategory,
-                    permissionOverwrites: new[] { selfBotPermissionOverwrite, agentsPermissionOverwrite, everyonePermissionOverwrite });
+                    permissionOverwrites: new[] {selfBotPermissionOverwrite, agentsPermissionOverwrite, everyonePermissionOverwrite});
 
                 if (!categoryCreation.IsSuccess)
                 {
@@ -180,7 +181,7 @@ namespace Accord.Bot.CommandGroups.UserReports
                     "how-to-report",
                     ChannelType.GuildText,
                     parentID: categoryCreation.Entity.ID,
-                    permissionOverwrites: new[] { howToPermissionOverwrite });
+                    permissionOverwrites: new[] {howToPermissionOverwrite});
 
                 if (!howToChannelCreation.IsSuccess)
                 {
@@ -228,7 +229,7 @@ namespace Accord.Bot.CommandGroups.UserReports
 
                 var categoryCreation = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
                     "User Reports Inbox", type: ChannelType.GuildCategory,
-                    permissionOverwrites: new[] { selfBotPermissionOverwrite, agentPermissionOverwrite, everyonePermissionOverwrite });
+                    permissionOverwrites: new[] {selfBotPermissionOverwrite, agentPermissionOverwrite, everyonePermissionOverwrite});
 
                 if (!categoryCreation.IsSuccess)
                 {

@@ -9,6 +9,7 @@ namespace Accord.Domain.Model.UserReports
         [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
 
+        public ulong DiscordProxyMessageId { get; set; }
         public int UserReportId { get; set; }
         public virtual UserReport UserReport { get; set; } = null!;
 
