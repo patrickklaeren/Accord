@@ -22,7 +22,7 @@ namespace Accord.Bot.RequestHandlers
         private readonly IMediator _mediator;
 
         public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
-            DiscordRestGuildAPI guildApi)
+            IDiscordRestGuildAPI guildApi)
         {
             _channelApi = channelApi;
             _mediator = mediator;
