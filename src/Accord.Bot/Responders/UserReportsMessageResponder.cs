@@ -14,10 +14,12 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders
 {
-    public class UserReportsMessageResponder : IResponder<IMessageCreate>,
-        IResponder<IMessageDelete>,
-        IResponder<IMessageDeleteBulk>,
-        IResponder<IMessageUpdate>
+    // TODO Implement
+    public class UserReportsMessageResponder
+    //public class UserReportsMessageResponder : IResponder<IMessageCreate>,
+    //    IResponder<IMessageDelete>,
+    //    IResponder<IMessageDeleteBulk>,
+    //    IResponder<IMessageUpdate>
     {
         private readonly IEventQueue _eventQueue;
         private readonly IMediator _mediator;
