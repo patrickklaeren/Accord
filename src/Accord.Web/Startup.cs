@@ -52,9 +52,9 @@ namespace Accord.Web
                 .AddSingleton<IEventQueue, EventQueue>();
 
             // Configure hosted services
-            //services
-            //    .AddHostedService<BotHostedService>()
-            //    .AddHostedService<EventQueueProcessor>();
+            services
+                .AddHostedService<BotHostedService>()
+                .AddHostedService<EventQueueProcessor>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
