@@ -31,9 +31,12 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
 - Clone/fork the repository from `main` branch
 - Get the Id of the Discord Guild you will be testing the bot in, for the purposes of Slash command updating
 - Get your bot token from the [Discord developer portal](https://discord.com/developers/applications)
+- Get your OAuth2 ClientId & ClientSecret from the OAuth2 tab
 - Set up configurations for development, using [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets)
     - `dotnet user-secrets set DiscordConfiguration:GuildId GUILD_ID`
     - `dotnet user-secrets set DiscordConfiguration:BotToken BOT_TOKEN`
+    - `dotnet user-secrets set DiscordConfiguration:ClientId CLIENT_ID`
+    - `dotnet user-secrets set DiscordConfiguration:ClientSecret CLIENT_SECRET`
 
 By default the bot will look for a SQL Server instance running on `localhost`. If your instance is not on `localhost` or has an otherwise differing connection string, set the `ConnectionStrings:Database` secret.
 

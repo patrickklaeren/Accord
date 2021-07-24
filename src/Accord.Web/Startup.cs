@@ -3,7 +3,9 @@ using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.Raid;
+using Accord.Web.Infrastructure.DiscordOAuth;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +29,20 @@ namespace Accord.Web
             services.AddRazorPages();
             services.AddServerSideBlazor();
 
+            services.AddAuthentication(opt =>
+                {
+                    opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    opt.DefaultChallengeScheme = DiscordOAuthConstants.AUTHENTICATION_SCHEME;
+                })
+                .AddCookie()
+                .AddDiscord(x =>
+                {
+                    x.ClientId = _configuration["DiscordConfiguration:ClientId"];
+                    x.ClientSecret = _configuration["DiscordConfiguration:ClientSecret"];
+                    x.SaveTokens = true;
+                });
+
             services
                 .AddDbContext<AccordContext>(x => x.UseSqlServer(_configuration.GetConnectionString("Database")))
                 .AddLazyCache()
@@ -36,9 +52,9 @@ namespace Accord.Web
                 .AddSingleton<IEventQueue, EventQueue>();
 
             // Configure hosted services
-            services
-                .AddHostedService<BotHostedService>()
-                .AddHostedService<EventQueueProcessor>();
+            //services
+            //    .AddHostedService<BotHostedService>()
+            //    .AddHostedService<EventQueueProcessor>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
@@ -56,10 +72,12 @@ namespace Accord.Web
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-            app.UseRouting();
+            app.UseRouting(); 
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
