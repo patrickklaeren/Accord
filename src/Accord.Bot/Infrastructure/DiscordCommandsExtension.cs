@@ -1,5 +1,4 @@
 using System;
-using Accord.Bot.Helpers;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -11,6 +10,7 @@ using Remora.Discord.Commands.Parsers;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Core;
 using Remora.Discord.Gateway.Extensions;
+using RequireContextCondition = Accord.Bot.Infrastructure.Undocumented.RequireContextCondition;
 
 namespace Accord.Bot.Infrastructure
 {
