@@ -11,6 +11,7 @@ using Accord.Services.Helpers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Accord.Services.Xp
 {
@@ -34,7 +35,9 @@ namespace Accord.Services.Xp
 
         private async Task Calculate()
         {
-            var calculateFromDate = DateTime.Today.AddDays(-14);
+            const double MINIMUM_MINUTES_IN_VOICE = 5;
+
+            var calculateFromDate = DateTime.Today.AddDays(-30);
 
             using (var userResetScope = _serviceScopeFactory.CreateScope())
             await using (var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>())
@@ -73,8 +76,7 @@ namespace Accord.Services.Xp
 
             var voicesQuery = await queryContext
                 .VoiceConnections
-                .AsNoTracking()
-                .Where(x => x.EndDateTime != null && x.MinutesInVoiceChannel != null)
+                .Where(x => x.EndDateTime != null && x.MinutesInVoiceChannel != null && x.MinutesInVoiceChannel > MINIMUM_MINUTES_IN_VOICE)
                 .Where(x => x.EndDateTime >= calculateFromDate)
                 .Where(x => !channelsExcludedFromXp.Contains(x.DiscordChannelId))
                 .Select(x => new
@@ -142,6 +144,7 @@ namespace Accord.Services.Xp
                 {
                     pointsForUser += rankedMessengers.Count - rankedMessengers.IndexOf(rankedMessengerPosition);
                 }
+
                 if (rankedVoiceUserPosition is not null)
                 {
                     pointsForUser += rankedVoiceUsers.Count - rankedVoiceUsers.IndexOf(rankedVoiceUserPosition);
