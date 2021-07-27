@@ -10,7 +10,6 @@ using Remora.Discord.Commands.Parsers;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Core;
 using Remora.Discord.Gateway.Extensions;
-using RequireContextCondition = Accord.Bot.Infrastructure.Undocumented.RequireContextCondition;
 
 namespace Accord.Bot.Infrastructure
 {
