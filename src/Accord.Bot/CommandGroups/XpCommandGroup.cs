@@ -26,7 +26,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("leaderboard"), Description("Get a leaderboard of XP")]
+        [Command("leaderboard"), Description("Get a leaderboard of XP")]
         public async Task<IResult> GetLeaderboard()
         {
             var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
@@ -45,7 +45,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
         public async Task<IResult> CalculateXp()
         {
             await _mediator.Send(new CalculateParticipationRequest());

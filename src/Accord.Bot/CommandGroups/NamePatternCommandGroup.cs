@@ -38,7 +38,7 @@ namespace Accord.Bot.CommandGroups
             _guildApi = guildApi;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("list"), Description("List all name patterns")]
+        [Command("list"), Description("List all name patterns")]
         public async Task<IResult> List()
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);
@@ -73,7 +73,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("allow"), Description("Add name pattern to allow")]
+        [Command("allow"), Description("Add name pattern to allow")]
         public async Task<IResult> AllowPattern(string pattern)
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);
@@ -86,7 +86,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("block"), Description("Add name pattern to block")]
+        [Command("block"), Description("Add name pattern to block")]
         public async Task<IResult> BlockPattern(string pattern, string onDiscovery)
         {
             var isParsedOnDiscovery = Enum.TryParse<OnNamePatternDiscovery>(onDiscovery, out var actualOnDiscovery);
@@ -108,7 +108,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("remove"), Description("Remove name pattern")]
+        [Command("remove"), Description("Remove name pattern")]
         public async Task<IResult> RemovePattern(string pattern)
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);

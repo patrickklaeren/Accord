@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Services.Extensions;
 using Accord.Services.Users;
@@ -13,7 +12,6 @@ using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
@@ -37,7 +35,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("risky-users"), Description("Get risky Guild users")]
+        [Command("risky-users"), Description("Get risky Guild users")]
         public async Task<IResult> GetRiskyUsers()
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);

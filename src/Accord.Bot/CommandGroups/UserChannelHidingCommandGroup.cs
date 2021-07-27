@@ -55,7 +55,7 @@ namespace Accord.Bot.CommandGroups
             _discordChannelParser = discordChannelParser;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("hidden"), Description("Display your hidden channels")]
+        [Command("hidden"), Description("Display your hidden channels")]
         public async Task<IResult> GetHiddenChannels()
         {
             var hiddenChannelsForUser = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
@@ -81,7 +81,7 @@ namespace Accord.Bot.CommandGroups
             });
         }
 
-        [RequireContext(ChannelContext.Guild), Command("hide"), Description("Hide a channel for you")]
+        [Command("hide"), Description("Hide a channel for you")]
         public async Task<IResult> HideChannel(IChannel channel)
         {
             var guildMember = await _discordCache.GetInvokingGuildMember();
@@ -206,7 +206,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireContext(ChannelContext.Guild), Command("show"), Description("Show a channel you've hidden")]
+        [Command("show"), Description("Show a channel you've hidden")]
         public async Task<IResult> ShowChannel(string channelText)
         {
             var results = _discordChannelParser.TryParse(channelText);

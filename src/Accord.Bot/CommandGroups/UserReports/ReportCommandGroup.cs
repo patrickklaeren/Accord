@@ -55,7 +55,7 @@ namespace Accord.Bot.CommandGroups.UserReports
             _webhookApi = webhookApi;
         }
 
-        [RequireContext(ChannelContext.Guild), Command("report"), Description("Start a user report")]
+        [Command("report"), Description("Start a user report")]
         public async Task<IResult> Report()
         {
             var response = await _mediator.Send(new GetIsUserReportsEnabledRequest());
