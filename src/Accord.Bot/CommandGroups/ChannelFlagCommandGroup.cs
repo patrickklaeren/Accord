@@ -7,6 +7,7 @@ using Accord.Services.ChannelFlags;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
@@ -37,7 +38,7 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("add"), Description("Add flag to the current channel")]
-        public async Task<IResult> AddFlag(string type)
+        public async Task<IResult> AddFlag(string type, IChannel? channel = null)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
 
@@ -49,7 +50,9 @@ namespace Accord.Bot.CommandGroups
             {
                 var user = await _commandContext.ToPermissionUser(_guildApi);
 
-                var response = await _mediator.Send(new AddChannelFlagRequest(user, actualChannelFlag, _commandContext.ChannelID.Value));
+                var channelId = channel?.ID.Value ?? _commandContext.ChannelID.Value;
+
+                var response = await _mediator.Send(new AddChannelFlagRequest(user, actualChannelFlag, channelId));
 
                 await response.GetAction(async () => await Respond($"{actualChannelFlag} flag added"),
                     async () => await Respond(response.ErrorMessage));
@@ -59,7 +62,7 @@ namespace Accord.Bot.CommandGroups
         }
 
         [RequireContext(ChannelContext.Guild), Command("remove"), Description("Add flag to the current channel")]
-        public async Task<IResult> RemoveFlag(string type)
+        public async Task<IResult> RemoveFlag(string type, IChannel? channel = null)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
 
@@ -71,7 +74,9 @@ namespace Accord.Bot.CommandGroups
             {
                 var user = await _commandContext.ToPermissionUser(_guildApi);
 
-                var response = await _mediator.Send(new DeleteChannelFlagRequest(user, actualChannelFlag, _commandContext.ChannelID.Value));
+                var channelId = channel?.ID.Value ?? _commandContext.ChannelID.Value;
+
+                var response = await _mediator.Send(new DeleteChannelFlagRequest(user, actualChannelFlag, channelId));
 
                 await response.GetAction(async () => await Respond($"{actualChannelFlag} flag removed"),
                     async () => await Respond(response.ErrorMessage));
