@@ -32,7 +32,7 @@ namespace Accord.Bot.CommandGroups
             _mediator = mediator;
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), RequireContext(ChannelContext.Guild), Command("configure"), Description("Configure an option for the bot")]
         public async Task<IResult> Configure(string type, string value)
         {
             if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))

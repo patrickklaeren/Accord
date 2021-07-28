@@ -42,7 +42,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [Command("profile"), Description("Get your profile")]
+        [Command("profile"), RequireContext(ChannelContext.Guild), Description("Get your profile")]
         public async Task<IResult> GetProfile(IGuildMember? member = null)
         {
             if (member is not null && !member.User.HasValue)

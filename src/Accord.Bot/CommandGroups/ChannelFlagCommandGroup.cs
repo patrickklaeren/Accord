@@ -37,7 +37,7 @@ namespace Accord.Bot.CommandGroups
             _guildApi = guildApi;
         }
 
-        [Command("add"), Description("Add flag to the current channel")]
+        [Command("add"), RequireContext(ChannelContext.Guild), Description("Add flag to the current channel")]
         public async Task<IResult> AddFlag(string type, IChannel? channel = null)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);
@@ -61,7 +61,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [Command("remove"), Description("Add flag to the current channel")]
+        [Command("remove"), RequireContext(ChannelContext.Guild), Description("Add flag to the current channel")]
         public async Task<IResult> RemoveFlag(string type, IChannel? channel = null)
         {
             var isParsedEnumValue = Enum.TryParse<ChannelFlagType>(type, out var actualChannelFlag);

@@ -43,7 +43,7 @@ namespace Accord.Bot.CommandGroups.UserReports
             _discordCache = discordCache;
         }
 
-        [Command("setup"), Description("Sets up user reports for Guild usage")]
+        [Command("setup"), RequireContext(ChannelContext.Guild), Description("Sets up user reports for Guild usage")]
         public async Task<IResult> Setup()
         {
             var user = await _commandContext.ToPermissionUser(_guildApi);
