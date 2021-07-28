@@ -33,7 +33,7 @@ namespace Accord.Bot.RequestHandlers
         {
             using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
             {
-                await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), cancellationToken);
+                await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), ct: cancellationToken);
             }
 
             var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
