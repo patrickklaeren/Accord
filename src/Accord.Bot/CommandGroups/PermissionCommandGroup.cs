@@ -6,76 +6,55 @@ using Accord.Domain.Model;
 using Accord.Services.Permissions;
 using MediatR;
 using Remora.Commands.Attributes;
-using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
-using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
     [Group("permission")]
-    public class PermissionCommandGroup : CommandGroup
+    public class PermissionCommandGroup: AccordCommandGroup
     {
-        private readonly ICommandContext _commandContext;
         private readonly IMediator _mediator;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
-        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly CommandResponder _commandResponder;
 
-        public PermissionCommandGroup(ICommandContext commandContext,
-            IMediator mediator, 
-            IDiscordRestWebhookAPI webhookApi, 
-            IDiscordRestChannelAPI channelApi)
+        public PermissionCommandGroup(IMediator mediator,
+            CommandResponder commandResponder)
         {
-            _commandContext = commandContext;
             _mediator = mediator;
-            _webhookApi = webhookApi;
-            _channelApi = channelApi;
+            _commandResponder = commandResponder;
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), RequireContext(ChannelContext.Guild), Command("adduser"), Description("Add permission to a user")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user")]
         public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
             {
-                await Respond("Permission is not found");
+                await _commandResponder.Respond("Permission is not found");
             }
             else if(member.User.HasValue)
             {
                 await _mediator.Send(new AddPermissionForUserRequest(member.User.Value.ID.Value, actualPermission));
-                await Respond($"{actualPermission} permission added to {member.User.Value.ID.ToUserMention()}");
+                await _commandResponder.Respond($"{actualPermission} permission added to {member.User.Value.ID.ToUserMention()}");
             }
 
             return Result.FromSuccess();
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), RequireContext(ChannelContext.Guild), Command("addrole"), Description("Add permission to a role")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("addrole"), Description("Add permission to a role")]
         public async Task<IResult> AddPermissionToRole(IRole role, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
             {
-                await Respond("Permission is not found");
+                await _commandResponder.Respond("Permission is not found");
             }
             else
             {
                 await _mediator.Send(new AddPermissionForRoleRequest(role.ID.Value, actualPermission));
-                await Respond($"{actualPermission} permission added to `{role.Name}`");
+                await _commandResponder.Respond($"{actualPermission} permission added to `{role.Name}`");
             }
 
             return Result.FromSuccess();
-        }
-
-        private async Task Respond(string message)
-        {
-            if (_commandContext is InteractionContext interactionContext)
-            {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
-            }
         }
     }
 }

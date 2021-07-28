@@ -9,20 +9,17 @@ using Accord.Services.Helpers;
 using Accord.Services.Users;
 using Humanizer;
 using MediatR;
-using Polly.Caching;
 using Remora.Commands.Attributes;
-using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Core;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
-    public class ProfileCommandGroup : CommandGroup
+    public class ProfileCommandGroup: AccordCommandGroup
     {
         private readonly IMediator _mediator;
         private readonly ICommandContext _commandContext;
@@ -42,7 +39,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [Command("profile"), RequireContext(ChannelContext.Guild), Description("Get your profile")]
+        [Command("profile"), Description("Get your profile")]
         public async Task<IResult> GetProfile(IGuildMember? member = null)
         {
             if (member is not null && !member.User.HasValue)
@@ -79,7 +76,9 @@ namespace Accord.Bot.CommandGroups
 
             var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)
                 ? userDto.UsernameWithDiscriminator
-                : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator); 
+                : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator);
+
+            var userCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userId);
 
             builder
                 .AppendLine("**User Information**")
@@ -91,6 +90,8 @@ namespace Accord.Bot.CommandGroups
             {
                 builder.AppendLine($"Nickname: {userDto.Nickname}");
             }
+
+            builder.AppendLine($"Created: {userCreated.ToDiscordDateMarkdown()}");
 
             if (userDto.JoinedGuildDateTime is not null)
             {

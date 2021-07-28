@@ -22,7 +22,7 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups
 {
     [Group("channel")]
-    public class UserChannelHidingCommandGroup : CommandGroup
+    public class UserChannelHidingCommandGroup: AccordCommandGroup
     {
         private readonly ICommandContext _commandContext;
         private readonly IMediator _mediator;
@@ -55,7 +55,7 @@ namespace Accord.Bot.CommandGroups
             _discordChannelParser = discordChannelParser;
         }
 
-        [Command("hidden"), RequireContext(ChannelContext.Guild), Description("Display your hidden channels")]
+        [Command("hidden"), Description("Display your hidden channels")]
         public async Task<IResult> GetHiddenChannels()
         {
             var hiddenChannelsForUser = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
@@ -81,7 +81,7 @@ namespace Accord.Bot.CommandGroups
             });
         }
 
-        [Command("hide"), RequireContext(ChannelContext.Guild), Description("Hide a channel for you")]
+        [Command("hide"), Description("Hide a channel for you")]
         public async Task<IResult> HideChannel(IChannel channel)
         {
             var guildMember = await _discordCache.GetInvokingGuildMember();
@@ -206,7 +206,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [Command("show"), RequireContext(ChannelContext.Guild), Description("Show a channel you've hidden")]
+        [Command("show"), Description("Show a channel you've hidden")]
         public async Task<IResult> ShowChannel(string channelText)
         {
             var results = _discordChannelParser.TryParse(channelText);

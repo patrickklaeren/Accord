@@ -1,43 +1,35 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.RunOptions;
 using MediatR;
 using Remora.Commands.Attributes;
-using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Conditions;
-using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
-    public class RunOptionCommandGroup : CommandGroup
+    public class RunOptionCommandGroup: AccordCommandGroup
     {
-        private readonly ICommandContext _commandContext;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IMediator _mediator;
+        private readonly CommandResponder _commandResponder;
 
-        public RunOptionCommandGroup(ICommandContext commandContext, 
-            IDiscordRestWebhookAPI webhookApi, 
-            IDiscordRestChannelAPI channelApi,
-            IMediator mediator)
+        public RunOptionCommandGroup(IMediator mediator,
+            CommandResponder commandResponder)
         {
-            _commandContext = commandContext;
-            _webhookApi = webhookApi;
-            _channelApi = channelApi;
             _mediator = mediator;
+            _commandResponder = commandResponder;
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), RequireContext(ChannelContext.Guild), Command("configure"), Description("Configure an option for the bot")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
         public async Task<IResult> Configure(string type, string value)
         {
             if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
             {
-                await Respond("Configuration is not found");
+                await _commandResponder.Respond("Configuration is not found");
             }
             else
             {
@@ -45,27 +37,15 @@ namespace Accord.Bot.CommandGroups
 
                 if (response.Success)
                 {
-                    await Respond($"{actualRunOptionType} configuration updated to {value}");
+                    await _commandResponder.Respond($"{actualRunOptionType} configuration updated to {value}");
                 }
                 else
                 {
-                    await Respond($"{response.ErrorMessage}");
+                    await _commandResponder.Respond($"{response.ErrorMessage}");
                 }
             }
 
             return Result.FromSuccess();
-        }
-
-        private async Task Respond(string message)
-        {
-            if (_commandContext is InteractionContext interactionContext)
-            {
-                await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
-            }
         }
     }
 }

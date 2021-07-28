@@ -22,7 +22,7 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups.UserReports
 {
-    public class ReportCommandGroup : CommandGroup
+    public class ReportCommandGroup: AccordCommandGroup
     {
         private readonly ICommandContext _commandContext;
         private readonly IMediator _mediator;
@@ -55,7 +55,7 @@ namespace Accord.Bot.CommandGroups.UserReports
             _webhookApi = webhookApi;
         }
 
-        [Command("report"), RequireContext(ChannelContext.Guild), Description("Start a user report")]
+        [Command("report"), Description("Start a user report")]
         public async Task<IResult> Report()
         {
             var response = await _mediator.Send(new GetIsUserReportsEnabledRequest());

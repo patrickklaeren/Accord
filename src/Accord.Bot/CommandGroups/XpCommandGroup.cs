@@ -15,7 +15,7 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
-    public class XpCommandGroup : CommandGroup
+    public class XpCommandGroup: AccordCommandGroup
     {
         private readonly IMediator _mediator;
         private readonly CommandResponder _commandResponder;
@@ -26,7 +26,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [Command("leaderboard"), RequireContext(ChannelContext.Guild), Description("Get a leaderboard of XP")]
+        [Command("leaderboard"), Description("Get a leaderboard of XP")]
         public async Task<IResult> GetLeaderboard()
         {
             var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
@@ -45,7 +45,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), RequireContext(ChannelContext.Guild), Command("calculate-xp"), Description("Calculate XP, long running")]
+        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
         public async Task<IResult> CalculateXp()
         {
             await _mediator.Send(new CalculateParticipationRequest());

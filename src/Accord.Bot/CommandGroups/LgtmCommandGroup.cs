@@ -3,16 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Remora.Commands.Attributes;
-using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups
 {
     [Group("lgtm")]
-    public class LgtmCommandGroup : CommandGroup
+    public class LgtmCommandGroup: AccordCommandGroup
     {
         private readonly CommandResponder _commandResponder;
         private readonly IDiscordRestGuildAPI _guildApi;
@@ -27,7 +25,7 @@ namespace Accord.Bot.CommandGroups
             _commandContext = commandContext;
         }
 
-        [Command("subscribe"), RequireContext(ChannelContext.Guild), Description("Subscribe to LGTM role")]
+        [Command("subscribe"), Description("Subscribe to LGTM role")]
         public async Task<IResult> Subscribe()
         {
             var roles = await _guildApi.GetGuildRolesAsync(_commandContext.GuildID.Value);
@@ -41,7 +39,7 @@ namespace Accord.Bot.CommandGroups
             return await _commandResponder.Respond("Subscribed!");
         }
 
-        [Command("unsubscribe"), RequireContext(ChannelContext.Guild), Description("Unsubscribe from LGTM role")]
+        [Command("unsubscribe"), Description("Unsubscribe from LGTM role")]
         public async Task<IResult> Unsubscribe()
         {
             var roles = await _guildApi.GetGuildRolesAsync(_commandContext.GuildID.Value);
