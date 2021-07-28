@@ -7,6 +7,7 @@ on:
   push:
     paths-ignore:
       - 'README.md'
+      - 'branding/**'
     branches:
       - main
   workflow_dispatch:
