@@ -1,6 +1,7 @@
 # Accord
-
-![Accord Logo](branding/readme-logo.png)
+<p align="center">
+    <img alt='Accord Logo' src='branding/readme-logo.png'/>
+</p>
 
 ## Reach accord, prevent discord, on Discord.
 
