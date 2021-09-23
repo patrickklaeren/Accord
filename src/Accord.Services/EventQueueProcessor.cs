@@ -47,7 +47,7 @@ namespace Accord.Services
                     if (queuedItem is UserJoinedEvent userJoined)
                     {
                         await mediator.Send(new AddUserRequest(userJoined.DiscordGuildId, userJoined.DiscordUserId, userJoined.DiscordUsername,
-                            userJoined.DiscordDiscriminator, userJoined.DiscordAvatarUrl, userJoined.DiscordNickname, userJoined.QueuedDateTime), stoppingToken);
+                            userJoined.DiscordDiscriminator, userJoined.DiscordNickname, userJoined.DiscordAvatarUrl, userJoined.QueuedDateTime), stoppingToken);
                     }
                     else
                     {
