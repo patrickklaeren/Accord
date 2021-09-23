@@ -91,12 +91,15 @@ namespace Accord.Bot.Responders
                 }
             }
 
+            var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
+
             await _mediator.Send(
                 new UpdateUserRequest(
                     gatewayEvent.GuildID.Value,
                     user.ID.Value,
                     user.Username,
                     user.Discriminator.ToPaddedDiscriminator(),
+                    avatarUrl,
                     gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null,
                     gatewayEvent.JoinedAt),
                 ct);

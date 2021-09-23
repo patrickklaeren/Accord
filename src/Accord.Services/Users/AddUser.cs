@@ -15,6 +15,7 @@ namespace Accord.Services.Users
         ulong DiscordUserId,
         string DiscordUsername,
         string DiscordDiscriminator,
+        string? DiscordAvatarUrl,
         string? DiscordNickname,
         DateTimeOffset JoinedDateTime) : IRequest;
 
@@ -52,7 +53,7 @@ namespace Accord.Services.Users
             await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
 
             await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
-                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, user.Nickname, user.JoinedGuildDateTime.Value)), cancellationToken);
+                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, user.Nickname, request.DiscordAvatarUrl, user.JoinedGuildDateTime.Value)), cancellationToken);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Accord.Services.Raid
             var sequentialLimit = await _mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
             var accountCreationLimit = await _mediator.Send(new GetAccountCreationSimilarityLimitRequest(), cancellationToken);
 
-            var isRaid = _raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.JoinedDateTime.DateTime), sequentialLimit, accountCreationLimit);
+            var isRaid = await _raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.DiscordAvatarUrl, request.User.JoinedDateTime.DateTime), sequentialLimit, accountCreationLimit);
 
             var isAutoRaidModeEnabled = await _mediator.Send(new GetIsAutoRaidModeEnabledRequest(), cancellationToken);
             var isInExistingRaidMode = await _mediator.Send(new GetIsInRaidModeRequest(), cancellationToken);
@@ -59,6 +59,7 @@ namespace Accord.Services.Raid
                 await _mediator.Send(new KickRequest(request.DiscordGuildId, 
                     new GuildUserDto(request.User.Id, request.User.Username, 
                         request.User.Discriminator, 
+                        request.User.DiscordAvatarUrl,
                         null,
                         request.User.JoinedDateTime),
                     "Detected as part of Raid"), 

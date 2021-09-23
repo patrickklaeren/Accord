@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Users
 {
-    public sealed record UpdateUserRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname, DateTimeOffset? JoinedDateTime) : IRequest { }
+    public sealed record UpdateUserRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname, string? DiscordAvatarUrl, DateTimeOffset? JoinedDateTime) : IRequest { }
 
     public class UpdateUserHandler : AsyncRequestHandler<UpdateUserRequest>
     {
@@ -38,7 +38,7 @@ namespace Accord.Services.Users
             await _db.SaveChangesAsync(cancellationToken);
 
             await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
-                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, request.DiscordNickname, request.JoinedDateTime!.Value)), cancellationToken);
+                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, request.DiscordNickname, request.DiscordAvatarUrl, request.JoinedDateTime!.Value)), cancellationToken);
         }
     }
 }

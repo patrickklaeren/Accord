@@ -47,7 +47,7 @@ namespace Accord.Services
                     if (queuedItem is UserJoinedEvent userJoined)
                     {
                         await mediator.Send(new AddUserRequest(userJoined.DiscordGuildId, userJoined.DiscordUserId, userJoined.DiscordUsername,
-                            userJoined.DiscordDiscriminator, userJoined.DiscordNickname, userJoined.QueuedDateTime), stoppingToken);
+                            userJoined.DiscordDiscriminator, userJoined.DiscordAvatarUrl, userJoined.DiscordNickname, userJoined.QueuedDateTime), stoppingToken);
                     }
                     else
                     {
@@ -63,6 +63,7 @@ namespace Accord.Services
                                     new GuildUserDto(raidCalculation.DiscordUserId,
                                         raidCalculation.DiscordUsername,
                                         raidCalculation.DiscordUserDiscriminator,
+                                        raidCalculation.DiscordAvatarUrl,
                                         null,
                                         raidCalculation.QueuedDateTime)),
 

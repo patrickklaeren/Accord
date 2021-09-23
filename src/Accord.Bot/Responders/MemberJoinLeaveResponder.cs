@@ -43,9 +43,11 @@ namespace Accord.Bot.Responders
 
             var user = gatewayEvent.User.Value;
 
-            await _eventQueue.Queue(new UserJoinedEvent(gatewayEvent.GuildID.Value, user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null));
+            var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
 
-            await _eventQueue.Queue(new RaidCalculationEvent(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), gatewayEvent.JoinedAt));
+            await _eventQueue.Queue(new UserJoinedEvent(gatewayEvent.GuildID.Value, user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null, avatarUrl));
+
+            await _eventQueue.Queue(new RaidCalculationEvent(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, gatewayEvent.JoinedAt));
 
             var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
