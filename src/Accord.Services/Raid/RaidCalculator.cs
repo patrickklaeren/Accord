@@ -18,7 +18,7 @@ namespace Accord.Services.Raid
 
         private static readonly TimeSpan AccountCreationRange = TimeSpan.FromHours(2);
         private static readonly TimeSpan JoinCooldown = TimeSpan.FromSeconds(90);
-
+        private static DateTime ARBITRARY_EPOCH = new(2021, 09, 01);
         private const ulong THIS_IS_THE_HASH = 17287036140796347265;
         private const int ARBITRARY_SIMILARITY_FACTORY = 75;
 
@@ -65,6 +65,11 @@ namespace Accord.Services.Raid
         private bool IsAccountCreationRisk(UserJoin userJoin, int accountCreationSimilarityLimit)
         {
             var accountCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userJoin.DiscordUserId);
+
+            if(accountCreated < ARBITRARY_EPOCH)
+            {
+                return false;
+            }
 
             foreach (var existingRange in _accountCreationDateRanges.Where(x => x.IsExpired()).ToList())
             {
