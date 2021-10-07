@@ -39,7 +39,7 @@ namespace Accord.Services.Raid
                 var runOption = await _db.RunOptions
                     .SingleAsync(x => x.Type == RunOptionType.RaidModeEnabled, cancellationToken: cancellationToken);
 
-                runOption.Value = raidResult.ToString();
+                runOption.Value = raidResult.IsRaid.ToString();
 
                 await _db.SaveChangesAsync(cancellationToken);
 
