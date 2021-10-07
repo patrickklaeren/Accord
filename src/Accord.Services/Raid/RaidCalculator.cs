@@ -20,7 +20,7 @@ namespace Accord.Services.Raid
         private static readonly TimeSpan JoinCooldown = TimeSpan.FromSeconds(15);
         private static DateTime ARBITRARY_EPOCH = new(2021, 09, 01);
         private const ulong THIS_IS_THE_HASH = 17287036140796347265;
-        private const int ARBITRARY_SIMILARITY_FACTORY = 75;
+        private const int ARBITRARY_SIMILARITY_FACTORY = 95;
 
         private readonly IHttpClientFactory _httpClientFactory;
 
