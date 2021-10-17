@@ -12,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.Permissions
 {
     public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
-    public sealed record InvalidateUserHasPermissionRequest(ulong UserId) : IRequest;
+    public sealed record PermissionsUpdateNotification(ulong UserId) : INotification;
 
-    public class UserHasPermission : RequestHandler<InvalidateUserHasPermissionRequest>, IRequestHandler<UserHasPermissionRequest, bool>
+    public class UserHasPermission : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
     {
         private readonly AccordContext _db;
         private readonly IAppCache _appCache;
@@ -34,7 +34,7 @@ namespace Accord.Services.Permissions
             return permissions.Any(ownedPermission => ownedPermission == request.Permission);
         }
 
-        protected override void Handle(InvalidateUserHasPermissionRequest request)
+        protected override void Handle(PermissionsUpdateNotification request)
         {
             _appCache.Remove(BuildGetPermissionsForUserCacheKey(request.UserId));
         }

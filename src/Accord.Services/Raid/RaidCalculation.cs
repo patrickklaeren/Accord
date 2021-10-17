@@ -1,8 +1,11 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
 using Accord.Services.Moderation;
+using Accord.Services.Permissions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +29,12 @@ namespace Accord.Services.Raid
 
         public async Task<ServiceResponse> Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
         {
+            var bypassRaidCheck = await _mediator.Send(new UserIsExemptFromRaidRequest(request.User.Id), cancellationToken);
+            if (bypassRaidCheck)
+            {
+                return ServiceResponse.Ok();
+            }
+
             var sequentialLimit = await _mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
             var accountCreationLimit = await _mediator.Send(new GetAccountCreationSimilarityLimitRequest(), cancellationToken);
 

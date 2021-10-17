@@ -39,7 +39,7 @@ namespace Accord.Services.Permissions
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            await _mediator.Send(new InvalidateUserHasPermissionRequest(request.DiscordUserId), cancellationToken);
+            await _mediator.Publish(new PermissionsUpdateNotification(request.DiscordUserId), cancellationToken);
 
             return ServiceResponse.Ok();
         }

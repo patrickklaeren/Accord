@@ -26,6 +26,7 @@ namespace Accord.Domain.Model
         ManageUserReports = 1,
         ManagePatterns = 2,
         ListRiskyUsers = 3,
+        BypassRaidCheck = 4
     }
 
     public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
