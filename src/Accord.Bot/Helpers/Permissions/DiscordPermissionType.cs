@@ -1,9 +1,8 @@
-namespace Accord.Bot.Helpers.Permissions
+namespace Accord.Bot.Helpers.Permissions;
+
+public enum DiscordPermissionType
 {
-    public enum DiscordPermissionType
-    {
-        Allow,
-        Deny,
-        All
-    }
+    Allow,
+    Deny,
+    All
 }

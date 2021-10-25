@@ -3,39 +3,38 @@ using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 
-namespace Accord.Bot.Helpers
+namespace Accord.Bot.Helpers;
+
+public class DiscordAvatarHelper
 {
-    public class DiscordAvatarHelper
+    private readonly DiscordConfiguration _discordConfiguration;
+
+    public DiscordAvatarHelper(IOptions<DiscordConfiguration> discordConfiguration)
     {
-        private readonly DiscordConfiguration _discordConfiguration;
+        _discordConfiguration = discordConfiguration.Value;
+    }
 
-        public DiscordAvatarHelper(IOptions<DiscordConfiguration> discordConfiguration)
+    public EmbedThumbnail GetAvatar(IUser user)
+    {
+        var url = GetAvatarUrl(user);
+        return new EmbedThumbnail(url);
+    }
+
+    public string GetAvatarUrl(IUser user)
+    {
+        if (user.Avatar is null)
         {
-            _discordConfiguration = discordConfiguration.Value;
+            var resultModulus = user.Discriminator % 5;
+            return $"{_discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
         }
 
-        public EmbedThumbnail GetAvatar(IUser user)
+        var extension = "png";
+
+        if (user.Avatar.HasGif)
         {
-            var url = GetAvatarUrl(user);
-            return new EmbedThumbnail(url);
+            extension = "gif";
         }
 
-        public string GetAvatarUrl(IUser user)
-        {
-            if (user.Avatar is null)
-            {
-                var resultModulus = user.Discriminator % 5;
-                return $"{_discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
-            }
-
-            var extension = "png";
-
-            if (user.Avatar.HasGif)
-            {
-                extension = "gif";
-            }
-
-            return $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
-        }
+        return $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
     }
 }

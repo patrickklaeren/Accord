@@ -1,12 +1,11 @@
 ﻿using Remora.Discord.Core;
 
-namespace Accord.Bot.Extensions
+namespace Accord.Bot.Extensions;
+
+public static class OptionalExtensions
 {
-    public static class OptionalExtensions
+    public static string ToYesNo(this Optional<bool> input)
     {
-        public static string ToYesNo(this Optional<bool> input)
-        {
-            return input.HasValue ? "Yes" : "No";
-        }
+        return input.HasValue ? "Yes" : "No";
     }
 }

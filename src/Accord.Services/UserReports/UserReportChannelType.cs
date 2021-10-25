@@ -1,9 +1,8 @@
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public enum UserReportChannelType
 {
-    public enum UserReportChannelType
-    {
-        None,
-        Inbox,
-        Outbox
-    }
+    None,
+    Inbox,
+    Outbox
 }

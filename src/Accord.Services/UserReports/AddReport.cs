@@ -7,58 +7,57 @@ using Accord.Domain.Model.UserReports;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record AddReportRequest(ulong DiscordUserId,
+    ulong OutboxDiscordChannelId,
+    ulong OutboxDiscordMessageProxyWebhookId,
+    string OutboxDiscordMessageProxyWebhookToken,
+    ulong InboxDiscordChannelId,
+    ulong InboxDiscordMessageProxyWebhookId,
+    string InboxDiscordMessageProxyWebhookToken) : IRequest;
+
+public class AddReportHandler : AsyncRequestHandler<AddReportRequest>
 {
-    public sealed record AddReportRequest(ulong DiscordUserId,
-        ulong OutboxDiscordChannelId,
-        ulong OutboxDiscordMessageProxyWebhookId,
-        string OutboxDiscordMessageProxyWebhookToken,
-        ulong InboxDiscordChannelId,
-        ulong InboxDiscordMessageProxyWebhookId,
-        string InboxDiscordMessageProxyWebhookToken) : IRequest;
+    private readonly AccordContext _db;
 
-    public class AddReportHandler : AsyncRequestHandler<AddReportRequest>
+    public AddReportHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public AddReportHandler(AccordContext db)
+    public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
+    {
+        var existingOutboxChannelId = await _db.UserReports
+            .Where(x => x.OpenedByUserId == request.DiscordUserId)
+            .Where(x => x.ClosedDateTime == null)
+            .Select(x => (ulong?)x.OutboxDiscordChannelId)
+            .SingleOrDefaultAsync(cancellationToken: cancellationToken);
+
+        if (existingOutboxChannelId is null)
         {
-            _db = db;
+            return new ExistingOutboxReportForUserDto(false, null);
         }
 
-        public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
+        return new ExistingOutboxReportForUserDto(true, existingOutboxChannelId);
+    }
+
+    protected override async Task Handle(AddReportRequest request, CancellationToken cancellationToken)
+    {
+        var report = new UserReport
         {
-            var existingOutboxChannelId = await _db.UserReports
-                .Where(x => x.OpenedByUserId == request.DiscordUserId)
-                .Where(x => x.ClosedDateTime == null)
-                .Select(x => (ulong?)x.OutboxDiscordChannelId)
-                .SingleOrDefaultAsync(cancellationToken: cancellationToken);
+            OpenedByUserId = request.DiscordUserId,
+            OutboxDiscordChannelId = request.OutboxDiscordChannelId,
+            OutboxDiscordMessageProxyWebhookId = request.OutboxDiscordMessageProxyWebhookId,
+            OutboxDiscordMessageProxyWebhookToken = request.OutboxDiscordMessageProxyWebhookToken,
+            InboxDiscordChannelId = request.InboxDiscordChannelId,
+            InboxDiscordMessageProxyWebhookId = request.InboxDiscordMessageProxyWebhookId,
+            InboxDiscordMessageProxyWebhookToken = request.InboxDiscordMessageProxyWebhookToken,
+            OpenedDateTime = DateTimeOffset.Now,
+        };
 
-            if (existingOutboxChannelId is null)
-            {
-                return new ExistingOutboxReportForUserDto(false, null);
-            }
+        _db.Add(report);
 
-            return new ExistingOutboxReportForUserDto(true, existingOutboxChannelId);
-        }
-
-        protected override async Task Handle(AddReportRequest request, CancellationToken cancellationToken)
-        {
-            var report = new UserReport
-            {
-                OpenedByUserId = request.DiscordUserId,
-                OutboxDiscordChannelId = request.OutboxDiscordChannelId,
-                OutboxDiscordMessageProxyWebhookId = request.OutboxDiscordMessageProxyWebhookId,
-                OutboxDiscordMessageProxyWebhookToken = request.OutboxDiscordMessageProxyWebhookToken,
-                InboxDiscordChannelId = request.InboxDiscordChannelId,
-                InboxDiscordMessageProxyWebhookId = request.InboxDiscordMessageProxyWebhookId,
-                InboxDiscordMessageProxyWebhookToken = request.InboxDiscordMessageProxyWebhookToken,
-                OpenedDateTime = DateTimeOffset.Now,
-            };
-
-            _db.Add(report);
-
-            await _db.SaveChangesAsync(cancellationToken);
-        }
+        await _db.SaveChangesAsync(cancellationToken);
     }
 }

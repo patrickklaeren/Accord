@@ -10,42 +10,41 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Conditions;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups
+namespace Accord.Bot.CommandGroups;
+
+public class RunOptionCommandGroup: AccordCommandGroup
 {
-    public class RunOptionCommandGroup: AccordCommandGroup
+    private readonly IMediator _mediator;
+    private readonly CommandResponder _commandResponder;
+
+    public RunOptionCommandGroup(IMediator mediator,
+        CommandResponder commandResponder)
     {
-        private readonly IMediator _mediator;
-        private readonly CommandResponder _commandResponder;
+        _mediator = mediator;
+        _commandResponder = commandResponder;
+    }
 
-        public RunOptionCommandGroup(IMediator mediator,
-            CommandResponder commandResponder)
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
+    public async Task<IResult> Configure(string type, string value)
+    {
+        if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
         {
-            _mediator = mediator;
-            _commandResponder = commandResponder;
+            await _commandResponder.Respond("Configuration is not found");
         }
-
-        [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
-        public async Task<IResult> Configure(string type, string value)
+        else
         {
-            if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
+            var response = await _mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
+
+            if (response.Success)
             {
-                await _commandResponder.Respond("Configuration is not found");
+                await _commandResponder.Respond($"{actualRunOptionType} configuration updated to {value}");
             }
             else
             {
-                var response = await _mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
-
-                if (response.Success)
-                {
-                    await _commandResponder.Respond($"{actualRunOptionType} configuration updated to {value}");
-                }
-                else
-                {
-                    await _commandResponder.Respond($"{response.ErrorMessage}");
-                }
+                await _commandResponder.Respond($"{response.ErrorMessage}");
             }
-
-            return Result.FromSuccess();
         }
+
+        return Result.FromSuccess();
     }
 }

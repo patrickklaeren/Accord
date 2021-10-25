@@ -6,30 +6,29 @@ using Accord.Domain.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record GetUserReportsAgentRoleIdRequest : IRequest<ulong?>;
+
+public class GetUserReportsAgentRoleIdHandler : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
 {
-    public sealed record GetUserReportsAgentRoleIdRequest : IRequest<ulong?>;
+    private readonly AccordContext _db;
 
-    public class GetUserReportsAgentRoleIdHandler : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
+    public GetUserReportsAgentRoleIdHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetUserReportsAgentRoleIdHandler(AccordContext db)
-        {
-            _db = db;
-        }
+    public async Task<ulong?> Handle(GetUserReportsAgentRoleIdRequest request, CancellationToken cancellationToken)
+    {
+        var runOption = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.UserReportsAgentRoleId)
+            .Select(x => x.Value)
+            .SingleAsync(cancellationToken: cancellationToken);
 
-        public async Task<ulong?> Handle(GetUserReportsAgentRoleIdRequest request, CancellationToken cancellationToken)
-        {
-            var runOption = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.UserReportsAgentRoleId)
-                .Select(x => x.Value)
-                .SingleAsync(cancellationToken: cancellationToken);
+        if (string.IsNullOrWhiteSpace(runOption))
+            return null;
 
-            if (string.IsNullOrWhiteSpace(runOption))
-                return null;
-
-            return ulong.Parse(runOption);
-        }
+        return ulong.Parse(runOption);
     }
 }

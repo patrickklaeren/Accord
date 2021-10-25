@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,41 +8,39 @@ using Accord.Services.ChannelFlags;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Xp
+namespace Accord.Services.Xp;
+
+public sealed record AddXpForMessageRequest(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset MessageSentDateTime) : IRequest<ServiceResponse>;
+
+public class AddXp : IRequestHandler<AddXpForMessageRequest, ServiceResponse>
 {
+    private readonly AccordContext _db;
+    private readonly IMediator _mediator;
 
-    public sealed record AddXpForMessageRequest(ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset MessageSentDateTime) : IRequest<ServiceResponse>;
-
-    public class AddXp : IRequestHandler<AddXpForMessageRequest, ServiceResponse>
+    public AddXp(AccordContext db, IMediator mediator)
     {
-        private readonly AccordContext _db;
-        private readonly IMediator _mediator;
+        _db = db;
+        _mediator = mediator;
+    }
 
-        public AddXp(AccordContext db, IMediator mediator)
+    public async Task<ServiceResponse> Handle(AddXpForMessageRequest request, CancellationToken cancellationToken)
+    {
+        var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
+
+        if (channels.Any(id => id == request.DiscordChannelId))
+            return ServiceResponse.Fail("Channel is ignored from XP");
+
+        var user = await _db.Users.SingleAsync(x => x.Id == request.DiscordUserId, cancellationToken: cancellationToken);
+
+        if (user.LastSeenDateTime.AddSeconds(10) > request.MessageSentDateTime)
         {
-            _db = db;
-            _mediator = mediator;
+            user.Xp += 5;
         }
 
-        public async Task<ServiceResponse> Handle(AddXpForMessageRequest request, CancellationToken cancellationToken)
-        {
-            var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
+        user.LastSeenDateTime = request.MessageSentDateTime;
 
-            if (channels.Any(id => id == request.DiscordChannelId))
-                return ServiceResponse.Fail("Channel is ignored from XP");
+        await _db.SaveChangesAsync(cancellationToken);
 
-            var user = await _db.Users.SingleAsync(x => x.Id == request.DiscordUserId, cancellationToken: cancellationToken);
-
-            if (user.LastSeenDateTime.AddSeconds(10) > request.MessageSentDateTime)
-            {
-                user.Xp += 5;
-            }
-
-            user.LastSeenDateTime = request.MessageSentDateTime;
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            return ServiceResponse.Ok();
-        }
+        return ServiceResponse.Ok();
     }
 }

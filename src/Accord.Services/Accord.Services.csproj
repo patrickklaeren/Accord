@@ -4,8 +4,8 @@
     <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.0.0" />
     <PackageReference Include="LazyCache" Version="2.1.3" />
     <PackageReference Include="MediatR" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0-rc.2.21480.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0-rc.2.21480.5" />
   </ItemGroup>
 
   <ItemGroup>

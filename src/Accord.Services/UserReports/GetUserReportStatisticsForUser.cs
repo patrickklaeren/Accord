@@ -5,25 +5,24 @@ using Accord.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record GetUserReportsStatisticsForUserRequest(ulong DiscordUserId) : IRequest<int>;
+
+public class GetUserReportStatisticsForUserHandler : IRequestHandler<GetUserReportsStatisticsForUserRequest, int>
 {
-    public sealed record GetUserReportsStatisticsForUserRequest(ulong DiscordUserId) : IRequest<int>;
+    private readonly AccordContext _db;
 
-    public class GetUserReportStatisticsForUserHandler : IRequestHandler<GetUserReportsStatisticsForUserRequest, int>
+    public GetUserReportStatisticsForUserHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetUserReportStatisticsForUserHandler(AccordContext db)
-        {
-            _db = db;
-        }
-
-        public async Task<int> Handle(GetUserReportsStatisticsForUserRequest request, CancellationToken cancellationToken)
-        {
-            return await _db.UserReports
-                .Where(x => x.OpenedByUserId == request.DiscordUserId)
-                .Where(x => x.ClosedDateTime != null)
-                .CountAsync(cancellationToken: cancellationToken);
-        }
+    public async Task<int> Handle(GetUserReportsStatisticsForUserRequest request, CancellationToken cancellationToken)
+    {
+        return await _db.UserReports
+            .Where(x => x.OpenedByUserId == request.DiscordUserId)
+            .Where(x => x.ClosedDateTime != null)
+            .CountAsync(cancellationToken: cancellationToken);
     }
 }
