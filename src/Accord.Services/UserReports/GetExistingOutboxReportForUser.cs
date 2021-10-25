@@ -5,34 +5,33 @@ using Accord.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record GetExistingOutboxReportForUserRequest(ulong DiscordUserId) : IRequest<ExistingOutboxReportForUserDto>;
+public sealed record ExistingOutboxReportForUserDto(bool HasExistingReport, ulong? OutboxDiscordChannelId);
+
+public class GetExistingOutboxReportForUserHandler : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
 {
-    public sealed record GetExistingOutboxReportForUserRequest(ulong DiscordUserId) : IRequest<ExistingOutboxReportForUserDto>;
-    public sealed record ExistingOutboxReportForUserDto(bool HasExistingReport, ulong? OutboxDiscordChannelId);
+    private readonly AccordContext _db;
 
-    public class GetExistingOutboxReportForUserHandler : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
+    public GetExistingOutboxReportForUserHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetExistingOutboxReportForUserHandler(AccordContext db)
+    public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
+    {
+        var existingOutboxChannelId = await _db.UserReports
+            .Where(x => x.OpenedByUserId == request.DiscordUserId)
+            .Where(x => x.ClosedDateTime == null)
+            .Select(x => (ulong?)x.OutboxDiscordChannelId)
+            .SingleOrDefaultAsync(cancellationToken: cancellationToken);
+
+        if (existingOutboxChannelId is null)
         {
-            _db = db;
+            return new ExistingOutboxReportForUserDto(false, null);
         }
 
-        public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
-        {
-            var existingOutboxChannelId = await _db.UserReports
-                .Where(x => x.OpenedByUserId == request.DiscordUserId)
-                .Where(x => x.ClosedDateTime == null)
-                .Select(x => (ulong?)x.OutboxDiscordChannelId)
-                .SingleOrDefaultAsync(cancellationToken: cancellationToken);
-
-            if (existingOutboxChannelId is null)
-            {
-                return new ExistingOutboxReportForUserDto(false, null);
-            }
-
-            return new ExistingOutboxReportForUserDto(true, existingOutboxChannelId);
-        }
+        return new ExistingOutboxReportForUserDto(true, existingOutboxChannelId);
     }
 }

@@ -6,19 +6,18 @@ using Remora.Commands.Results;
 using Remora.Results;
 using TimeSpanParserUtil;
 
-namespace Accord.Bot.Parsers
+namespace Accord.Bot.Parsers;
+
+public class TimeSpanParser : AbstractTypeParser<TimeSpan>
 {
-    public class TimeSpanParser : AbstractTypeParser<TimeSpan>
+    public override ValueTask<Result<TimeSpan>> TryParseAsync(string value, CancellationToken ct = default)
     {
-        public override ValueTask<Result<TimeSpan>> TryParseAsync(string value, CancellationToken ct = default)
-        {
-            return new ValueTask<Result<TimeSpan>>(
-                TimeSpanParserUtil.TimeSpanParser.TryParse(
-                    value.ToLowerInvariant(), 
-                    new TimeSpanParserOptions { DecimalSecondsCountsAsMilliseconds = true }, out var timeSpan)
-                    ? Result<TimeSpan>.FromSuccess(timeSpan)
-                    : new ParsingError<TimeSpan>($"Could not parse input \"{value}\" into a valid {nameof(TimeSpanParserUtil.TimeSpanParser)}")
-            );
-        }
+        return new ValueTask<Result<TimeSpan>>(
+            TimeSpanParserUtil.TimeSpanParser.TryParse(
+                value.ToLowerInvariant(), 
+                new TimeSpanParserOptions { DecimalSecondsCountsAsMilliseconds = true }, out var timeSpan)
+                ? Result<TimeSpan>.FromSuccess(timeSpan)
+                : new ParsingError<TimeSpan>($"Could not parse input \"{value}\" into a valid {nameof(TimeSpanParserUtil.TimeSpanParser)}")
+        );
     }
 }

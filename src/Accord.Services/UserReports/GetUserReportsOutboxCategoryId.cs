@@ -6,30 +6,29 @@ using Accord.Domain.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record GetUserReportsOutboxCategoryIdRequest : IRequest<ulong?>;
+
+public class GetUserReportsOutboxCategoryIdHandler : IRequestHandler<GetUserReportsOutboxCategoryIdRequest, ulong?>
 {
-    public sealed record GetUserReportsOutboxCategoryIdRequest : IRequest<ulong?>;
+    private readonly AccordContext _db;
 
-    public class GetUserReportsOutboxCategoryIdHandler : IRequestHandler<GetUserReportsOutboxCategoryIdRequest, ulong?>
+    public GetUserReportsOutboxCategoryIdHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetUserReportsOutboxCategoryIdHandler(AccordContext db)
-        {
-            _db = db;
-        }
+    public async Task<ulong?> Handle(GetUserReportsOutboxCategoryIdRequest request, CancellationToken cancellationToken)
+    {
+        var runOption = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.UserReportsOutboxCategoryId)
+            .Select(x => x.Value)
+            .SingleAsync(cancellationToken: cancellationToken);
 
-        public async Task<ulong?> Handle(GetUserReportsOutboxCategoryIdRequest request, CancellationToken cancellationToken)
-        {
-            var runOption = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.UserReportsOutboxCategoryId)
-                .Select(x => x.Value)
-                .SingleAsync(cancellationToken: cancellationToken);
+        if (string.IsNullOrWhiteSpace(runOption))
+            return null;
 
-            if (string.IsNullOrWhiteSpace(runOption))
-                return null;
-
-            return ulong.Parse(runOption);
-        }
+        return ulong.Parse(runOption);
     }
 }

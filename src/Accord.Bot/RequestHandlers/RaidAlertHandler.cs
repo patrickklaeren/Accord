@@ -9,30 +9,29 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 
-namespace Accord.Bot.RequestHandlers
+namespace Accord.Bot.RequestHandlers;
+
+public class RaidAlertHandler : AsyncRequestHandler<RaidAlertRequest>
 {
-    public class RaidAlertHandler : AsyncRequestHandler<RaidAlertRequest>
+    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IMediator _mediator;
+
+    public RaidAlertHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
     {
-        private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IMediator _mediator;
+        _channelApi = channelApi;
+        _mediator = mediator;
+    }
 
-        public RaidAlertHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
+    protected override async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
+    {
+        var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
+
+        var embed = new Embed(Title: "🚨 Raid detected",
+            Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+
+        foreach (var channel in channelsToPostTo)
         {
-            _channelApi = channelApi;
-            _mediator = mediator;
-        }
-
-        protected override async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
-        {
-            var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
-
-            var embed = new Embed(Title: "🚨 Raid detected",
-                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
-
-            foreach (var channel in channelsToPostTo)
-            {
-                await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
-            }
+            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
         }
     }
 }

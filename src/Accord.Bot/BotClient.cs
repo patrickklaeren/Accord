@@ -9,74 +9,72 @@ using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Results;
 using Remora.Results;
 
-namespace Accord.Bot
+namespace Accord.Bot;
+// Gateway events: https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
+
+public class BotClient
 {
-    // Gateway events: https://discord.com/developers/docs/topics/gateway#commands-and-events-gateway-events
+    private readonly ILogger<BotClient> _logger;
+    private readonly DiscordGatewayClient _discordGatewayClient;
+    private readonly SlashService _slashService;
+    private readonly DiscordConfiguration _discordConfiguration;
 
-    public class BotClient
+    public BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient, 
+        SlashService slashService, IOptions<DiscordConfiguration> botConfiguration)
     {
-        private readonly ILogger<BotClient> _logger;
-        private readonly DiscordGatewayClient _discordGatewayClient;
-        private readonly SlashService _slashService;
-        private readonly DiscordConfiguration _discordConfiguration;
+        _slashService = slashService;
+        _discordGatewayClient = discordGatewayClient;
+        _discordConfiguration = botConfiguration.Value;
+        _logger = logger;
+    }
 
-        public BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient, 
-            SlashService slashService, IOptions<DiscordConfiguration> botConfiguration)
+    public async Task Run(CancellationToken cancellationToken)
+    {
+        await InitialiseSlashCommands(cancellationToken);
+
+        var runResult = await _discordGatewayClient.RunAsync(cancellationToken);
+
+        if (!runResult.IsSuccess)
         {
-            _slashService = slashService;
-            _discordGatewayClient = discordGatewayClient;
-            _discordConfiguration = botConfiguration.Value;
-            _logger = logger;
-        }
-
-        public async Task Run(CancellationToken cancellationToken)
-        {
-            await InitialiseSlashCommands(cancellationToken);
-
-            var runResult = await _discordGatewayClient.RunAsync(cancellationToken);
-
-            if (!runResult.IsSuccess)
+            switch (runResult.Error)
             {
-                switch (runResult.Error)
-                {
-                    case ExceptionError exe:
+                case ExceptionError exe:
                     {
                         _logger.LogError(exe.Exception,"Exception during gateway connection: {ExceptionMessage}", exe.Message);
                         break;
                     }
-                    case GatewayWebSocketError:
-                    case GatewayDiscordError:
+                case GatewayWebSocketError:
+                case GatewayDiscordError:
                     {
                         _logger.LogError("Gateway error: {Message}", runResult.Error.Message);
                         break;
                     }
-                    default:
+                default:
                     {
                         _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
                         break;
                     }
-                }
             }
         }
+    }
 
-        private async Task InitialiseSlashCommands(CancellationToken cancellationToken)
+    private async Task InitialiseSlashCommands(CancellationToken cancellationToken)
+    {
+        var slashSupport = _slashService.SupportsSlashCommands();
+
+        if (!slashSupport.IsSuccess)
         {
-            var slashSupport = _slashService.SupportsSlashCommands();
-
-            if (!slashSupport.IsSuccess)
-            {
-                _logger.LogWarning("The registered commands of the bot don't support slash commands: {Reason}", slashSupport.Error.Message);
-            }
-            else
-            {
-                var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
-
-                if (!updateSlash.IsSuccess)
-                {
-                    _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
-                }
-            }
-
+            _logger.LogWarning("The registered commands of the bot don't support slash commands: {Reason}", slashSupport.Error.Message);
         }
+        else
+        {
+            var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
+
+            if (!updateSlash.IsSuccess)
+            {
+                _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
+            }
+        }
+
     }
 }

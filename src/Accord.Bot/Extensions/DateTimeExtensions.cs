@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Accord.Bot.Extensions
+namespace Accord.Bot.Extensions;
+
+public static class DateTimeExtensions
 {
-    public static class DateTimeExtensions
-    {
-        public static string ToDiscordDateMarkdown(this DateTimeOffset dateTime) => $"<t:{dateTime.ToUnixTimeSeconds()}:R>";
-    }
+    public static string ToDiscordDateMarkdown(this DateTimeOffset dateTime) => $"<t:{dateTime.ToUnixTimeSeconds()}:R>";
 }

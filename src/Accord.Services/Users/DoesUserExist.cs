@@ -6,38 +6,37 @@ using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Users
+namespace Accord.Services.Users;
+
+public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
+public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest { }
+
+public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
 {
-    public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
-    public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest { }
+    private readonly AccordContext _db;
+    private readonly IAppCache _appCache;
 
-    public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
+    public DoesUserExistHandler(AccordContext db, IAppCache appCache)
     {
-        private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+        _db = db;
+        _appCache = appCache;
+    }
 
-        public DoesUserExistHandler(AccordContext db, IAppCache appCache)
-        {
-            _db = db;
-            _appCache = appCache;
-        }
+    public async Task<bool> Handle(UserExistsRequest request, CancellationToken cancellationToken)
+    {
+        return await _appCache
+            .GetOrAddAsync(GetCacheKey(request.DiscordUserId),
+                () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId),
+                DateTimeOffset.Now.AddDays(30));
+    }
 
-        public async Task<bool> Handle(UserExistsRequest request, CancellationToken cancellationToken)
-        {
-            return await _appCache
-                .GetOrAddAsync(GetCacheKey(request.DiscordUserId),
-                    () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId),
-                    DateTimeOffset.Now.AddDays(30));
-        }
+    protected override void Handle(InvalidateUserExistsRequest request)
+    {
+        _appCache.Remove(GetCacheKey(request.DiscordUserId));
+    }
 
-        protected override void Handle(InvalidateUserExistsRequest request)
-        {
-            _appCache.Remove(GetCacheKey(request.DiscordUserId));
-        }
-
-        private static string GetCacheKey(ulong discordUserId)
-        {
-            return $"{nameof(EnsureUserExistsHandler)}/{nameof(UserExistsRequest)}/{discordUserId}";
-        }
+    private static string GetCacheKey(ulong discordUserId)
+    {
+        return $"{nameof(EnsureUserExistsHandler)}/{nameof(UserExistsRequest)}/{discordUserId}";
     }
 }

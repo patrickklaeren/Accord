@@ -9,104 +9,103 @@ using Accord.Services.Users;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserHiddenChannels
+namespace Accord.Services.UserHiddenChannels;
+
+public sealed record AddUserHiddenChannelRequest(ulong DiscordUserId, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+
+public sealed record AddUserHiddenChannelsRequest(ulong DiscordUserId, ulong DiscordChannelId, IReadOnlyList<ulong> DependentDiscordChannelIds) : IRequest<ServiceResponse>;
+
+public class AddUserHiddenChannelHandler :
+    IRequestHandler<AddUserHiddenChannelRequest, ServiceResponse>,
+    IRequestHandler<AddUserHiddenChannelsRequest, ServiceResponse>
 {
-    public sealed record AddUserHiddenChannelRequest(ulong DiscordUserId, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+    private readonly AccordContext _accordContext;
+    private readonly IMediator _mediator;
 
-    public sealed record AddUserHiddenChannelsRequest(ulong DiscordUserId, ulong DiscordChannelId, IReadOnlyList<ulong> DependentDiscordChannelIds) : IRequest<ServiceResponse>;
-
-    public class AddUserHiddenChannelHandler :
-        IRequestHandler<AddUserHiddenChannelRequest, ServiceResponse>,
-        IRequestHandler<AddUserHiddenChannelsRequest, ServiceResponse>
+    public AddUserHiddenChannelHandler(AccordContext accordContext, IMediator mediator)
     {
-        private readonly AccordContext _accordContext;
-        private readonly IMediator _mediator;
+        _accordContext = accordContext;
+        _mediator = mediator;
+    }
 
-        public AddUserHiddenChannelHandler(AccordContext accordContext, IMediator mediator)
+    public async Task<ServiceResponse> Handle(AddUserHiddenChannelRequest request, CancellationToken cancellationToken)
+    {
+        var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+
+        if (!userExists)
+            return ServiceResponse.Fail("User does not exist");
+
+
+        var userActiveHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
+
+
+        if (userActiveHiddenChannels.Any(channel => channel.DiscordChannelId == request.DiscordChannelId))
         {
-            _accordContext = accordContext;
-            _mediator = mediator;
+            return ServiceResponse.Fail("This channel is already hidden for you.");
         }
 
-        public async Task<ServiceResponse> Handle(AddUserHiddenChannelRequest request, CancellationToken cancellationToken)
+        var userHiddenChannel = new UserHiddenChannel
         {
-            var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+            UserId = request.DiscordUserId,
+            DiscordChannelId = request.DiscordChannelId,
+        };
 
-            if (!userExists)
-                return ServiceResponse.Fail("User does not exist");
+        _accordContext.UserHiddenChannels.Add(userHiddenChannel);
+
+        await _accordContext.SaveChangesAsync(cancellationToken);
+
+        await _mediator.Send(new InvalidateGetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
+
+        return ServiceResponse.Ok();
+    }
+
+    public async Task<ServiceResponse> Handle(AddUserHiddenChannelsRequest request, CancellationToken cancellationToken)
+    {
+        var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+
+        if (!userExists)
+            return ServiceResponse.Fail("User does not exist");
 
 
-            var userActiveHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
+        var userActiveHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
 
-
-            if (userActiveHiddenChannels.Any(channel => channel.DiscordChannelId == request.DiscordChannelId))
-            {
-                return ServiceResponse.Fail("This channel is already hidden for you.");
-            }
-
-            var userHiddenChannel = new UserHiddenChannel
-            {
-                UserId = request.DiscordUserId,
-                DiscordChannelId = request.DiscordChannelId,
-            };
-
-            _accordContext.UserHiddenChannels.Add(userHiddenChannel);
-
-            await _accordContext.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateGetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
-
-            return ServiceResponse.Ok();
+        if (userActiveHiddenChannels.Any(x => x.DiscordChannelId == request.DiscordChannelId))
+        {
+            return ServiceResponse.Fail("This channel is already hidden for you.");
         }
 
-        public async Task<ServiceResponse> Handle(AddUserHiddenChannelsRequest request, CancellationToken cancellationToken)
+        var userHiddenChannel = new UserHiddenChannel
         {
-            var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+            UserId = request.DiscordUserId,
+            DiscordChannelId = request.DiscordChannelId,
+        };
 
-            if (!userExists)
-                return ServiceResponse.Fail("User does not exist");
+        _accordContext.UserHiddenChannels.Add(userHiddenChannel);
 
-
-            var userActiveHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
-
-            if (userActiveHiddenChannels.Any(x => x.DiscordChannelId == request.DiscordChannelId))
+        foreach (var channel in request.DependentDiscordChannelIds)
+        {
+            if (userActiveHiddenChannels.All(x => x.DiscordChannelId != channel))
             {
-                return ServiceResponse.Fail("This channel is already hidden for you.");
-            }
-
-            var userHiddenChannel = new UserHiddenChannel
-            {
-                UserId = request.DiscordUserId,
-                DiscordChannelId = request.DiscordChannelId,
-            };
-
-            _accordContext.UserHiddenChannels.Add(userHiddenChannel);
-
-            foreach (var channel in request.DependentDiscordChannelIds)
-            {
-                if (userActiveHiddenChannels.All(x => x.DiscordChannelId != channel))
+                _accordContext.UserHiddenChannels.Add(new UserHiddenChannel
                 {
-                    _accordContext.UserHiddenChannels.Add(new UserHiddenChannel
-                    {
-                        UserId = request.DiscordUserId,
-                        ParentDiscordChannelId = request.DiscordChannelId,
-                        DiscordChannelId = channel,
-                        CreatedAt = DateTimeOffset.Now
-                    });
-                }
-                else
-                {
-                    var existingChannel = await _accordContext.UserHiddenChannels.SingleAsync(x => x.UserId == request.DiscordUserId && x.DiscordChannelId == channel,
-                        cancellationToken);
-                    existingChannel.ParentDiscordChannelId = request.DiscordChannelId;
-                }
+                    UserId = request.DiscordUserId,
+                    ParentDiscordChannelId = request.DiscordChannelId,
+                    DiscordChannelId = channel,
+                    CreatedAt = DateTimeOffset.Now
+                });
             }
-
-            await _accordContext.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateGetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
-
-            return ServiceResponse.Ok();
+            else
+            {
+                var existingChannel = await _accordContext.UserHiddenChannels.SingleAsync(x => x.UserId == request.DiscordUserId && x.DiscordChannelId == channel,
+                    cancellationToken);
+                existingChannel.ParentDiscordChannelId = request.DiscordChannelId;
+            }
         }
+
+        await _accordContext.SaveChangesAsync(cancellationToken);
+
+        await _mediator.Send(new InvalidateGetUserHiddenChannelsRequest(request.DiscordUserId), cancellationToken);
+
+        return ServiceResponse.Ok();
     }
 }

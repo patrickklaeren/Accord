@@ -5,36 +5,35 @@ using Accord.Domain;
 using Accord.Domain.Model;
 using MediatR;
 
-namespace Accord.Services.UserMessages
+namespace Accord.Services.UserMessages;
+
+public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
+    : IRequest<ServiceResponse>;
+
+public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceResponse>
 {
-    public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
-        : IRequest<ServiceResponse>;
+    private readonly AccordContext _db;
 
-    public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceResponse>
+    public AddMessageHandler(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public AddMessageHandler(AccordContext db)
+    public async Task<ServiceResponse> Handle(AddMessageRequest request, 
+        CancellationToken cancellationToken)
+    {
+        var message = new UserMessage
         {
-            _db = db;
-        }
+            Id = request.DiscordMessageId,
+            UserId = request.DiscordUserId,
+            DiscordChannelId = request.DiscordChannelId,
+            SentDateTime = request.SentDateTime,
+        };
 
-        public async Task<ServiceResponse> Handle(AddMessageRequest request, 
-            CancellationToken cancellationToken)
-        {
-            var message = new UserMessage
-            {
-                Id = request.DiscordMessageId,
-                UserId = request.DiscordUserId,
-                DiscordChannelId = request.DiscordChannelId,
-                SentDateTime = request.SentDateTime,
-            };
+        _db.Add(message);
 
-            _db.Add(message);
+        await _db.SaveChangesAsync(cancellationToken);
 
-            await _db.SaveChangesAsync(cancellationToken);
-
-            return ServiceResponse.Ok();
-        }
+        return ServiceResponse.Ok();
     }
 }

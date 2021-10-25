@@ -6,42 +6,41 @@ using Accord.Services.Permissions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.ChannelFlags
+namespace Accord.Services.ChannelFlags;
+
+public sealed record DeleteChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+
+public class DeleteChannelFlagHandler : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
 {
-    public sealed record DeleteChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) : IRequest<ServiceResponse>;
+    private readonly AccordContext _db;
+    private readonly IMediator _mediator;
 
-    public class DeleteChannelFlagHandler : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
+    public DeleteChannelFlagHandler(AccordContext db, IMediator mediator)
     {
-        private readonly AccordContext _db;
-        private readonly IMediator _mediator;
+        _db = db;
+        _mediator = mediator;
+    }
 
-        public DeleteChannelFlagHandler(AccordContext db, IMediator mediator)
+    public async Task<ServiceResponse> Handle(DeleteChannelFlagRequest request, CancellationToken cancellationToken)
+    {
+        var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManageFlags), cancellationToken);
+
+        if (!hasPermission)
         {
-            _db = db;
-            _mediator = mediator;
+            return ServiceResponse.Fail("Missing permission");
         }
 
-        public async Task<ServiceResponse> Handle(DeleteChannelFlagRequest request, CancellationToken cancellationToken)
-        {
-            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManageFlags), cancellationToken);
+        var flag = await _db.ChannelFlags
+            .SingleAsync(x => x.DiscordChannelId == request.DiscordChannelId
+                              && x.Type == request.Flag,
+                cancellationToken: cancellationToken);
 
-            if (!hasPermission)
-            {
-                return ServiceResponse.Fail("Missing permission");
-            }
+        _db.Remove(flag);
 
-            var flag = await _db.ChannelFlags
-                .SingleAsync(x => x.DiscordChannelId == request.DiscordChannelId
-                                  && x.Type == request.Flag,
-                    cancellationToken: cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
 
-            _db.Remove(flag);
+        await _mediator.Send(new InvalidateGetChannelsWithFlagRequest(request.Flag), cancellationToken);
 
-            await _db.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateGetChannelsWithFlagRequest(request.Flag), cancellationToken);
-
-            return ServiceResponse.Ok();
-        }
+        return ServiceResponse.Ok();
     }
 }

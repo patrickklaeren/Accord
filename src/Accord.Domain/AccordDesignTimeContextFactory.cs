@@ -1,17 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Accord.Domain
+namespace Accord.Domain;
+
+public class AccordDesignTimeContextFactory : IDesignTimeDbContextFactory<AccordContext>
 {
-    public class AccordDesignTimeContextFactory : IDesignTimeDbContextFactory<AccordContext>
+    AccordContext IDesignTimeDbContextFactory<AccordContext>.CreateDbContext(string[] args)
     {
-        AccordContext IDesignTimeDbContextFactory<AccordContext>.CreateDbContext(string[] args)
-        {
-            var builder = new DbContextOptionsBuilder<AccordContext>();
+        var builder = new DbContextOptionsBuilder<AccordContext>();
 
-            builder.UseSqlServer("Server=localhost;Database=Accord-Dev;Trusted_Connection=True");
+        builder.UseSqlServer("Server=localhost;Database=Accord-Dev;Trusted_Connection=True");
 
-            return new AccordContext(builder.Options);
-        }
+        return new AccordContext(builder.Options);
     }
 }

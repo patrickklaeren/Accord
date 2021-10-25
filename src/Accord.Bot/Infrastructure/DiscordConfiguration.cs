@@ -1,8 +1,7 @@
-﻿namespace Accord.Bot.Infrastructure
+﻿namespace Accord.Bot.Infrastructure;
+
+public class DiscordConfiguration
 {
-    public class DiscordConfiguration
-    {
-        public ulong GuildId { get; set; }
-        public string CdnBaseUrl { get; set; } = null!;
-    }
+    public ulong GuildId { get; set; }
+    public string CdnBaseUrl { get; set; } = null!;
 }

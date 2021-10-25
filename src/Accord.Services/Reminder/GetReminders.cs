@@ -9,100 +9,99 @@ using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Reminder
-{
-    public sealed record GetRemindersRequest(ulong DiscordUserId) : IRequest<ServiceResponse<List<UserReminder>>>;
+namespace Accord.Services.Reminder;
 
-    public sealed record GetAllRemindersRequest : IRequest<ServiceResponse<List<UserReminder>>>;
+public sealed record GetRemindersRequest(ulong DiscordUserId) : IRequest<ServiceResponse<List<UserReminder>>>;
 
-    public sealed record GetReminderRequest(ulong DiscordUserId, int ReminderId) : IRequest<ServiceResponse<UserReminder>>;
+public sealed record GetAllRemindersRequest : IRequest<ServiceResponse<List<UserReminder>>>;
 
-    public sealed record UserHasReminderRequest(ulong DiscordUserId, int ReminderId) : IRequest<ServiceResponse<bool>>;
+public sealed record GetReminderRequest(ulong DiscordUserId, int ReminderId) : IRequest<ServiceResponse<UserReminder>>;
 
-    public sealed record InvalidateGetRemindersRequest(ulong DiscordUserId) : IRequest;
+public sealed record UserHasReminderRequest(ulong DiscordUserId, int ReminderId) : IRequest<ServiceResponse<bool>>;
+
+public sealed record InvalidateGetRemindersRequest(ulong DiscordUserId) : IRequest;
     
-    public class GetRemindersHandler : 
-        RequestHandler<InvalidateGetRemindersRequest>, 
-        IRequestHandler<GetReminderRequest, ServiceResponse<UserReminder>>, 
-        IRequestHandler<UserHasReminderRequest, ServiceResponse<bool>>, 
-        IRequestHandler<GetRemindersRequest, ServiceResponse<List<UserReminder>>>, 
-        IRequestHandler<GetAllRemindersRequest, ServiceResponse<List<UserReminder>>>
-    {
+public class GetRemindersHandler : 
+    RequestHandler<InvalidateGetRemindersRequest>, 
+    IRequestHandler<GetReminderRequest, ServiceResponse<UserReminder>>, 
+    IRequestHandler<UserHasReminderRequest, ServiceResponse<bool>>, 
+    IRequestHandler<GetRemindersRequest, ServiceResponse<List<UserReminder>>>, 
+    IRequestHandler<GetAllRemindersRequest, ServiceResponse<List<UserReminder>>>
+{
         
-        private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+    private readonly AccordContext _db;
+    private readonly IAppCache _appCache;
 
-        public GetRemindersHandler(AccordContext db, IAppCache appCache)
-        {
-            _db = db;
-            _appCache = appCache;
-        }
-
-
-        public async Task<ServiceResponse<List<UserReminder>>> Handle(GetRemindersRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _appCache.GetOrAddAsync(
-                BuildGetRemindersWithId(request.DiscordUserId), 
-                () => GetRemindersByUserId(request.DiscordUserId), 
-                DateTimeOffset.Now.AddDays(30)
-            );
-            
-            return ServiceResponse.Ok(result);
-        }
-
-        public async Task<ServiceResponse<List<UserReminder>>> Handle(GetAllRemindersRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _appCache.GetOrAddAsync(
-                BuildGetReminders(), 
-                () => GetReminders(), 
-                DateTimeOffset.Now.AddDays(30)
-            );
-            
-            return ServiceResponse.Ok(result);
-        }
-
-        public async Task<ServiceResponse<UserReminder>> Handle(GetReminderRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _appCache.GetOrAddAsync(
-                BuildGetRemindersWithId(request.DiscordUserId), 
-                () => GetRemindersByUserId(request.DiscordUserId), 
-                DateTimeOffset.Now.AddDays(30)
-            );
-            try
-            {
-                return ServiceResponse.Ok(result.Single(x => x.Id == request.ReminderId));
-            }
-            catch (Exception)
-            {
-                return ServiceResponse.Fail<UserReminder>($"User doesn't have a reminder with id: {request.ReminderId}");
-            }
-        }
-        public async Task<ServiceResponse<bool>> Handle(UserHasReminderRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _appCache.GetOrAddAsync(
-                BuildGetRemindersWithId(request.DiscordUserId), 
-                () => GetRemindersByUserId(request.DiscordUserId), 
-                DateTimeOffset.Now.AddDays(30)
-            );
-            
-            return ServiceResponse.Ok(result.Any(x => x.Id == request.ReminderId));
-        }
-        protected override void Handle(InvalidateGetRemindersRequest request)
-        {
-            _appCache.Remove(BuildGetRemindersWithId(request.DiscordUserId));
-            _appCache.Remove(BuildGetReminders());
-        }
-
-        private async Task<List<UserReminder>> GetReminders() => 
-            await _db.UserReminders.ToListAsync();
-
-        private async Task<List<UserReminder>> GetRemindersByUserId(ulong userId) => 
-            await _db.UserReminders.Where(x=>x.UserId == userId).ToListAsync();
-
-        private static string BuildGetReminders() => 
-            $"{nameof(GetRemindersHandler)}/{nameof(GetReminders)}";
-
-        private static string BuildGetRemindersWithId(ulong discordUserId) => 
-            $"{nameof(GetRemindersHandler)}/{nameof(GetRemindersByUserId)}/{discordUserId}";
+    public GetRemindersHandler(AccordContext db, IAppCache appCache)
+    {
+        _db = db;
+        _appCache = appCache;
     }
+
+
+    public async Task<ServiceResponse<List<UserReminder>>> Handle(GetRemindersRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _appCache.GetOrAddAsync(
+            BuildGetRemindersWithId(request.DiscordUserId), 
+            () => GetRemindersByUserId(request.DiscordUserId), 
+            DateTimeOffset.Now.AddDays(30)
+        );
+            
+        return ServiceResponse.Ok(result);
+    }
+
+    public async Task<ServiceResponse<List<UserReminder>>> Handle(GetAllRemindersRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _appCache.GetOrAddAsync(
+            BuildGetReminders(), 
+            () => GetReminders(), 
+            DateTimeOffset.Now.AddDays(30)
+        );
+            
+        return ServiceResponse.Ok(result);
+    }
+
+    public async Task<ServiceResponse<UserReminder>> Handle(GetReminderRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _appCache.GetOrAddAsync(
+            BuildGetRemindersWithId(request.DiscordUserId), 
+            () => GetRemindersByUserId(request.DiscordUserId), 
+            DateTimeOffset.Now.AddDays(30)
+        );
+        try
+        {
+            return ServiceResponse.Ok(result.Single(x => x.Id == request.ReminderId));
+        }
+        catch (Exception)
+        {
+            return ServiceResponse.Fail<UserReminder>($"User doesn't have a reminder with id: {request.ReminderId}");
+        }
+    }
+    public async Task<ServiceResponse<bool>> Handle(UserHasReminderRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _appCache.GetOrAddAsync(
+            BuildGetRemindersWithId(request.DiscordUserId), 
+            () => GetRemindersByUserId(request.DiscordUserId), 
+            DateTimeOffset.Now.AddDays(30)
+        );
+            
+        return ServiceResponse.Ok(result.Any(x => x.Id == request.ReminderId));
+    }
+    protected override void Handle(InvalidateGetRemindersRequest request)
+    {
+        _appCache.Remove(BuildGetRemindersWithId(request.DiscordUserId));
+        _appCache.Remove(BuildGetReminders());
+    }
+
+    private async Task<List<UserReminder>> GetReminders() => 
+        await _db.UserReminders.ToListAsync();
+
+    private async Task<List<UserReminder>> GetRemindersByUserId(ulong userId) => 
+        await _db.UserReminders.Where(x=>x.UserId == userId).ToListAsync();
+
+    private static string BuildGetReminders() => 
+        $"{nameof(GetRemindersHandler)}/{nameof(GetReminders)}";
+
+    private static string BuildGetRemindersWithId(ulong discordUserId) => 
+        $"{nameof(GetRemindersHandler)}/{nameof(GetRemindersByUserId)}/{discordUserId}";
 }
