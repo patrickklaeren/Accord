@@ -60,7 +60,7 @@ namespace Accord.Bot.CommandGroups
 
             var guildUserEntity = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, new Snowflake(userId));
 
-            if (!guildUserEntity.IsSuccess || guildUserEntity.Entity is null || !guildUserEntity.Entity.User.HasValue)
+            if (!guildUserEntity.IsSuccess || !guildUserEntity.Entity.User.HasValue)
             {
                 await _commandResponder.Respond("Couldn't find user in Guild");
                 return Result.FromSuccess();

@@ -14,12 +14,8 @@ using Remora.Results;
 namespace Accord.Bot.Parsers
 {
     public record ChannelParsingResults(IReadOnlyList<IChannel> Channels);
-
     public record ApproximateChannelParsingResults(IReadOnlyList<IChannel> Channels, Dictionary<IChannel, int> Scores) : ChannelParsingResults(Channels);
 
-    /// <summary>
-    /// Parses instances of <see cref="IChannel"/>.
-    /// </summary>
     public class DiscordChannelParser : AbstractTypeParser<IChannel>
     {
         private readonly DiscordScopedCache _discordCache;
@@ -111,7 +107,7 @@ namespace Accord.Bot.Parsers
         }
 
         /// <inheritdoc />
-        public override ValueTask<Result<IChannel>> TryParse(string value, CancellationToken ct)
+        public override ValueTask<Result<IChannel>> TryParseAsync(string value, CancellationToken ct = default)
         {
             var result = TryParse(value, false);
             if (!result.IsSuccess)

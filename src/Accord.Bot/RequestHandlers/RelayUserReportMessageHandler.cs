@@ -102,6 +102,10 @@ namespace Accord.Bot.RequestHandlers
             if (request.DiscordMessageReferenceId != null)
             {
                 var originalMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageReferenceId.Value), cancellationToken);
+
+                if (originalMessage is null)
+                    throw new InvalidOperationException("Cannot process without original message");
+                
                 var originalAuthor = await _discordCache.GetGuildMember(request.DiscordGuildId, originalMessage.AuthorUserId);
                 var originalAuthorUser = originalAuthor.Entity!.User.Value;
                 var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser);

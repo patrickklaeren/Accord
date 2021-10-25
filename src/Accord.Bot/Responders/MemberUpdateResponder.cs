@@ -41,9 +41,11 @@ namespace Accord.Bot.Responders
             var user = gatewayEvent.User;
 
             var selfMember = _discordCache.GetGuildSelfMember(gatewayEvent.GuildID);
+            
             var newMember = new GuildMember(
                 new Optional<IUser>(gatewayEvent.User),
                 gatewayEvent.Nickname,
+                gatewayEvent.Avatar,
                 gatewayEvent.Roles,
                 gatewayEvent.JoinedAt!.Value,
                 gatewayEvent.PremiumSince,

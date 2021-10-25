@@ -25,7 +25,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user")]
+        [RequireDiscordPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user")]
         public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
@@ -41,7 +41,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("addrole"), Description("Add permission to a role")]
+        [RequireDiscordPermission(DiscordPermission.Administrator), Command("addrole"), Description("Add permission to a role")]
         public async Task<IResult> AddPermissionToRole(IRole role, string type)
         {
             if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))

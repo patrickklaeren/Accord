@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 
@@ -27,7 +27,7 @@ namespace Accord.Bot.Infrastructure
 
             services
                 .Configure<DiscordCommandResponderOptions>(o => o.Prefix = "!");
-            
+
             services
                 .AddLogging()
                 .AddTransient<BotClient>()
@@ -48,7 +48,8 @@ namespace Accord.Bot.Infrastructure
                 })
                 .AddHostedService<RemindersHostedService>()
                 .AddDiscordCommands(true)
-                .AddParser<TimeSpan, TimeSpanParser>()
+                .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
+                .AddParser<TimeSpanParser>()
                 .AddCommandGroup<XpCommandGroup>()
                 .AddCommandGroup<ChannelFlagCommandGroup>()
                 .AddCommandGroup<UserChannelHidingCommandGroup>()

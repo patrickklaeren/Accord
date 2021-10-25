@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
-using Accord.Services;
 using Accord.Services.Helpers;
 using Accord.Services.UserReports;
 using MediatR;
@@ -32,7 +31,6 @@ namespace Accord.Bot.CommandGroups.UserReports
         private readonly CommandResponder _commandResponder;
         private readonly DiscordAvatarHelper _avatarHelper;
         private readonly DiscordScopedCache _discordCache;
-        private readonly IEventQueue _eventQueue;
 
         public ReportCommandGroup(ICommandContext commandContext,
             IMediator mediator,
@@ -41,7 +39,6 @@ namespace Accord.Bot.CommandGroups.UserReports
             IDiscordRestChannelAPI channelApi,
             DiscordAvatarHelper avatarHelper,
             DiscordScopedCache discordCache,
-            IEventQueue eventQueue,
             IDiscordRestWebhookAPI webhookApi)
         {
             _commandContext = commandContext;
@@ -51,7 +48,6 @@ namespace Accord.Bot.CommandGroups.UserReports
             _channelApi = channelApi;
             _avatarHelper = avatarHelper;
             _discordCache = discordCache;
-            _eventQueue = eventQueue;
             _webhookApi = webhookApi;
         }
 
@@ -66,13 +62,13 @@ namespace Accord.Bot.CommandGroups.UserReports
                 return Result.FromSuccess();
             }
 
-            var existingReport = await _mediator.Send(new GetExistingOutboxReportForUserRequest(_commandContext.User.ID.Value));
+            var (hasExistingReport, outboxDiscordChannelId) = await _mediator.Send(new GetExistingOutboxReportForUserRequest(_commandContext.User.ID.Value));
 
-            if (existingReport.HasExistingReport)
+            if (hasExistingReport && outboxDiscordChannelId is not null)
             {
                 await _commandResponder.Respond(
-                    $"You have already an open report. Visit {DiscordFormatter.ChannelIdToMention(existingReport.OutboxDiscordChannelId.Value)} to continue with your report");
-                await _channelApi.CreateMessageAsync(new Snowflake(existingReport.OutboxDiscordChannelId.Value),
+                    $"You have already an open report. Visit {DiscordFormatter.ChannelIdToMention(outboxDiscordChannelId.Value)} to continue with your report");
+                await _channelApi.CreateMessageAsync(new Snowflake(outboxDiscordChannelId.Value),
                     $"{DiscordFormatter.UserIdToMention(_commandContext.User.ID.Value)} Here!");
                 return Result.FromSuccess();
             }

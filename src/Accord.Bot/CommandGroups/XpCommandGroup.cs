@@ -45,7 +45,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
+        [RequireDiscordPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
         public async Task<IResult> CalculateXp()
         {
             await _mediator.Send(new CalculateParticipationRequest());

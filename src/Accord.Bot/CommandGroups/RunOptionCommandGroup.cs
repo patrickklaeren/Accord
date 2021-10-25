@@ -24,7 +24,7 @@ namespace Accord.Bot.CommandGroups
             _commandResponder = commandResponder;
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
+        [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
         public async Task<IResult> Configure(string type, string value)
         {
             if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))

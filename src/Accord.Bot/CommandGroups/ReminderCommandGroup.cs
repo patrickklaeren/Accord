@@ -75,7 +75,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [RequireUserGuildPermission(DiscordPermission.Administrator), Command("list-user"),
+        [RequireDiscordPermission(DiscordPermission.Administrator), Command("list-user"),
          Description("List the reminders of the specified user.")]
         public async Task<IResult> ListUserReminders(IGuildMember member, int page = 1)
         {
@@ -98,7 +98,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [Command("delete-user"), RequireUserGuildPermission(DiscordPermission.Administrator),
+        [Command("delete-user"), RequireDiscordPermission(DiscordPermission.Administrator),
          Description("Deletes a reminder of the specified user.")]
         public async Task<IResult> DeleteReminder(IGuildMember guildMember, int reminderId)
         {
@@ -121,7 +121,7 @@ namespace Accord.Bot.CommandGroups
             return Result.FromSuccess();
         }
 
-        [Command("delete-user-all"), RequireUserGuildPermission(DiscordPermission.Administrator),
+        [Command("delete-user-all"), RequireDiscordPermission(DiscordPermission.Administrator),
          Description("Deletes all the reminders of the specified user.")]
         public async Task<IResult> DeleteAllReminders(IGuildMember guildMember)
         {
@@ -150,7 +150,7 @@ namespace Accord.Bot.CommandGroups
 
             var guildUserEntity = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, id);
 
-            if (!guildUserEntity.IsSuccess || guildUserEntity.Entity is null || !guildUserEntity.Entity.User.HasValue)
+            if (!guildUserEntity.IsSuccess || !guildUserEntity.Entity.User.HasValue)
             {
                 return new Embed(Description: "Couldn't find user in Guild");
             }

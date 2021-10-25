@@ -34,7 +34,8 @@ namespace Accord.Bot.Responders
         {
             _discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
 
-            List<Task> tasks = new List<Task>();
+            var tasks = new List<Task>();
+            
             foreach (var unavailableGuild in gatewayEvent.Guilds)
             {
                 tasks.Add(CacheGuild(unavailableGuild, gatewayEvent.User, ct));
@@ -49,7 +50,7 @@ namespace Accord.Bot.Responders
                 new Activity("for everything", ActivityType.Watching)
             });
 
-            _discordGatewayClient.SubmitCommandAsync(updateCommand);
+            _discordGatewayClient.SubmitCommand(updateCommand);
 
             return Result.FromSuccess();
         }
@@ -61,11 +62,13 @@ namespace Accord.Bot.Responders
                 _discordCache.SetGuildSelfMember(unavailableGuild.GuildID, guildMember.Entity);
 
             var guild = await _guildApi.GetGuildAsync(unavailableGuild.GuildID, true, ct: ct);
+            
             if (!guild.IsSuccess)
                 return;
 
             _discordCache.SetGuildRoles(guild.Entity.ID, guild.Entity.Roles);
-            IReadOnlyList<IChannel> channels = guild.Entity.Channels.HasValue
+            
+            var channels = guild.Entity.Channels.HasValue
                 ? guild.Entity.Channels.Value
                 : (await _guildApi.GetGuildChannelsAsync(guild.Entity.ID, ct)).Entity!;
 

@@ -8,13 +8,9 @@ using TimeSpanParserUtil;
 
 namespace Accord.Bot.Parsers
 {
-    /// <summary>
-    /// Parses instances of <see cref="TimeSpanParser"/>.
-    /// </summary>
     public class TimeSpanParser : AbstractTypeParser<TimeSpan>
     {
-        /// <inheritdoc />
-        public override ValueTask<Result<TimeSpan>> TryParse(string value, CancellationToken ct)
+        public override ValueTask<Result<TimeSpan>> TryParseAsync(string value, CancellationToken ct = default)
         {
             return new ValueTask<Result<TimeSpan>>(
                 TimeSpanParserUtil.TimeSpanParser.TryParse(

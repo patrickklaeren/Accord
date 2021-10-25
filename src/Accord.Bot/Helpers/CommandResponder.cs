@@ -9,21 +9,21 @@ namespace Accord.Bot.Helpers
     public class CommandResponder
     {
         private readonly ICommandContext _commandContext;
-        private readonly IDiscordRestWebhookAPI _webhookApi;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly IDiscordRestInteractionAPI _interactionApi;
 
-        public CommandResponder(IDiscordRestWebhookAPI webhookApi, IDiscordRestChannelAPI channelApi, ICommandContext commandContext)
+        public CommandResponder(IDiscordRestChannelAPI channelApi, ICommandContext commandContext, IDiscordRestInteractionAPI interactionApi)
         {
-            _webhookApi = webhookApi;
             _channelApi = channelApi;
             _commandContext = commandContext;
+            _interactionApi = interactionApi;
         }
 
         public async Task<IResult> Respond(string message)
         {
             if (_commandContext is InteractionContext interactionContext)
             {
-                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
+                return await _interactionApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: message);
             }
 
             return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, content: message);
@@ -33,7 +33,7 @@ namespace Accord.Bot.Helpers
         {
             if (_commandContext is InteractionContext interactionContext)
             {
-                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] { embed });
+                return await _interactionApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: new[] { embed });
             }
 
             return await _channelApi.CreateMessageAsync(_commandContext.ChannelID, embeds: new[] { embed });
@@ -43,7 +43,7 @@ namespace Accord.Bot.Helpers
         {
             if (_commandContext is InteractionContext interactionContext)
             {
-                return await _webhookApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: embeds);
+                return await _interactionApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, embeds: embeds);
             }
 
             foreach (var embed in embeds)
