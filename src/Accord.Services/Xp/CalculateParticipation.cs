@@ -61,37 +61,37 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
         using var queryScope = _serviceScopeFactory.CreateScope();
         await using var queryContext = queryScope.ServiceProvider.GetRequiredService<AccordContext>();
 
-        var messagesQuery = await queryContext
+        var groupedMessages = await queryContext
             .UserMessages
-            .AsNoTracking()
             .Where(x => x.SentDateTime >= calculateFromDate)
             .Where(x => !channelsExcludedFromXp.Contains(x.DiscordChannelId))
+            .GroupBy(x => x.UserId)
             .Select(x => new
             {
-                x.UserId,
-                x.SentDateTime
+                x.Key,
+                Messages = x.Select(d => d.SentDateTime).ToList(),
             })
             .ToListAsync();
 
-        var voicesQuery = await queryContext
+        var groupedVoiceConnections = await queryContext
             .VoiceConnections
             .Where(x => x.EndDateTime != null && x.MinutesInVoiceChannel != null && x.MinutesInVoiceChannel > MINIMUM_MINUTES_IN_VOICE)
             .Where(x => x.EndDateTime >= calculateFromDate)
             .Where(x => !channelsExcludedFromXp.Contains(x.DiscordChannelId))
+            .GroupBy(x => x.UserId)
             .Select(x => new
             {
-                x.UserId,
-                x.StartDateTime,
-                x.MinutesInVoiceChannel,
+                x.Key,
+                Connections = x.Select(d => new
+                {
+                    d.StartDateTime,
+                    d.MinutesInVoiceChannel,
+                }).ToList()
             })
             .ToListAsync();
 
-        // Group client side, because EF cannot translate this... Yet?
-        var groupedMessages = messagesQuery.GroupBy(x => x.UserId).ToList();
-        var groupedVoiceConnections = voicesQuery.GroupBy(x => x.UserId).ToList();
-
-        var rankedMessengers = groupedMessages.OrderByDescending(x => x.Count()).ToList();
-        var rankedVoiceUsers = groupedVoiceConnections.OrderByDescending(x => x.Sum(q => q.MinutesInVoiceChannel)).ToList();
+        var rankedMessengers = groupedMessages.OrderByDescending(x => x.Messages.Count).ToList();
+        var rankedVoiceUsers = groupedVoiceConnections.OrderByDescending(x => x.Connections.Sum(q => q.MinutesInVoiceChannel)).ToList();
 
         var userParticipation = groupedMessages
             .Select(x => x.Key)
@@ -120,8 +120,8 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
             var dateToCalculateFromForUser = DateTimeHelper.Max(userFirstSeen, calculateFromDate);
 
             var activityDates = messagesSentByUser
-                .SelectMany(x => x.Select(q => q.SentDateTime.Date))
-                .Concat(voiceSessions.SelectMany(q => q.Select(c => c.StartDateTime.Date)))
+                .SelectMany(x => x.Messages.Select(q => q.Date))
+                .Concat(voiceSessions.SelectMany(q => q.Connections.Select(c => c.StartDateTime.Date)))
                 .Distinct()
                 .ToList();
 
