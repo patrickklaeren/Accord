@@ -13,7 +13,7 @@ public sealed record EditUserReportMessageRequest(
         UserReportChannelType DiscordChannelType,
         string Content,
         List<DiscordAttachmentDto> Attachments)
-    : IRequest<ServiceResponse>;
+    : IRequest;
 
 public sealed record EditUserReportDiscordMessageRequest(
         ulong DiscordProxyWebhookId,
@@ -21,9 +21,9 @@ public sealed record EditUserReportDiscordMessageRequest(
         ulong DiscordProxiedMessageId,
         string Content,
         List<DiscordAttachmentDto> Attachments)
-    : IRequest<ServiceResponse>;
+    : IRequest;
 
-public class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessageRequest, ServiceResponse>
+public class EditUserReportMessageHandler : AsyncRequestHandler<EditUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
@@ -33,17 +33,19 @@ public class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessag
         _db = db;
         _mediator = mediator;
     }
-        
-    public async Task<ServiceResponse> Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
+
+    protected override async Task Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
     {
         if (request.DiscordChannelType == UserReportChannelType.None)
-            return ServiceResponse.Fail("DiscordChannelType was none");
-            
+        {
+            return;
+        }
+
         var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
-            return ServiceResponse.Fail("Couldn't retrieve report's information");
+            return;
         }
 
         ulong webhookId;
@@ -60,12 +62,12 @@ public class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessag
         }
         else
             throw new NotSupportedException($"Discord Channel Type {request.DiscordChannelType} is not supported");
-            
+
         var userMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);
 
         if (userMessage == null)
         {
-            return ServiceResponse.Fail("Couldn't retrieve message's information");
+            return;
         }
 
         userMessage.Content = request.Content;
@@ -75,8 +77,8 @@ public class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessag
 
         //todo log update on an audit log? maybe trigger?
         await _mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
-            
-        return await _mediator.Send(
+
+        await _mediator.Send(
             new EditUserReportDiscordMessageRequest(
                 webhookId,
                 webhookToken,

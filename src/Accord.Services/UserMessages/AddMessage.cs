@@ -8,9 +8,9 @@ using MediatR;
 namespace Accord.Services.UserMessages;
 
 public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
-    : IRequest<ServiceResponse>;
+    : IRequest, IEnsureUserExistsRequest;
 
-public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceResponse>
+public class AddMessageHandler : AsyncRequestHandler<AddMessageRequest>
 {
     private readonly AccordContext _db;
 
@@ -19,8 +19,7 @@ public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceRespo
         _db = db;
     }
 
-    public async Task<ServiceResponse> Handle(AddMessageRequest request, 
-        CancellationToken cancellationToken)
+    protected override async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
     {
         var message = new UserMessage
         {
@@ -33,7 +32,5 @@ public class AddMessageHandler : IRequestHandler<AddMessageRequest, ServiceRespo
         _db.Add(message);
 
         await _db.SaveChangesAsync(cancellationToken);
-
-        return ServiceResponse.Ok();
     }
 }

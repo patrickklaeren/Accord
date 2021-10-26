@@ -17,7 +17,7 @@ public sealed record AddUserReportMessageRequest(ulong DiscordGuildId,
         List<DiscordAttachmentDto> DiscordAttachments,
         ulong? DiscordMessageReferenceId,
         DateTimeOffset SentDateTime)
-    : IRequest<ServiceResponse>;
+    : IRequest, IEnsureUserExistsRequest;
 
 public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId,
         ulong ToDiscordChannelId,
@@ -29,9 +29,12 @@ public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId,
         ulong AuthorDiscordUserId,
         ulong? DiscordMessageReferenceId,
         DateTimeOffset SentDateTime)
-    : IRequest<ServiceResponse>;
+    : IRequest, IEnsureUserExistsRequest
+{
+    public ulong DiscordUserId => AuthorDiscordUserId;
+}
 
-public class AddUserReportMessageHandler : IRequestHandler<AddUserReportMessageRequest, ServiceResponse>
+public class AddUserReportMessageHandler : AsyncRequestHandler<AddUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
@@ -42,16 +45,18 @@ public class AddUserReportMessageHandler : IRequestHandler<AddUserReportMessageR
         _mediator = mediator;
     }
 
-    public async Task<ServiceResponse> Handle(AddUserReportMessageRequest request, CancellationToken cancellationToken)
+    protected override async Task Handle(AddUserReportMessageRequest request, CancellationToken cancellationToken)
     {
         if (request.DiscordChannelType == UserReportChannelType.None)
-            return ServiceResponse.Fail("DiscordChannelType was none");
+        {
+            return;
+        }
 
         var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
-            return ServiceResponse.Fail("Couldn't retrieve report's information");
+            return;
         }
 
         ulong webhookId;
@@ -70,7 +75,9 @@ public class AddUserReportMessageHandler : IRequestHandler<AddUserReportMessageR
             channelId = userReportData.InboxDiscordChannelId;
         }
         else
+        {
             throw new NotSupportedException($"Discord Channel Type {request.DiscordChannelType} is not supported");
+        }
 
         var userReport = new UserReportMessage
         {
@@ -96,7 +103,5 @@ public class AddUserReportMessageHandler : IRequestHandler<AddUserReportMessageR
             request.DiscordUserId,
             request.DiscordMessageReferenceId,
             request.SentDateTime), cancellationToken);
-
-        return ServiceResponse.Ok();
     }
 }

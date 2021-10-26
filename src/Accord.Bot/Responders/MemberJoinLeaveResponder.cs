@@ -9,6 +9,9 @@ using Accord.Domain.Model;
 using Accord.Services;
 using Accord.Services.ChannelFlags;
 using Accord.Services.Helpers;
+using Accord.Services.Moderation;
+using Accord.Services.Raid;
+using Accord.Services.Users;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
@@ -43,9 +46,8 @@ public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<
 
         var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
 
-        await _eventQueue.Queue(new UserJoinedEvent(gatewayEvent.GuildID.Value, user.ID.Value, gatewayEvent.JoinedAt, user.Username, user.Discriminator.ToPaddedDiscriminator(), null, avatarUrl));
-
-        await _eventQueue.Queue(new RaidCalculationEvent(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, gatewayEvent.JoinedAt));
+        await _eventQueue.Queue(new AddUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, null, gatewayEvent.JoinedAt));
+        await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), null, avatarUrl, gatewayEvent.JoinedAt)));
 
         var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 

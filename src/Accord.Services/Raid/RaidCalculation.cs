@@ -9,10 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid;
 
-public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest<ServiceResponse>;
+public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest, IEnsureUserExistsRequest
+{
+    public ulong DiscordUserId => User.Id;
+}
+
 public sealed record RaidAlertRequest(ulong DiscordGuildId, bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
 
-public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, ServiceResponse>
+public class RaidCalculationHandler : AsyncRequestHandler<RaidCalculationRequest>
 {
     private readonly RaidCalculator _raidCalculator;
     private readonly IMediator _mediator;
@@ -25,12 +29,13 @@ public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, Se
         _db = db;
     }
 
-    public async Task<ServiceResponse> Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
+    protected override async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {
         var bypassRaidCheck = await _mediator.Send(new UserIsExemptFromRaidRequest(request.User.Id), cancellationToken);
+
         if (bypassRaidCheck)
         {
-            return ServiceResponse.Ok();
+            return;
         }
 
         var sequentialLimit = await _mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
@@ -71,7 +76,5 @@ public class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest, Se
                     $"Auto detection - {raidResult.Reason}"), 
                 cancellationToken);
         }
-
-        return ServiceResponse.Ok();
     }
 }

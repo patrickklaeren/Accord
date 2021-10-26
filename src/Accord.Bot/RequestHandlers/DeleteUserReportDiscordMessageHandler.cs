@@ -8,7 +8,7 @@ using Remora.Discord.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class DeleteUserReportDiscordMessageHandler : IRequestHandler<DeleteUserReportDiscordMessageRequest, ServiceResponse>
+public class DeleteUserReportDiscordMessageHandler : AsyncRequestHandler<DeleteUserReportDiscordMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
 
@@ -16,14 +16,13 @@ public class DeleteUserReportDiscordMessageHandler : IRequestHandler<DeleteUserR
     {
         _webhookApi = webhookApi;
     }
-        
-    public async Task<ServiceResponse> Handle(DeleteUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
+    
+    protected override async Task Handle(DeleteUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
     {
         await _webhookApi.DeleteWebhookMessageAsync(
             new Snowflake(request.DiscordProxyWebhookId),
             request.DiscordProxyWebhookToken,
             new Snowflake(request.DiscordProxiedMessageId),
             ct: cancellationToken);
-        return ServiceResponse.Ok();
     }
 }

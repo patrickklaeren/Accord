@@ -18,7 +18,7 @@ using Remora.Results;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class RelayUserReportMessageHandler : IRequestHandler<RelayUserReportMessageRequest, ServiceResponse>
+public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
@@ -37,12 +37,12 @@ public class RelayUserReportMessageHandler : IRequestHandler<RelayUserReportMess
         _mediator = mediator;
     }
 
-    public async Task<ServiceResponse> Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
+    protected override async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
     {
         var member = await _discordCache.GetGuildMember(request.DiscordGuildId, request.AuthorDiscordUserId);
 
         if (!member.IsSuccess || member.Entity is null || !member.Entity.User.HasValue)
-            return ServiceResponse.Fail("Member is invalid");
+            return;
 
         var user = member.Entity.User.Value;
 
@@ -143,7 +143,5 @@ public class RelayUserReportMessageHandler : IRequestHandler<RelayUserReportMess
 
             serviceResponses.Add(response);
         }
-
-        return serviceResponses.All(x => x.Success) ? ServiceResponse.Ok() : serviceResponses.First(x => x.Failure);
     }
 }
