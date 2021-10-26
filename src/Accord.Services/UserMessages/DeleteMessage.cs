@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserMessages;
 
-public sealed record DeleteMessageRequest(ulong DiscordMessageId) : IRequest<ServiceResponse>;
+public sealed record DeleteMessageRequest(ulong DiscordMessageId) : IRequest;
 
-public class DeleteMessageHandler : IRequestHandler<DeleteMessageRequest, ServiceResponse>
+public class DeleteMessageHandler : AsyncRequestHandler<DeleteMessageRequest>
 {
     private readonly AccordContext _db;
 
@@ -17,7 +17,7 @@ public class DeleteMessageHandler : IRequestHandler<DeleteMessageRequest, Servic
         _db = db;
     }
 
-    public async Task<ServiceResponse> Handle(DeleteMessageRequest request, CancellationToken cancellationToken)
+    protected override async Task Handle(DeleteMessageRequest request, CancellationToken cancellationToken)
     {
         var message = await _db.UserMessages.SingleOrDefaultAsync(x => x.Id == request.DiscordMessageId, cancellationToken: cancellationToken);
 
@@ -26,7 +26,5 @@ public class DeleteMessageHandler : IRequestHandler<DeleteMessageRequest, Servic
             _db.Remove(message);
             await _db.SaveChangesAsync(cancellationToken);
         }
-
-        return ServiceResponse.Ok();
     }
 }

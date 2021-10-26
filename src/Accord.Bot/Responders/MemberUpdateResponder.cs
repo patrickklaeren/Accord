@@ -40,29 +40,6 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
     {
         var user = gatewayEvent.User;
 
-        var selfMember = _discordCache.GetGuildSelfMember(gatewayEvent.GuildID);
-            
-        var newMember = new GuildMember(
-            new Optional<IUser>(gatewayEvent.User),
-            gatewayEvent.Nickname,
-            gatewayEvent.Avatar,
-            gatewayEvent.Roles,
-            gatewayEvent.JoinedAt!.Value,
-            gatewayEvent.PremiumSince,
-            gatewayEvent.IsDeafened.HasValue && gatewayEvent.IsDeafened.Value,
-            gatewayEvent.IsMuted.HasValue && gatewayEvent.IsMuted.Value,
-            gatewayEvent.IsPending.HasValue && gatewayEvent.IsPending.Value
-        );
-
-        if (user.ID == selfMember.User.Value!.ID)
-        {
-            _discordCache.SetGuildSelfMember(gatewayEvent.GuildID, newMember);
-        }
-        else
-        {
-            _discordCache.SetGuildMember(gatewayEvent.GuildID.Value, user.ID.Value, newMember);
-        }
-
         var diff = await _mediator.Send(
             new GetDiffForUserRequest(
                 user.ID.Value,

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
+using Accord.Services.UserMessages;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
@@ -24,7 +25,7 @@ public class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
         if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
             return Result.FromSuccess();
 
-        await _eventQueue.Queue(new AddMessageEvent(gatewayEvent.ID.Value,
+        await _eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
             gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value,
             gatewayEvent.Timestamp));
 
@@ -33,7 +34,7 @@ public class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
 
     public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        await _eventQueue.Queue(new DeleteMessageEvent(gatewayEvent.ID.Value, DateTimeOffset.Now));
+        await _eventQueue.Queue(new DeleteMessageRequest(gatewayEvent.ID.Value));
         return Result.FromSuccess();
     }
 
@@ -41,7 +42,7 @@ public class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
     {
         foreach (var id in gatewayEvent.IDs)
         {
-            await _eventQueue.Queue(new DeleteMessageEvent(id.Value, DateTimeOffset.Now));
+            await _eventQueue.Queue(new DeleteMessageRequest(id.Value));
         }
 
         return Result.FromSuccess();

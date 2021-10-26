@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Accord.Services.Users;
 
-public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest { }
+public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest;
 
 public class EnsureUserExistsHandler : AsyncRequestHandler<EnsureUserExistsRequest>
 {

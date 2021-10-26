@@ -15,10 +15,10 @@ namespace Accord.Bot.Responders;
 
 // TODO Implement
 public class UserReportsMessageResponder
-    //public class UserReportsMessageResponder : IResponder<IMessageCreate>,
-    //    IResponder<IMessageDelete>,
-    //    IResponder<IMessageDeleteBulk>,
-    //    IResponder<IMessageUpdate>
+//public class UserReportsMessageResponder : IResponder<IMessageCreate>,
+//    IResponder<IMessageDelete>,
+//    IResponder<IMessageDeleteBulk>,
+//    IResponder<IMessageUpdate>
 {
     private readonly IEventQueue _eventQueue;
     private readonly IMediator _mediator;
@@ -52,17 +52,8 @@ public class UserReportsMessageResponder
 
         ulong? messageReference = gatewayEvent.MessageReference.HasValue ? gatewayEvent.MessageReference.Value.MessageID.Value.Value : null;
 
-        IUserEvent userEvent;
-        if (reportChannelType == UserReportChannelType.Outbox)
-        {
-            userEvent = new AddUserReportOutboxMessageEvent(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
-                gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, content, attachments, messageReference, gatewayEvent.Timestamp);
-        }
-        else
-        {
-            userEvent = new AddUserReportInboxMessageEvent(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
-                gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, content, attachments, messageReference, gatewayEvent.Timestamp);
-        }
+        var userEvent = new AddUserReportMessageRequest(gatewayEvent.GuildID.Value.Value, gatewayEvent.ID.Value,
+            gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value, reportChannelType, content, attachments, messageReference, gatewayEvent.Timestamp);
 
         await _eventQueue.Queue(userEvent);
 
@@ -76,14 +67,7 @@ public class UserReportsMessageResponder
         if (reportChannelType == UserReportChannelType.None)
             return Result.FromSuccess();
 
-        if (reportChannelType == UserReportChannelType.Outbox)
-        {
-            await _eventQueue.Queue(new DeleteUserReportOutboxMessageEvent(gatewayEvent.ID.Value, gatewayEvent.ChannelID.Value, DateTimeOffset.Now));
-        }
-        else if (reportChannelType == UserReportChannelType.Inbox)
-        {
-            await _eventQueue.Queue(new DeleteUserReportInboxMessageEvent(gatewayEvent.ID.Value, gatewayEvent.ChannelID.Value, DateTimeOffset.Now));
-        }
+        await _eventQueue.Queue(new DeleteUserReportMessageRequest(gatewayEvent.ID.Value, gatewayEvent.ChannelID.Value, reportChannelType));
 
         return Result.FromSuccess();
     }
@@ -97,14 +81,7 @@ public class UserReportsMessageResponder
 
         foreach (var id in gatewayEvent.IDs)
         {
-            if (reportChannelType == UserReportChannelType.Outbox)
-            {
-                await _eventQueue.Queue(new DeleteUserReportOutboxMessageEvent(id.Value, gatewayEvent.ChannelID.Value, DateTimeOffset.Now));
-            }
-            else if (reportChannelType == UserReportChannelType.Inbox)
-            {
-                await _eventQueue.Queue(new DeleteUserReportInboxMessageEvent(id.Value, gatewayEvent.ChannelID.Value, DateTimeOffset.Now));
-            }
+            await _eventQueue.Queue(new DeleteUserReportMessageRequest(id.Value, gatewayEvent.ChannelID.Value, reportChannelType));
         }
 
         return Result.FromSuccess();
@@ -128,16 +105,8 @@ public class UserReportsMessageResponder
             .Select(x => new DiscordAttachmentDto(x.Url, x.Filename, x.ContentType.HasValue ? x.ContentType.Value : null))
             .ToList();
 
-        if (reportChannelType == UserReportChannelType.Outbox)
-        {
-            await _eventQueue.Queue(new EditUserReportOutboxMessageEvent(gatewayEvent.ID.Value.Value, gatewayEvent.ChannelID.Value.Value, content,
-                attachments, DateTimeOffset.Now));
-        }
-        else if (reportChannelType == UserReportChannelType.Inbox)
-        {
-            await _eventQueue.Queue(new EditUserReportInboxMessageEvent(gatewayEvent.ID.Value.Value, gatewayEvent.ChannelID.Value.Value, content,
-                attachments, DateTimeOffset.Now));
-        }
+        await _eventQueue.Queue(new EditUserReportMessageRequest(gatewayEvent.ID.Value.Value, gatewayEvent.ChannelID.Value.Value, reportChannelType, content,
+            attachments));
 
         return Result.FromSuccess();
     }

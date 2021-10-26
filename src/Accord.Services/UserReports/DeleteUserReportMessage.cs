@@ -11,15 +11,15 @@ public sealed record DeleteUserReportDiscordMessageRequest(
         ulong DiscordProxyWebhookId,
         string DiscordProxyWebhookToken,
         ulong DiscordProxiedMessageId)
-    : IRequest<ServiceResponse>;
+    : IRequest;
 
 public sealed record DeleteUserReportMessageRequest(
         ulong DiscordMessageId,
         ulong DiscordChannelId,
         UserReportChannelType DiscordChannelType)
-    : IRequest<ServiceResponse>;
+    : IRequest;
 
-public class DeleteUserReportMessageHandler : IRequestHandler<DeleteUserReportMessageRequest, ServiceResponse>
+public class DeleteUserReportMessageHandler : AsyncRequestHandler<DeleteUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
@@ -30,13 +30,13 @@ public class DeleteUserReportMessageHandler : IRequestHandler<DeleteUserReportMe
         _mediator = mediator;
     }
 
-    public async Task<ServiceResponse> Handle(DeleteUserReportMessageRequest request, CancellationToken cancellationToken)
+    protected override async Task Handle(DeleteUserReportMessageRequest request, CancellationToken cancellationToken)
     {
         var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
-            return ServiceResponse.Fail<(UserReport, UserReportMessage)>("Couldn't retrieve report's information");
+            return;
         }
 
         ulong webhookId;
@@ -58,7 +58,7 @@ public class DeleteUserReportMessageHandler : IRequestHandler<DeleteUserReportMe
 
         if (userMessage == null)
         {
-            return ServiceResponse.Fail<(UserReport, UserReportMessage)>("Couldn't retrieve message's information");
+            return;
         }
 
         _db.Remove(userMessage);
@@ -67,7 +67,7 @@ public class DeleteUserReportMessageHandler : IRequestHandler<DeleteUserReportMe
         await _mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
         //todo log update on an audit log? maybe trigger?
 
-        return await _mediator.Send(
+        await _mediator.Send(
             new DeleteUserReportDiscordMessageRequest(
                 webhookId,
                 webhookToken,

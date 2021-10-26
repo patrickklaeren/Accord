@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
+using Accord.Services.VoiceSessions;
+using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
@@ -26,13 +28,13 @@ public class VoiceStateResponder : IResponder<IVoiceStateUpdate>
         if (gatewayEvent.Member.Value.User.Value.IsBot.HasValue)
             return Result.FromSuccess();
 
-        IEvent type = gatewayEvent.ChannelID.HasValue
-            ? new VoiceConnectedEvent(gatewayEvent.GuildID.Value.Value, 
+        IRequest type = gatewayEvent.ChannelID.HasValue
+            ? new StartVoiceSessionRequest(gatewayEvent.GuildID.Value.Value, 
                 gatewayEvent.UserID.Value,
                 gatewayEvent.ChannelID.Value.Value,
                 gatewayEvent.SessionID,
                 DateTimeOffset.Now)
-            : new VoiceDisconnectedEvent(gatewayEvent.GuildID.Value.Value, 
+            : new FinishVoiceSessionRequest(gatewayEvent.GuildID.Value.Value, 
                 gatewayEvent.UserID.Value,
                 gatewayEvent.SessionID,
                 DateTimeOffset.Now);
