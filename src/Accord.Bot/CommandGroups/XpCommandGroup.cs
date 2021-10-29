@@ -7,52 +7,50 @@ using Accord.Bot.Helpers;
 using Accord.Services.Xp;
 using MediatR;
 using Remora.Commands.Attributes;
-using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups
+namespace Accord.Bot.CommandGroups;
+
+public class XpCommandGroup: AccordCommandGroup
 {
-    public class XpCommandGroup : CommandGroup
+    private readonly IMediator _mediator;
+    private readonly CommandResponder _commandResponder;
+
+    public XpCommandGroup(IMediator mediator, CommandResponder commandResponder)
     {
-        private readonly IMediator _mediator;
-        private readonly CommandResponder _commandResponder;
+        _mediator = mediator;
+        _commandResponder = commandResponder;
+    }
 
-        public XpCommandGroup(IMediator mediator, CommandResponder commandResponder)
-        {
-            _mediator = mediator;
-            _commandResponder = commandResponder;
-        }
+    [Command("leaderboard"), Description("Get a leaderboard of XP")]
+    public async Task<IResult> GetLeaderboard()
+    {
+        var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
 
-        [RequireContext(ChannelContext.Guild), Command("leaderboard"), Description("Get a leaderboard of XP")]
-        public async Task<IResult> GetLeaderboard()
-        {
-            var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
+        var stringBuilder = new StringBuilder();
 
-            var stringBuilder = new StringBuilder();
+        var leaderboardPayload = string.Join(Environment.NewLine, leaderboard.MessageUsers
+            .Select((user, position) => $"[{position + 1}] {DiscordFormatter.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
 
-            var leaderboardPayload = string.Join(Environment.NewLine, leaderboard.MessageUsers
-                .Select((user, position) => $"[{position + 1}] {DiscordFormatter.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
+        stringBuilder.Append(leaderboardPayload);
 
-            stringBuilder.Append(leaderboardPayload);
+        var embed = new Embed(Title: "Leaderboard", Description: leaderboardPayload, Footer: new EmbedFooter("See individual statistics via the /profile command"));
 
-            var embed = new Embed(Title: "Leaderboard", Description: leaderboardPayload, Footer: new EmbedFooter("See individual statistics via the /profile command"));
+        await _commandResponder.Respond(embed);
 
-            await _commandResponder.Respond(embed);
+        return Result.FromSuccess();
+    }
 
-            return Result.FromSuccess();
-        }
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
+    public async Task<IResult> CalculateXp()
+    {
+        await _mediator.Send(new CalculateParticipationRequest());
 
-        [RequireContext(ChannelContext.Guild), RequireUserGuildPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
-        public async Task<IResult> CalculateXp()
-        {
-            await _mediator.Send(new CalculateParticipationRequest());
+        await _commandResponder.Respond("Calculated!");
 
-            await _commandResponder.Respond("Calculated!");
-
-            return Result.FromSuccess();
-        }
+        return Result.FromSuccess();
     }
 }

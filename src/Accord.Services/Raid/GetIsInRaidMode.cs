@@ -8,47 +8,46 @@ using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Raid
+namespace Accord.Services.Raid;
+
+public sealed record GetIsInRaidModeRequest : IRequest<bool>;
+public sealed record InvalidateGetIsInRaidModeRequest : IRequest;
+
+public class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
 {
-    public sealed record GetIsInRaidModeRequest : IRequest<bool>;
-    public sealed record InvalidateGetIsInRaidModeRequest : IRequest;
+    private readonly AccordContext _db;
+    private readonly IAppCache _appCache;
 
-    public class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
+    public GetIsInRaidModeHandler(AccordContext db, IAppCache appCache)
     {
-        private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+        _db = db;
+        _appCache = appCache;
+    }
 
-        public GetIsInRaidModeHandler(AccordContext db, IAppCache appCache)
-        {
-            _db = db;
-            _appCache = appCache;
-        }
+    public async Task<bool> Handle(GetIsInRaidModeRequest request, CancellationToken cancellationToken)
+    {
+        return await _appCache.GetOrAddAsync(BuildGetIsInRaidModeCacheKey(),
+            GetIsInRaidMode,
+            DateTimeOffset.Now.AddDays(30));
+    }
 
-        public async Task<bool> Handle(GetIsInRaidModeRequest request, CancellationToken cancellationToken)
-        {
-            return await _appCache.GetOrAddAsync(BuildGetIsInRaidModeCacheKey(),
-                GetIsInRaidMode,
-                DateTimeOffset.Now.AddDays(30));
-        }
+    private static string BuildGetIsInRaidModeCacheKey()
+    {
+        return $"{nameof(GetIsInRaidModeHandler)}/{nameof(GetIsInRaidMode)}";
+    }
 
-        private static string BuildGetIsInRaidModeCacheKey()
-        {
-            return $"{nameof(GetIsInRaidModeHandler)}/{nameof(GetIsInRaidMode)}";
-        }
+    private async Task<bool> GetIsInRaidMode()
+    {
+        var value = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.RaidModeEnabled)
+            .Select(x => x.Value)
+            .SingleAsync();
 
-        private async Task<bool> GetIsInRaidMode()
-        {
-            var value = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.RaidModeEnabled)
-                .Select(x => x.Value)
-                .SingleAsync();
+        return bool.Parse(value);
+    }
 
-            return bool.Parse(value);
-        }
-
-        protected override void Handle(InvalidateGetIsInRaidModeRequest request)
-        {
-            _appCache.Remove(BuildGetIsInRaidModeCacheKey());
-        }
+    protected override void Handle(InvalidateGetIsInRaidModeRequest request)
+    {
+        _appCache.Remove(BuildGetIsInRaidModeCacheKey());
     }
 }

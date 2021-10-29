@@ -1,22 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Accord.Domain.Model
+namespace Accord.Domain.Model;
+
+public class RunOption
 {
-    public class RunOption
-    {
-        public RunOptionType Type { get; set; }
-        public string Value { get; set; } = null!;
-    }
+    public RunOptionType Type { get; set; }
+    public string Value { get; set; } = null!;
+}
 
-    public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOption>
+public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOption>
+{
+    public void Configure(EntityTypeBuilder<RunOption> builder)
     {
-        public void Configure(EntityTypeBuilder<RunOption> builder)
-        {
-            builder
-                .HasKey(x => x.Type);
+        builder
+            .HasKey(x => x.Type);
 
-            builder.HasData(new RunOption()
+        builder.HasData(new RunOption()
             {
                 Type = RunOptionType.RaidModeEnabled,
                 Value = "False"
@@ -53,23 +53,22 @@ namespace Accord.Domain.Model
                 Type = RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode,
                 Value = "3"
             }
-            );
-        }
+        );
     }
+}
 
-    public enum RunOptionType
-    {
-        RaidModeEnabled = 0,
-        AutoRaidModeEnabled = 1,
-        SequentialJoinsToTriggerRaidMode = 2,
+public enum RunOptionType
+{
+    RaidModeEnabled = 0,
+    AutoRaidModeEnabled = 1,
+    SequentialJoinsToTriggerRaidMode = 2,
 
-        UserReportsEnabled = 3,
-        UserReportsOutboxCategoryId = 4,
-        UserReportsInboxCategoryId = 5,
-        UserReportsAgentRoleId = 6,
+    UserReportsEnabled = 3,
+    UserReportsOutboxCategoryId = 4,
+    UserReportsInboxCategoryId = 5,
+    UserReportsAgentRoleId = 6,
 
-        UserHiddenChannelsCascadeHideEnabled = 8,
+    UserHiddenChannelsCascadeHideEnabled = 8,
         
-        AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
-    }
+    AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
 }

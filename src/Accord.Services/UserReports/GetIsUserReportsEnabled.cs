@@ -6,27 +6,26 @@ using Accord.Domain.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserReports
+namespace Accord.Services.UserReports;
+
+public sealed record GetIsUserReportsEnabledRequest : IRequest<bool>;
+
+public class GetIsUserReportsEnabled : IRequestHandler<GetIsUserReportsEnabledRequest, bool>
 {
-    public sealed record GetIsUserReportsEnabledRequest : IRequest<bool>;
+    private readonly AccordContext _db;
 
-    public class GetIsUserReportsEnabled : IRequestHandler<GetIsUserReportsEnabledRequest, bool>
+    public GetIsUserReportsEnabled(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetIsUserReportsEnabled(AccordContext db)
-        {
-            _db = db;
-        }
+    public async Task<bool> Handle(GetIsUserReportsEnabledRequest request, CancellationToken cancellationToken)
+    {
+        var runOption = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.UserReportsEnabled)
+            .Select(x => x.Value)
+            .SingleAsync(cancellationToken: cancellationToken);
 
-        public async Task<bool> Handle(GetIsUserReportsEnabledRequest request, CancellationToken cancellationToken)
-        {
-            var runOption = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.UserReportsEnabled)
-                .Select(x => x.Value)
-                .SingleAsync(cancellationToken: cancellationToken);
-
-            return bool.Parse(runOption);
-        }
+        return bool.Parse(runOption);
     }
 }

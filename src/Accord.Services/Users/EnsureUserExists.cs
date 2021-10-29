@@ -4,41 +4,39 @@ using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Users
+namespace Accord.Services.Users;
+
+public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest;
+
+public class EnsureUserExistsHandler : AsyncRequestHandler<EnsureUserExistsRequest>
 {
-    public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest { }
+    private readonly AccordContext _db;
+    private readonly IMediator _mediator;
 
-    public class EnsureUserExistsHandler : AsyncRequestHandler<EnsureUserExistsRequest>
+    public EnsureUserExistsHandler(AccordContext db, IMediator mediator)
     {
-        private readonly AccordContext _db;
-        private readonly IMediator _mediator;
+        _db = db;
+        _mediator = mediator;
+    }
 
-        public EnsureUserExistsHandler(AccordContext db, IMediator mediator)
+    protected override async Task Handle(EnsureUserExistsRequest request, CancellationToken cancellationToken)
+    {
+        var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+
+        if (userExists)
+            return;
+
+        var user = new User
         {
-            _db = db;
-            _mediator = mediator;
-        }
+            Id = request.DiscordUserId,
+            FirstSeenDateTime = DateTimeOffset.Now,
+        };
 
-        protected override async Task Handle(EnsureUserExistsRequest request, CancellationToken cancellationToken)
-        {
-            var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+        _db.Add(user);
 
-            if (userExists)
-                return;
+        await _db.SaveChangesAsync(cancellationToken);
 
-            var user = new User
-            {
-                Id = request.DiscordUserId,
-                FirstSeenDateTime = DateTimeOffset.Now,
-            };
-
-            _db.Add(user);
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
-        }
+        await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
     }
 }

@@ -2,17 +2,16 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Accord.Domain.Model
+namespace Accord.Domain.Model;
+
+public class UserMessage
 {
-    public class UserMessage
-    {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public ulong Id { get; set; }
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public ulong Id { get; set; }
 
-        public ulong UserId { get; set; }
-        public virtual User User { get; set; } = null!;
+    public ulong UserId { get; set; }
+    public virtual User User { get; set; } = null!;
 
-        public ulong DiscordChannelId { get; set; }
-        public DateTimeOffset SentDateTime { get; set; }
-    }
+    public ulong DiscordChannelId { get; set; }
+    public DateTimeOffset SentDateTime { get; set; }
 }

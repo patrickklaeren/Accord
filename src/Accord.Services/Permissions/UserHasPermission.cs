@@ -9,48 +9,47 @@ using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Permissions
+namespace Accord.Services.Permissions;
+
+public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
+public sealed record PermissionsUpdateNotification(ulong UserId) : INotification;
+
+public class UserHasPermission : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
 {
-    public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
-    public sealed record InvalidateUserHasPermissionRequest(ulong UserId) : IRequest;
+    private readonly AccordContext _db;
+    private readonly IAppCache _appCache;
 
-    public class UserHasPermission : RequestHandler<InvalidateUserHasPermissionRequest>, IRequestHandler<UserHasPermissionRequest, bool>
+    public UserHasPermission(AccordContext db, IAppCache appCache)
     {
-        private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+        _db = db;
+        _appCache = appCache;
+    }
 
-        public UserHasPermission(AccordContext db, IAppCache appCache)
-        {
-            _db = db;
-            _appCache = appCache;
-        }
+    public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)
+    {
+        var permissions = await _appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
+            () => GetPermissionsForUser(request.User),
+            DateTimeOffset.Now.AddMinutes(5));
 
-        public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)
-        {
-            var permissions = await _appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
-                () => GetPermissionsForUser(request.User),
-                DateTimeOffset.Now.AddMinutes(5));
+        return permissions.Any(ownedPermission => ownedPermission == request.Permission);
+    }
 
-            return permissions.Any(ownedPermission => ownedPermission == request.Permission);
-        }
+    protected override void Handle(PermissionsUpdateNotification request)
+    {
+        _appCache.Remove(BuildGetPermissionsForUserCacheKey(request.UserId));
+    }
 
-        protected override void Handle(InvalidateUserHasPermissionRequest request)
-        {
-            _appCache.Remove(BuildGetPermissionsForUserCacheKey(request.UserId));
-        }
+    private static string BuildGetPermissionsForUserCacheKey(ulong discordUserId)
+    {
+        return $"{nameof(UserHasPermission)}/{nameof(GetPermissionsForUser)}/{discordUserId}";
+    }
 
-        private static string BuildGetPermissionsForUserCacheKey(ulong discordUserId)
-        {
-            return $"{nameof(UserHasPermission)}/{nameof(GetPermissionsForUser)}/{discordUserId}";
-        }
-
-        private async Task<List<PermissionType>> GetPermissionsForUser(PermissionUser user)
-        {
-            return await _db.Permissions
-                .Where(x => x is UserPermission && ((UserPermission)x).UserId == user.DiscordUserId
-                            || x is RolePermission && user.OwnedDiscordRoleIds.Contains(((RolePermission)x).RoleId))
-                .Select(x => x.Type)
-                .ToListAsync();
-        }
+    private async Task<List<PermissionType>> GetPermissionsForUser(PermissionUser user)
+    {
+        return await _db.Permissions
+            .Where(x => x is UserPermission && ((UserPermission)x).UserId == user.DiscordUserId
+                        || x is RolePermission && user.OwnedDiscordRoleIds.Contains(((RolePermission)x).RoleId))
+            .Select(x => x.Type)
+            .ToListAsync();
     }
 }

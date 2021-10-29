@@ -8,47 +8,46 @@ using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Raid
+namespace Accord.Services.Raid;
+
+public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>; 
+public sealed record InvalidateGetJoinLimitPerMinuteRequest : IRequest;
+
+public class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
 {
-    public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>; 
-    public sealed record InvalidateGetJoinLimitPerMinuteRequest : IRequest;
+    private readonly AccordContext _db;
+    private readonly IAppCache _appCache;
 
-    public class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
+    public GetJoinLimitPerMinuteHandler(AccordContext db, IAppCache appCache)
     {
-        private readonly AccordContext _db;
-        private readonly IAppCache _appCache;
+        _db = db;
+        _appCache = appCache;
+    }
 
-        public GetJoinLimitPerMinuteHandler(AccordContext db, IAppCache appCache)
-        {
-            _db = db;
-            _appCache = appCache;
-        }
+    public async Task<int> Handle(GetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
+    {
+        return await _appCache.GetOrAddAsync(BuildGetLimitPerOneMinuteCacheKey(),
+            GetLimitPerOneMinute,
+            DateTimeOffset.Now.AddDays(30));
+    }
 
-        public async Task<int> Handle(GetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
-        {
-            return await _appCache.GetOrAddAsync(BuildGetLimitPerOneMinuteCacheKey(),
-                GetLimitPerOneMinute,
-                DateTimeOffset.Now.AddDays(30));
-        }
+    private static string BuildGetLimitPerOneMinuteCacheKey()
+    {
+        return $"{nameof(GetJoinLimitPerMinuteHandler)}/{nameof(GetLimitPerOneMinute)}";
+    }
 
-        private static string BuildGetLimitPerOneMinuteCacheKey()
-        {
-            return $"{nameof(GetJoinLimitPerMinuteHandler)}/{nameof(GetLimitPerOneMinute)}";
-        }
+    private async Task<int> GetLimitPerOneMinute()
+    {
+        var value = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.SequentialJoinsToTriggerRaidMode)
+            .Select(x => x.Value)
+            .SingleAsync();
 
-        private async Task<int> GetLimitPerOneMinute()
-        {
-            var value = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.SequentialJoinsToTriggerRaidMode)
-                .Select(x => x.Value)
-                .SingleAsync();
+        return int.Parse(value);
+    }
 
-            return int.Parse(value);
-        }
-
-        protected override void Handle(InvalidateGetJoinLimitPerMinuteRequest request)
-        {
-            _appCache.Remove(BuildGetLimitPerOneMinuteCacheKey());
-        }
+    protected override void Handle(InvalidateGetJoinLimitPerMinuteRequest request)
+    {
+        _appCache.Remove(BuildGetLimitPerOneMinuteCacheKey());
     }
 }

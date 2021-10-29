@@ -5,72 +5,70 @@ using System.Threading.Tasks;
 using Accord.Domain.Model;
 using Accord.Services.Helpers;
 using Accord.Services.Moderation;
-using Accord.Services.Raid;
 using MediatR;
 
-namespace Accord.Services.NamePatterns
+namespace Accord.Services.NamePatterns;
+
+public sealed record ScanNameForPatternsRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest;
+
+public sealed record NamePatternAlertRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
+public sealed record NamePatternKickRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
+public sealed record NamePatternBanRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
+
+public class ScanNameForPatternsHandler : AsyncRequestHandler<ScanNameForPatternsRequest>
 {
-    public sealed record ScanNameForPatternsRequest(ulong DiscordGuildId, GuildUserDto User) : IRequest;
+    private readonly IMediator _mediator;
 
-    public sealed record NamePatternAlertRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
-    public sealed record NamePatternKickRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
-    public sealed record NamePatternBanRequest(ulong DiscordGuildId, GuildUserDto User, string MatchedOnPattern) : IRequest;
-
-    public class ScanNameForPatternsHandler : AsyncRequestHandler<ScanNameForPatternsRequest>
+    public ScanNameForPatternsHandler(IMediator mediator)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+    }
 
-        public ScanNameForPatternsHandler(IMediator mediator)
+    protected override async Task Handle(ScanNameForPatternsRequest request, CancellationToken cancellationToken)
+    {
+        var patterns = await _mediator.Send(new GetNamePatternsRequest(), cancellationToken);
+
+        foreach (var (pattern, type, onDiscovery) in patterns.Where(x => x.Type == PatternType.Blocked))
         {
-            _mediator = mediator;
-        }
+            var isBlockedMatch = false;
+            string? matchedBlockedContent = default;
+            string? matchedOnPattern = default;
 
-        protected override async Task Handle(ScanNameForPatternsRequest request, CancellationToken cancellationToken)
-        {
-            var patterns = await _mediator.Send(new GetNamePatternsRequest(), cancellationToken);
+            var userHandle = DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator);
 
-            foreach (var (pattern, type, onDiscovery) in patterns.Where(x => x.Type == PatternType.Blocked))
+            if (pattern.IsMatch(userHandle))
             {
-                var isBlockedMatch = false;
-                string? matchedBlockedContent = default;
-                string? matchedOnPattern = default;
+                isBlockedMatch = true;
+                matchedBlockedContent = userHandle;
+                matchedOnPattern = pattern.ToString();
+            }
 
-                var userHandle = DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator);
+            if (!string.IsNullOrWhiteSpace(request.User.DiscordNickname) 
+                && pattern.IsMatch(request.User.DiscordNickname))
+            {
+                isBlockedMatch = true;
+                matchedBlockedContent = request.User.DiscordNickname;
+                matchedOnPattern = pattern.ToString();
+            }
 
-                if (pattern.IsMatch(userHandle))
+            if (isBlockedMatch 
+                && !string.IsNullOrWhiteSpace(matchedBlockedContent) 
+                && patterns.Any(x => x.Type == PatternType.Allowed && x.Pattern.IsMatch(matchedBlockedContent)))
+            {
+                continue;
+            }
+
+            if (isBlockedMatch && onDiscovery != OnNamePatternDiscovery.DoNothing)
+            {
+                IRequest message = onDiscovery switch
                 {
-                    isBlockedMatch = true;
-                    matchedBlockedContent = userHandle;
-                    matchedOnPattern = pattern.ToString();
-                }
+                    OnNamePatternDiscovery.Alert => new NamePatternAlertRequest(request.DiscordGuildId, request.User, matchedOnPattern!),
+                    OnNamePatternDiscovery.Kick => new KickRequest(request.DiscordGuildId, request.User, $"Name {matchedBlockedContent!} matches banned pattern {matchedOnPattern!}"),
+                    OnNamePatternDiscovery.Ban => new BanRequest(request.DiscordGuildId, request.User, $"Name {matchedBlockedContent!} matches banned pattern {matchedOnPattern!}"),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
 
-                if (!string.IsNullOrWhiteSpace(request.User.DiscordNickname) 
-                    && pattern.IsMatch(request.User.DiscordNickname))
-                {
-                    isBlockedMatch = true;
-                    matchedBlockedContent = request.User.DiscordNickname;
-                    matchedOnPattern = pattern.ToString();
-                }
-
-                if (isBlockedMatch 
-                    && !string.IsNullOrWhiteSpace(matchedBlockedContent) 
-                    && patterns.Any(x => x.Type == PatternType.Allowed && x.Pattern.IsMatch(matchedBlockedContent)))
-                {
-                    continue;
-                }
-
-                if (isBlockedMatch && onDiscovery != OnNamePatternDiscovery.DoNothing)
-                {
-                    IRequest message = onDiscovery switch
-                    {
-                        OnNamePatternDiscovery.Alert => new NamePatternAlertRequest(request.DiscordGuildId, request.User, matchedOnPattern!),
-                        OnNamePatternDiscovery.Kick => new KickRequest(request.DiscordGuildId, request.User, $"Name {matchedBlockedContent!} matches banned pattern {matchedOnPattern!}"),
-                        OnNamePatternDiscovery.Ban => new BanRequest(request.DiscordGuildId, request.User, $"Name {matchedBlockedContent!} matches banned pattern {matchedOnPattern!}"),
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
-                    await _mediator.Send(message, cancellationToken);
-                }
+                await _mediator.Send(message, cancellationToken);
             }
         }
     }

@@ -3,56 +3,54 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
-using Accord.Services.Helpers;
 using Accord.Services.Moderation;
 using Accord.Services.NamePatterns;
-using Accord.Services.Raid;
 using MediatR;
 
-namespace Accord.Services.Users
+namespace Accord.Services.Users;
+
+public sealed record AddUserRequest(ulong DiscordGuildId,
+    ulong DiscordUserId,
+    string DiscordUsername,
+    string DiscordDiscriminator,
+    string? DiscordAvatarUrl,
+    string? DiscordNickname,
+    DateTimeOffset JoinedDateTime) : IRequest;
+
+public class AddUserHandler : AsyncRequestHandler<AddUserRequest>
 {
-    public sealed record AddUserRequest(ulong DiscordGuildId,
-        ulong DiscordUserId,
-        string DiscordUsername,
-        string DiscordDiscriminator,
-        string? DiscordNickname,
-        DateTimeOffset JoinedDateTime) : IRequest;
+    private readonly AccordContext _db;
+    private readonly IMediator _mediator;
 
-    public class AddUserHandler : AsyncRequestHandler<AddUserRequest>
+    public AddUserHandler(AccordContext db, IMediator mediator)
     {
-        private readonly AccordContext _db;
-        private readonly IMediator _mediator;
+        _db = db;
+        _mediator = mediator;
+    }
 
-        public AddUserHandler(AccordContext db, IMediator mediator)
+    protected override async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
+    {
+        var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+
+        if (userExists)
+            return;
+
+        var user = new User
         {
-            _db = db;
-            _mediator = mediator;
-        }
+            Id = request.DiscordUserId,
+            FirstSeenDateTime = request.JoinedDateTime,
+            JoinedGuildDateTime = request.JoinedDateTime,
+            UsernameWithDiscriminator = $"{request.DiscordUsername}#{request.DiscordDiscriminator}",
+            Nickname = request.DiscordNickname,
+        };
 
-        protected override async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
-        {
-            var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+        _db.Add(user);
 
-            if (userExists)
-                return;
+        await _db.SaveChangesAsync(cancellationToken);
 
-            var user = new User
-            {
-                Id = request.DiscordUserId,
-                FirstSeenDateTime = request.JoinedDateTime,
-                JoinedGuildDateTime = request.JoinedDateTime,
-                UsernameWithDiscriminator = $"{request.DiscordUsername}#{request.DiscordDiscriminator}",
-                Nickname = request.DiscordNickname,
-            };
+        await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
 
-            _db.Add(user);
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
-
-            await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
-                new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, user.Nickname, user.JoinedGuildDateTime.Value)), cancellationToken);
-        }
+        await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
+            new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, user.Nickname, request.DiscordAvatarUrl, user.JoinedGuildDateTime.Value)), cancellationToken);
     }
 }

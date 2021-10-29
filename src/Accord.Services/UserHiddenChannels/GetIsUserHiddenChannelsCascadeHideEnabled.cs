@@ -6,27 +6,26 @@ using Accord.Domain.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.UserHiddenChannels
+namespace Accord.Services.UserHiddenChannels;
+
+public sealed record GetIsUserHiddenChannelsCascadeHideEnabledRequest : IRequest<bool>;
+
+public class GetIsUserHiddenChannelsCascadeHideEnabled : IRequestHandler<GetIsUserHiddenChannelsCascadeHideEnabledRequest, bool>
 {
-    public sealed record GetIsUserHiddenChannelsCascadeHideEnabledRequest : IRequest<bool>;
+    private readonly AccordContext _db;
 
-    public class GetIsUserHiddenChannelsCascadeHideEnabled : IRequestHandler<GetIsUserHiddenChannelsCascadeHideEnabledRequest, bool>
+    public GetIsUserHiddenChannelsCascadeHideEnabled(AccordContext db)
     {
-        private readonly AccordContext _db;
+        _db = db;
+    }
 
-        public GetIsUserHiddenChannelsCascadeHideEnabled(AccordContext db)
-        {
-            _db = db;
-        }
+    public async Task<bool> Handle(GetIsUserHiddenChannelsCascadeHideEnabledRequest request, CancellationToken cancellationToken)
+    {
+        var runOption = await _db.RunOptions
+            .Where(x => x.Type == RunOptionType.UserHiddenChannelsCascadeHideEnabled)
+            .Select(x => x.Value)
+            .SingleAsync(cancellationToken: cancellationToken);
 
-        public async Task<bool> Handle(GetIsUserHiddenChannelsCascadeHideEnabledRequest request, CancellationToken cancellationToken)
-        {
-            var runOption = await _db.RunOptions
-                .Where(x => x.Type == RunOptionType.UserHiddenChannelsCascadeHideEnabled)
-                .Select(x => x.Value)
-                .SingleAsync(cancellationToken: cancellationToken);
-
-            return bool.Parse(runOption);
-        }
+        return bool.Parse(runOption);
     }
 }

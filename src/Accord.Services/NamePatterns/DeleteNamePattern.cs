@@ -7,47 +7,46 @@ using Accord.Services.Permissions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.NamePatterns
+namespace Accord.Services.NamePatterns;
+
+public sealed record DeleteNamePatternRequest(PermissionUser User, string Pattern) : IRequest<ServiceResponse>;
+
+public class DeleteNamePatternHandler : IRequestHandler<DeleteNamePatternRequest, ServiceResponse>
 {
-    public sealed record DeleteNamePatternRequest(PermissionUser User, string Pattern) : IRequest<ServiceResponse>;
+    private readonly AccordContext _db;
+    private readonly IMediator _mediator;
 
-    public class DeleteNamePatternHandler : IRequestHandler<DeleteNamePatternRequest, ServiceResponse>
+    public DeleteNamePatternHandler(AccordContext db, IMediator mediator)
     {
-        private readonly AccordContext _db;
-        private readonly IMediator _mediator;
+        _db = db;
+        _mediator = mediator;
+    }
 
-        public DeleteNamePatternHandler(AccordContext db, IMediator mediator)
+    public async Task<ServiceResponse> Handle(DeleteNamePatternRequest request, 
+        CancellationToken cancellationToken)
+    {
+        var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManagePatterns), cancellationToken);
+
+        if (!hasPermission)
         {
-            _db = db;
-            _mediator = mediator;
+            return ServiceResponse.Fail("Missing permission");
         }
 
-        public async Task<ServiceResponse> Handle(DeleteNamePatternRequest request, 
-            CancellationToken cancellationToken)
+        var pattern = await _db.NamePatterns
+            .Where(x => x.Pattern == request.Pattern)
+            .SingleOrDefaultAsync(cancellationToken: cancellationToken);
+
+        if (pattern is null)
         {
-            var hasPermission = await _mediator.Send(new UserHasPermissionRequest(request.User, PermissionType.ManagePatterns), cancellationToken);
-
-            if (!hasPermission)
-            {
-                return ServiceResponse.Fail("Missing permission");
-            }
-
-            var pattern = await _db.NamePatterns
-                .Where(x => x.Pattern == request.Pattern)
-                .SingleOrDefaultAsync(cancellationToken: cancellationToken);
-
-            if (pattern is null)
-            {
-                return ServiceResponse.Fail("Pattern not found");
-            }
-
-            _db.Remove(pattern);
-
-            await _db.SaveChangesAsync(cancellationToken);
-
-            await _mediator.Send(new InvalidateGetNamePatternsRequest(), cancellationToken);
-
-            return ServiceResponse.Ok();
+            return ServiceResponse.Fail("Pattern not found");
         }
+
+        _db.Remove(pattern);
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        await _mediator.Send(new InvalidateGetNamePatternsRequest(), cancellationToken);
+
+        return ServiceResponse.Ok();
     }
 }

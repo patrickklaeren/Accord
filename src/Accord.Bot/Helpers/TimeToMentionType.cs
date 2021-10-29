@@ -1,13 +1,12 @@
-namespace Accord.Bot.Helpers
+namespace Accord.Bot.Helpers;
+
+public enum TimeToMentionType
 {
-    public enum TimeToMentionType
-    {
-        ShortTime = 't',
-        LongTime = 'T',
-        ShortDate = 'd',
-        LongDate = 'D',
-        ShortDateTime = 'f',
-        LongDateTime = 'F',
-        RelativeTime = 'R'
-    }
+    ShortTime = 't',
+    LongTime = 'T',
+    ShortDate = 'd',
+    LongDate = 'D',
+    ShortDateTime = 'f',
+    LongDateTime = 'F',
+    RelativeTime = 'R'
 }

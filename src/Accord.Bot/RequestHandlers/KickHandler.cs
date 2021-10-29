@@ -13,41 +13,40 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 using Remora.Discord.Rest.API;
 
-namespace Accord.Bot.RequestHandlers
-{
-    public class KickHandler : AsyncRequestHandler<KickRequest>
-    {
-        private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IDiscordRestGuildAPI _guildApi;
-        private readonly IMediator _mediator;
+namespace Accord.Bot.RequestHandlers;
 
-        public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
-            IDiscordRestGuildAPI guildApi)
+public class KickHandler : AsyncRequestHandler<KickRequest>
+{
+    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IDiscordRestGuildAPI _guildApi;
+    private readonly IMediator _mediator;
+
+    public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
+        IDiscordRestGuildAPI guildApi)
+    {
+        _channelApi = channelApi;
+        _mediator = mediator;
+        _guildApi = guildApi;
+    }
+
+    protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
+    {
+        using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
         {
-            _channelApi = channelApi;
-            _mediator = mediator;
-            _guildApi = guildApi;
+            await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), ct: cancellationToken);
         }
 
-        protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
+        var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+
+        if (channelsToPostTo.Any())
         {
-            using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
+            var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
+                Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
+                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+
+            foreach (var channel in channelsToPostTo)
             {
-                await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), cancellationToken);
-            }
-
-            var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
-
-            if (channelsToPostTo.Any())
-            {
-                var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
-                    Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
-                    Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
-
-                foreach (var channel in channelsToPostTo)
-                {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
-                }
+                await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
             }
         }
     }

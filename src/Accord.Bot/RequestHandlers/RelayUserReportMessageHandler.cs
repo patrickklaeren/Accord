@@ -16,131 +16,132 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 using Remora.Results;
 
-namespace Accord.Bot.RequestHandlers
-{
-    public class RelayUserReportMessageHandler : IRequestHandler<RelayUserReportMessageRequest, ServiceResponse>
-    {
-        private readonly IDiscordRestWebhookAPI _webhookApi;
-        private readonly DiscordAvatarHelper _discordAvatarHelper;
-        private readonly DiscordCache _discordCache;
-        private readonly IMediator _mediator;
+namespace Accord.Bot.RequestHandlers;
 
-        public RelayUserReportMessageHandler(
-            DiscordCache discordCache,
-            IDiscordRestWebhookAPI webhookApi,
-            DiscordAvatarHelper discordAvatarHelper,
-            IMediator mediator)
+public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
+{
+    private readonly IDiscordRestWebhookAPI _webhookApi;
+    private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly DiscordCache _discordCache;
+    private readonly IMediator _mediator;
+
+    public RelayUserReportMessageHandler(
+        DiscordCache discordCache,
+        IDiscordRestWebhookAPI webhookApi,
+        DiscordAvatarHelper discordAvatarHelper,
+        IMediator mediator)
+    {
+        _discordCache = discordCache;
+        _webhookApi = webhookApi;
+        _discordAvatarHelper = discordAvatarHelper;
+        _mediator = mediator;
+    }
+
+    protected override async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
+    {
+        var member = await _discordCache.GetGuildMember(request.DiscordGuildId, request.AuthorDiscordUserId);
+
+        if (!member.IsSuccess || member.Entity is null || !member.Entity.User.HasValue)
+            return;
+
+        var user = member.Entity.User.Value;
+
+        EmbedImage? image = null;
+
+        var topImage = request.DiscordAttachments.FirstOrDefault(x => x.ContentType?.StartsWith("image") == true);
+
+        if (topImage is not null)
         {
-            _discordCache = discordCache;
-            _webhookApi = webhookApi;
-            _discordAvatarHelper = discordAvatarHelper;
-            _mediator = mediator;
+            image = new EmbedImage(topImage.Url);
         }
 
-        public async Task<ServiceResponse> Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
+        var textSnippet = request.DiscordAttachments.FirstOrDefault(x => x.ContentType?.StartsWith("text") == true);
+
+        Optional<FileData> fileData = default(Optional<FileData>);
+        if (textSnippet is not null)
         {
-            var member = await _discordCache.GetGuildMember(request.DiscordGuildId, request.AuthorDiscordUserId);
+            var stream = await new HttpClient().GetStreamAsync(textSnippet.Url, cancellationToken);
+            var fileNameExtension = Path.GetExtension(textSnippet.Url);
+            fileData = new FileData($"{Guid.NewGuid()}{(String.IsNullOrEmpty(fileNameExtension) ? "" : $".{fileNameExtension}")}", stream);
+        }
 
-            if (!member.IsSuccess || member.Entity is null || !member.Entity.User.HasValue)
-                return ServiceResponse.Fail("Member is invalid");
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value);
+        var username = member.Entity.Nickname.Value ?? user.Username;
 
-            var user = member.Entity.User.Value;
+        var otherAttachments = request.DiscordAttachments
+            .Where(x => x.ContentType != null && !x.ContentType.StartsWith("image") && !x.ContentType.StartsWith("text") || x.ContentType == null)
+            .Select((file, index) => new EmbedField(
+                $"{Path.GetFileName(file.Url)}",
+                DiscordFormatter.ToFormattedUrl("Download", file.Url)))
+            .ToList();
 
-            EmbedImage? image = null;
-
-            var topImage = request.DiscordAttachments.FirstOrDefault(x => x.ContentType?.StartsWith("image") == true);
-
-            if (topImage is not null)
+        List<Embed> embeds = new();
+        if (image != null || otherAttachments is {Count: > 0})
+        {
+            embeds.Add(new Embed
             {
-                image = new EmbedImage(topImage.Url);
-            }
+                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
+                Image = image!,
+                Fields = otherAttachments,
+                Footer = new EmbedFooter(request.SentDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
+            });
+        }
 
-            var textSnippet = request.DiscordAttachments.FirstOrDefault(x => x.ContentType?.StartsWith("text") == true);
+        List<ServiceResponse> serviceResponses = new();
+        int messageCount = (int)Math.Max(1, Math.Ceiling(request.Content.Length / 2000f));
 
-            Optional<FileData> fileData = default(Optional<FileData>);
-            if (textSnippet is not null)
+        if (messageCount == 1 && !embeds.Any() && fileData == default && String.IsNullOrEmpty(request.Content?.Trim()))
+        {
+            embeds.Add(new Embed
             {
-                var stream = await new HttpClient().GetStreamAsync(textSnippet.Url, cancellationToken);
-                var fileNameExtension = Path.GetExtension(textSnippet.Url);
-                fileData = new FileData($"{Guid.NewGuid()}{(String.IsNullOrEmpty(fileNameExtension) ? "" : $".{fileNameExtension}")}", stream);
-            }
+                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
+                Description = "User sent a message that couldn't be relayed. Probably a sticker"
+            });
+        }
 
-            var avatarUrl = _discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value);
-            var username = member.Entity.Nickname.Value ?? user.Username;
+        if (request.DiscordMessageReferenceId != null)
+        {
+            var originalMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageReferenceId.Value), cancellationToken);
 
-            var otherAttachments = request.DiscordAttachments
-                .Where(x => x.ContentType != null && !x.ContentType.StartsWith("image") && !x.ContentType.StartsWith("text") || x.ContentType == null)
-                .Select((file, index) => new EmbedField(
-                    $"{Path.GetFileName(file.Url)}",
-                    DiscordFormatter.ToFormattedUrl("Download", file.Url)))
-                .ToList();
-
-            List<Embed> embeds = new();
-            if (image != null || otherAttachments is {Count: > 0})
+            if (originalMessage is null)
+                throw new InvalidOperationException("Cannot process without original message");
+                
+            var originalAuthor = await _discordCache.GetGuildMember(request.DiscordGuildId, originalMessage.AuthorUserId);
+            var originalAuthorUser = originalAuthor.Entity!.User.Value;
+            var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser);
+            embeds.Add(new Embed
             {
-                embeds.Add(new Embed
-                {
-                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
-                    Image = image!,
-                    Fields = otherAttachments,
-                    Footer = new EmbedFooter(request.SentDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
-                });
-            }
+                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(originalAuthor.Entity.User.Value.Username, originalAuthor.Entity.User.Value.Discriminator),
+                    IconUrl: originalAuthorAvatarUrl!),
+                Title = !string.IsNullOrEmpty(originalMessage.Content) ? "Replying to the following message" : "Replied to a sticker which cannot be relayed",
+                Description = originalMessage.Content
+            });
+        }
 
-            List<ServiceResponse> serviceResponses = new();
-            int messageCount = (int)Math.Max(1, Math.Ceiling(request.Content.Length / 2000f));
+        var allowedMentions = new AllowedMentions(Users: new List<Snowflake>(), Roles: new List<Snowflake>());
 
-            if (messageCount == 1 && !embeds.Any() && fileData == default && String.IsNullOrEmpty(request.Content?.Trim()))
-            {
-                embeds.Add(new Embed
-                {
-                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
-                    Description = "User sent a message that couldn't be relayed. Probably a sticker"
-                });
-            }
+        for (int i = 0; i < messageCount; i++)
+        {
+            Result<IMessage?> proxiedMessage;
 
-            if (request.DiscordMessageReferenceId != null)
-            {
-                var originalMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageReferenceId.Value), cancellationToken);
-                var originalAuthor = await _discordCache.GetGuildMember(request.DiscordGuildId, originalMessage.AuthorUserId);
-                var originalAuthorUser = originalAuthor.Entity!.User.Value;
-                var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser);
-                embeds.Add(new Embed
-                {
-                    Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(originalAuthor.Entity.User.Value.Username, originalAuthor.Entity.User.Value.Discriminator),
-                        IconUrl: originalAuthorAvatarUrl!),
-                    Title = !string.IsNullOrEmpty(originalMessage.Content) ? "Replying to the following message" : "Replied to a sticker which cannot be relayed",
-                    Description = originalMessage.Content
-                });
-            }
+            var contentPart = request.Content?.Substring(i * 2000, Math.Min(2000, request.Content.Length - i * 2000));
 
-            var allowedMentions = new AllowedMentions(Users: new List<Snowflake>(), Roles: new List<Snowflake>());
+            proxiedMessage = await _webhookApi.ExecuteWebhookAsync(
+                new Snowflake(request.DiscordProxyWebhookId),
+                request.DiscordProxyWebhookToken,
+                shouldWait: true,
+                content: contentPart ?? string.Empty,
+                file: i == messageCount - 1 ? fileData : default(Optional<FileData>),
+                embeds: i == messageCount - 1 ? embeds : default(Optional<IReadOnlyList<IEmbed>>),
+                avatarUrl: avatarUrl!,
+                allowedMentions: allowedMentions,
+                username: username,
+                ct: cancellationToken);
 
-            for (int i = 0; i < messageCount; i++)
-            {
-                Result<IMessage?> proxiedMessage;
+            var response = await _mediator.Send(new AttachProxiedMessageIdToMessageRequest(request.OriginalDiscordMessageId, proxiedMessage.Entity!.ID.Value),
+                cancellationToken);
 
-                var contentPart = request.Content?.Substring(i * 2000, Math.Min(2000, request.Content.Length - i * 2000));
-
-                proxiedMessage = await _webhookApi.ExecuteWebhookAsync(
-                    new Snowflake(request.DiscordProxyWebhookId),
-                    request.DiscordProxyWebhookToken,
-                    shouldWait: true,
-                    content: contentPart ?? string.Empty,
-                    file: i == messageCount - 1 ? fileData : default(Optional<FileData>),
-                    embeds: i == messageCount - 1 ? embeds : default(Optional<IReadOnlyList<IEmbed>>),
-                    avatarUrl: avatarUrl!,
-                    allowedMentions: allowedMentions,
-                    username: username,
-                    ct: cancellationToken);
-
-                var response = await _mediator.Send(new AttachProxiedMessageIdToMessageRequest(request.OriginalDiscordMessageId, proxiedMessage.Entity!.ID.Value),
-                    cancellationToken);
-
-                serviceResponses.Add(response);
-            }
-
-            return serviceResponses.All(x => x.Success) ? ServiceResponse.Ok() : serviceResponses.First(x => x.Failure);
+            serviceResponses.Add(response);
         }
     }
 }
