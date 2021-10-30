@@ -4,7 +4,11 @@ using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.Raid;
+using Accord.Web.Infrastructure.DiscordOAuth;
+using Accord.Web.Services;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,27 +18,59 @@ using Sentry;
 using Serilog;
 using Serilog.Events;
 
-Log.Information("Starting up...");
-
 var builder = WebApplication
     .CreateBuilder(args);
 
 builder.Logging.AddSerilog(CreateLogger());
 
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddAuthentication(opt =>
+    {
+        opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        opt.DefaultChallengeScheme = DiscordOAuthConstants.AUTHENTICATION_SCHEME;
+    })
+    .AddCookie()
+    .AddDiscord(x =>
+    {
+        x.ClientId = builder.Configuration["DiscordConfiguration:ClientId"];
+        x.ClientSecret = builder.Configuration["DiscordConfiguration:ClientSecret"];
+        x.SaveTokens = true;
+    });
 builder.Services
     .AddDbContext<AccordContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("Database")))
     .AddLazyCache()
     .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
     .AddDiscordBot(builder.Configuration)
     .AddSingleton<RaidCalculator>()
-    .AddSingleton<IEventQueue, EventQueue>();
+    .AddSingleton<IEventQueue, EventQueue>()
+    .AddScoped<UserIdentityService>();
+
+if (!bool.TryParse(builder.Configuration["DevSwitches:DisableDiscordBot"], out var disableDiscordBot) || !disableDiscordBot)
+{
+    builder
+        .Services
+        .AddHostedService<BotHostedService>();
+}
 
 // Configure hosted services
 builder.Services
-    .AddHostedService<BotHostedService>()
     .AddHostedService<EventQueueProcessor>();
 
 var app = builder.Build();
+
+app.UseHttpsRedirection()
+    .UseStaticFiles()
+    .UseRouting()
+    .UseAuthentication();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapBlazorHub();
+    endpoints.MapFallbackToPage("/_Host");
+});
 
 Log.Information("Host built...");
 
@@ -54,8 +90,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 Log.Information("Ready to run");
-
-app.MapGet("/", () => "Hello world!");
 
 await app.RunAsync();
 
@@ -112,3 +146,8 @@ SentryEvent? BeforeSend(SentryEvent arg)
 
     return arg;
 }
+
+/// <summary>
+/// Used for reflection purposes
+/// </summary>
+internal record AssemblyMarker;

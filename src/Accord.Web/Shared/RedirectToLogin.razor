@@ -1,11 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Components
-@inject NavigationManager Navigation
+@inject NavigationManager _navigation
 
 @code
 {
     protected override void OnInitialized()
     {
-    //This auto redirects a user to the login page
-        Navigation.NavigateTo("Account/Login", true);
+        _navigation.NavigateTo("/", true);
     }
 }

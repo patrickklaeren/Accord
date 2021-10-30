@@ -1,26 +1,26 @@
-﻿@inherits LayoutComponentBase
+﻿@using Accord.Web.Services
+@inherits LayoutComponentBase
+@inject NavigationManager _navigationManager
+@inject UserIdentityService _userIdentityService 
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
     <div class="main">
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-            <AuthorizeView>
-                <Authorized>
-                    <a href="#">Hello, @context.User.Identity.Name!</a>
-                    <a href="Account/Logout">Log out</a>
-                </Authorized>
-                <NotAuthorized>
-                    <a href="Account/Login">Log in</a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-
+    <NavMenu />
         <div class="content px-4">
             @Body
         </div>
     </div>
 </div>
+
+@code
+{
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !await _userIdentityService.IsPartOfGuild())
+        {
+            _navigationManager.NavigateTo("not-enrolled");
+        }
+        
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
