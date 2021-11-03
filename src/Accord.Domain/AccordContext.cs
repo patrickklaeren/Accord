@@ -27,8 +27,8 @@ public class AccordContext : DbContext
     public virtual DbSet<NamePattern> NamePatterns { get; set; } = null!;
     public virtual DbSet<UserReminder> UserReminders { get; set; } = null!;
     public virtual DbSet<UserHiddenChannel> UserHiddenChannels { get; set; } = null!;
-
     public virtual DbSet<UserReport> UserReports { get; set; } = null!;
     public virtual DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
     public virtual DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
+    public virtual DbSet<UserRole> UserRoles { get; set; } = null!;
 }

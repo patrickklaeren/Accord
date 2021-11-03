@@ -12,7 +12,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Accord.Services.Xp;
+namespace Accord.Services.Participation;
 
 public sealed record CalculateParticipationRequest : IRequest;
 
@@ -36,25 +36,9 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
     {
         const double MINIMUM_MINUTES_IN_VOICE = 5;
 
+        await ResetUsers();
+
         var calculateFromDate = DateTime.Today.AddDays(-30);
-
-        using (var userResetScope = _serviceScopeFactory.CreateScope())
-        await using (var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>())
-        {
-            var usersToReset = await userResetContext
-                .Users
-                .Where(x => x.ParticipationPoints != 0 || x.ParticipationPercentile != 0 || x.ParticipationRank != 0)
-                .ToListAsync();
-
-            foreach (var userToReset in usersToReset)
-            {
-                userToReset.ParticipationPoints = 0;
-                userToReset.ParticipationPercentile = 0;
-                userToReset.ParticipationRank = 0;
-            }
-
-            await userResetContext.SaveChangesAsync();
-        }
 
         var channelsExcludedFromXp = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
 
@@ -152,7 +136,38 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
             user.Points = pointsForUser;
         }
 
-        var orderedParticipation = userParticipation.OrderByDescending(x => x.Points).ToList();
+        await PersistParticipation(userParticipation);
+
+        static IEnumerable<DateTime> EachDay(DateTime from, DateTime until)
+        {
+            for (var day = from.Date; day.Date <= until.Date; day = day.AddDays(1))
+                yield return day;
+        }
+    }
+
+    private async Task ResetUsers()
+    {
+        using var userResetScope = _serviceScopeFactory.CreateScope();
+        await using var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>();
+
+        var usersToReset = await userResetContext
+            .Users
+            .Where(x => x.ParticipationPoints != 0 || x.ParticipationPercentile != 0 || x.ParticipationRank != 0)
+            .ToListAsync();
+
+        foreach (var userToReset in usersToReset)
+        {
+            userToReset.ParticipationPoints = 0;
+            userToReset.ParticipationPercentile = 0;
+            userToReset.ParticipationRank = 0;
+        }
+
+        await userResetContext.SaveChangesAsync();
+    }
+
+    private async Task PersistParticipation(List<UserParticipation> userParticipations)
+    {
+        var orderedParticipation = userParticipations.OrderByDescending(x => x.Points).ToList();
 
         foreach (var user in orderedParticipation)
         {
@@ -183,14 +198,10 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
 
             await userUpdateContext.SaveChangesAsync();
         }
-
-        static IEnumerable<DateTime> EachDay(DateTime from, DateTime until)
-        {
-            for (var day = from.Date; day.Date <= until.Date; day = day.AddDays(1))
-                yield return day;
-        }
     }
 }
+
+public sealed record UpdateDiscordParticipationRoleRequest(ulong DiscordRoleId, List<ulong> DiscordUserIds) : IRequest;
 
 internal class UserParticipation
 {

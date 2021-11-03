@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
-using Accord.Services.Xp;
+using Accord.Services.Participation;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
@@ -14,18 +14,18 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-public class XpCommandGroup: AccordCommandGroup
+public class ParticipationCommandGroup : AccordCommandGroup
 {
     private readonly IMediator _mediator;
     private readonly CommandResponder _commandResponder;
 
-    public XpCommandGroup(IMediator mediator, CommandResponder commandResponder)
+    public ParticipationCommandGroup(IMediator mediator, CommandResponder commandResponder)
     {
         _mediator = mediator;
         _commandResponder = commandResponder;
     }
 
-    [Command("leaderboard"), Description("Get a leaderboard of XP")]
+    [Command("leaderboard"), Description("Get a leaderboard of participation")]
     public async Task<IResult> GetLeaderboard()
     {
         var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
@@ -44,8 +44,8 @@ public class XpCommandGroup: AccordCommandGroup
         return Result.FromSuccess();
     }
 
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running")]
-    public async Task<IResult> CalculateXp()
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("calculate-participation"), Description("Calculate participation, long running")]
+    public async Task<IResult> CalculateParticipation()
     {
         await _mediator.Send(new CalculateParticipationRequest());
 

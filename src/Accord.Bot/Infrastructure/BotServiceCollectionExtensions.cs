@@ -50,7 +50,7 @@ public static class BotServiceCollectionExtensions
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>()
-            .AddCommandGroup<XpCommandGroup>()
+            .AddCommandGroup<ParticipationCommandGroup>()
             .AddCommandGroup<ChannelFlagCommandGroup>()
             .AddCommandGroup<UserChannelHidingCommandGroup>()
             .AddCommandGroup<PermissionCommandGroup>()
@@ -60,7 +60,8 @@ public static class BotServiceCollectionExtensions
             .AddCommandGroup<ProfileCommandGroup>()
             .AddCommandGroup<UserReportCommandGroup>()
             .AddCommandGroup<ReportCommandGroup>()
-            .AddCommandGroup<LgtmCommandGroup>();
+            .AddCommandGroup<LgtmCommandGroup>()
+            .AddCommandGroup<DebugCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()
