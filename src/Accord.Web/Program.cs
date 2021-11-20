@@ -24,6 +24,7 @@ builder.Logging.AddSerilog(CreateLogger());
 builder.Services
     .AddDbContext<AccordContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("Database")))
     .AddLazyCache()
+    .AddHttpClient()
     .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
     .AddDiscordBot(builder.Configuration)
     .AddSingleton<RaidCalculator>()

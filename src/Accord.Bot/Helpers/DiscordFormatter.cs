@@ -8,6 +8,7 @@ public static class DiscordFormatter
     // https://discord.com/developers/docs/reference#message-formatting
 
     public static string UserIdToMention(ulong discordUserId) => $"<@{discordUserId}>";
+    public static string UserIdToMention(string discordUserId) => $"<@{discordUserId}>";
     public static string ChannelIdToMention(ulong discordChannelId) => $"<#{discordChannelId}>";
     public static string RoleIdToMention(ulong discordRoleId) => $"<@&{discordRoleId}>";
     public static string TimeToMarkdown(DateTimeOffset dateTimeOffset, TimeToMentionType type = TimeToMentionType.ShortDateTime) =>
