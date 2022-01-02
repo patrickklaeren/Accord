@@ -16,7 +16,7 @@ using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 

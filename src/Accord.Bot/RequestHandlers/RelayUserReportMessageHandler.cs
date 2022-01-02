@@ -13,7 +13,7 @@ using MediatR;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Accord.Bot.RequestHandlers;
@@ -131,7 +131,6 @@ public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReport
                 request.DiscordProxyWebhookToken,
                 shouldWait: true,
                 content: contentPart ?? string.Empty,
-                file: i == messageCount - 1 ? fileData : default(Optional<FileData>),
                 embeds: i == messageCount - 1 ? embeds : default(Optional<IReadOnlyList<IEmbed>>),
                 avatarUrl: avatarUrl!,
                 allowedMentions: allowedMentions,

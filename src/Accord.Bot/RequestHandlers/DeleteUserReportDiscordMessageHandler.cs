@@ -4,7 +4,7 @@ using Accord.Services;
 using Accord.Services.UserReports;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 

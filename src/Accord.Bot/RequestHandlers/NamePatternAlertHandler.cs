@@ -8,7 +8,7 @@ using Accord.Services.NamePatterns;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 

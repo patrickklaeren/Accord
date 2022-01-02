@@ -1,4 +1,4 @@
-﻿using Remora.Discord.Core;
+﻿using Remora.Rest.Core;
 
 namespace Accord.Bot.Helpers;
 
