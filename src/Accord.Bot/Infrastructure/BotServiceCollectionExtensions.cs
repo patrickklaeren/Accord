@@ -41,6 +41,7 @@ public static class BotServiceCollectionExtensions
             .AddDiscordGateway(_ => token)
             .Configure<DiscordGatewayClientOptions>(o =>
             {
+                o.Intents |= GatewayIntents.MessageContents;
                 o.Intents |= GatewayIntents.GuildPresences;
                 o.Intents |= GatewayIntents.GuildVoiceStates;
                 o.Intents |= GatewayIntents.GuildMembers;
@@ -49,19 +50,21 @@ public static class BotServiceCollectionExtensions
             .AddHostedService<RemindersHostedService>()
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
-            .AddParser<TimeSpanParser>()
-            .AddCommandGroup<XpCommandGroup>()
-            .AddCommandGroup<GitHubChallengesCommandGroup>()
-            .AddCommandGroup<ChannelFlagCommandGroup>()
-            .AddCommandGroup<UserChannelHidingCommandGroup>()
-            .AddCommandGroup<PermissionCommandGroup>()
-            .AddCommandGroup<RunOptionCommandGroup>()
-            .AddCommandGroup<ReminderCommandGroup>()
-            .AddCommandGroup<NamePatternCommandGroup>()
-            .AddCommandGroup<ProfileCommandGroup>()
-            .AddCommandGroup<UserReportCommandGroup>()
-            .AddCommandGroup<ReportCommandGroup>()
-            .AddCommandGroup<LgtmCommandGroup>();
+            .AddParser<TimeSpanParser>();
+
+        services.AddCommandTree()
+            .WithCommandGroup<XpCommandGroup>()
+            .WithCommandGroup<GitHubChallengesCommandGroup>()
+            .WithCommandGroup<ChannelFlagCommandGroup>()
+            .WithCommandGroup<UserChannelHidingCommandGroup>()
+            .WithCommandGroup<PermissionCommandGroup>()
+            .WithCommandGroup<RunOptionCommandGroup>()
+            .WithCommandGroup<ReminderCommandGroup>()
+            .WithCommandGroup<NamePatternCommandGroup>()
+            .WithCommandGroup<ProfileCommandGroup>()
+            .WithCommandGroup<UserReportCommandGroup>()
+            .WithCommandGroup<ReportCommandGroup>()
+            .WithCommandGroup<LgtmCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()

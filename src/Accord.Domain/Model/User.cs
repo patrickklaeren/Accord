@@ -17,11 +17,11 @@ public class User
     public DateTimeOffset FirstSeenDateTime { get; set; }
     public DateTimeOffset LastSeenDateTime { get; set; }
 
-    public float Xp { get; set; }
-
     public int ParticipationRank { get; set; }
     public int ParticipationPoints { get; set; }
     public double ParticipationPercentile { get; set; }
+
+    public DateTimeOffset? TimedOutUntil { get; set; }
 
     public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
 }

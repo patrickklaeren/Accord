@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.Users;
 
 public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
-public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest { }
+
+public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest;
 
 public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
 {
@@ -26,7 +27,7 @@ public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>,
     {
         return await _appCache
             .GetOrAddAsync(GetCacheKey(request.DiscordUserId),
-                () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId),
+                () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId, cancellationToken),
                 DateTimeOffset.Now.AddDays(30));
     }
 

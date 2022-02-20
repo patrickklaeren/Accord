@@ -20,6 +20,7 @@ public enum ChannelFlagType
     IgnoredFromMessageTracking = 5,
     VoiceLogs = 6,
     BotLogs = 7,
+    TimeOutLogs = 8,
 }
 
 public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>

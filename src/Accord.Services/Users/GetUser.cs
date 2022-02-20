@@ -53,7 +53,7 @@ public class GetUserHandler : IRequestHandler<GetUserRequest, ServiceResponse<Ge
         return ServiceResponse.Ok(new GetUserDto(user, messagesSent, voice));
     }
 
-    private static string BuildGetUserCacheKey(ulong discordUserId)
+    internal static string BuildGetUserCacheKey(ulong discordUserId)
     {
         return $"{nameof(GetUserHandler)}/{nameof(GetUser)}/{discordUserId}";
     }

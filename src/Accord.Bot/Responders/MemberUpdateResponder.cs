@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
@@ -7,6 +9,7 @@ using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
 using Accord.Services.Helpers;
 using Accord.Services.Users;
+using Humanizer;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -22,56 +25,44 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
 {
     private readonly IMediator _mediator;
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IDiscordRestAuditLogAPI _auditLogApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly DiscordCache _discordCache;
 
     public MemberUpdateResponder(IMediator mediator,
         IDiscordRestChannelAPI channelApi,
         DiscordAvatarHelper discordAvatarHelper,
-        DiscordCache discordCache)
+        IDiscordRestAuditLogAPI auditLogApi)
     {
         _mediator = mediator;
         _channelApi = channelApi;
         _discordAvatarHelper = discordAvatarHelper;
-        _discordCache = discordCache;
+        _auditLogApi = auditLogApi;
     }
 
-    public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
+    public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken cancellationToken = new())
     {
         var user = gatewayEvent.User;
 
-        var diff = await _mediator.Send(
-            new GetDiffForUserRequest(
+        var (hasDiff, messages) = await _mediator.Send(
+            new GetUserNameDiffRequest(
                 user.ID.Value,
                 user.Username,
                 user.Discriminator.ToPaddedDiscriminator(),
                 gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null),
-            ct);
+            cancellationToken);
 
-        if (diff.HasDiff)
+        if (hasDiff && messages.Any())
         {
-            var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserUpdateLogs), ct);
+            await HandleUserDiff(user, messages, cancellationToken);
+        }
 
-            var image = _discordAvatarHelper.GetAvatar(user);
-
-            var payload = string.Join(Environment.NewLine, diff.Messages);
-
-            if (!string.IsNullOrWhiteSpace(payload))
-            {
-                var embed = new Embed(
-                    Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
-                    Description: $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
-                    Thumbnail: image);
-
-                foreach (var channel in channels)
-                {
-                    await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: ct);
-                }
-            }
+        if (gatewayEvent.CommunicationDisabledUntil.HasValue
+            && gatewayEvent.CommunicationDisabledUntil.Value is { } until)
+        {
+            await HandleTimeOut(gatewayEvent, user, until, cancellationToken);
         }
 
         var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
-
 
         await _mediator.Send(
             new UpdateUserRequest(
@@ -80,9 +71,89 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
                 user.Username,
                 user.Discriminator.ToPaddedDiscriminator(),
                 gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null,
+                gatewayEvent.CommunicationDisabledUntil.HasValue ? gatewayEvent.CommunicationDisabledUntil.Value : null,
                 avatarUrl,
                 gatewayEvent.JoinedAt),
-            ct);
+            cancellationToken);
+
         return Result.FromSuccess();
+    }
+
+    private async Task HandleUserDiff(IUser user, IEnumerable<string> messages, CancellationToken cancellationToken)
+    {
+        var payload = string.Join(Environment.NewLine, messages);
+
+        var channels =
+            await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserUpdateLogs), cancellationToken);
+
+        var image = _discordAvatarHelper.GetAvatar(user);
+
+        var embed = new Embed(
+            Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
+            Description:
+            $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
+            Thumbnail: image);
+
+        foreach (var channel in channels)
+        {
+            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
+                ct: cancellationToken);
+        }
+    }
+
+    private async Task HandleTimeOut(IGuildMemberUpdate gatewayEvent, IUser user, DateTimeOffset timedOutUntil, CancellationToken cancellationToken)
+    {
+        // Verify if the timeout value has changed vs what Accord knows to be true, if it has
+        // changed then we know to send out a message to the alert channel. If it has not changed
+        // then we won't bother
+        var timeoutHasChanged = await _mediator.Send(new HasTimeOutChangedRequest(user.ID.Value, timedOutUntil), cancellationToken);
+
+        if (!timeoutHasChanged)
+            return;
+
+        var logRequest = await _auditLogApi.GetAuditLogAsync(gatewayEvent.GuildID, 
+            actionType: AuditLogEvent.MemberUpdate, ct: cancellationToken);
+
+        var durationMessage = "has been timed out";
+        var actor = "a moderator";
+        var reason = "an unknown reason";
+
+        if (logRequest.IsSuccess)
+        {
+            var rawUserId = user.ID.Value.ToString();
+
+            var probableAudit = logRequest.Entity.AuditLogEntries
+                .Where(x => x.TargetID == rawUserId)
+                .Where(x => x.UserID != null)
+                .Where(x => x.Changes.HasValue && x.Changes.Value.Any(a => a.Key == "communication_disabled_until"))
+                .OrderByDescending(x => x.ID)
+                .FirstOrDefault();
+
+            if (probableAudit is { } audit)
+            {
+                var timedOutFrom = audit.ID.Timestamp;
+                var durationOfTimeout = timedOutUntil - timedOutFrom;
+                durationMessage = $"has been timed out for {durationOfTimeout.Humanize()}";
+                actor = $"{DiscordFormatter.UserIdToMention(audit.UserID!.Value.Value)}";
+                reason = audit.Reason.HasValue ? audit.Reason.Value : "an unknown reason";
+            }
+        }
+
+        var image = _discordAvatarHelper.GetAvatar(user);
+
+        var embed = new Embed(
+            Title: $"🤐 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} {durationMessage}",
+            Description:
+            $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}Timed out until {timedOutUntil:dd/MM/yyyy HH:mm:ss} by {actor} for {reason}",
+            Thumbnail: image);
+
+        var channels =
+            await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.TimeOutLogs), cancellationToken);
+
+        foreach (var channel in channels)
+        {
+            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
+                ct: cancellationToken);
+        }
     }
 }

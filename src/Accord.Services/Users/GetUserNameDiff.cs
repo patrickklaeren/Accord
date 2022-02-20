@@ -9,19 +9,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Users;
 
-public sealed record GetDiffForUserRequest(ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IRequest<UserDiffResponse>;
-public sealed record UserDiffResponse(bool HasDiff, List<string> Messages);
+public sealed record GetUserNameDiffRequest(ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IRequest<UserNameDiffResponse>;
+public sealed record UserNameDiffResponse(bool HasDiff, List<string> Messages);
 
-public class GetDiffForUserHandler : IRequestHandler<GetDiffForUserRequest, UserDiffResponse>
+public class GetUserNameDiffHandler : IRequestHandler<GetUserNameDiffRequest, UserNameDiffResponse>
 {
     private readonly AccordContext _db;
 
-    public GetDiffForUserHandler(AccordContext db)
+    public GetUserNameDiffHandler(AccordContext db)
     {
         _db = db;
     }
 
-    public async Task<UserDiffResponse> Handle(GetDiffForUserRequest request, CancellationToken cancellationToken)
+    public async Task<UserNameDiffResponse> Handle(GetUserNameDiffRequest request, CancellationToken cancellationToken)
     {
         var diffMessages = new List<string>();
 
@@ -35,7 +35,7 @@ public class GetDiffForUserHandler : IRequestHandler<GetDiffForUserRequest, User
             }).SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         if (user is null)
-            return new UserDiffResponse(false, diffMessages);
+            return new UserNameDiffResponse(false, diffMessages);
 
         var handle = DiscordHandleHelper.BuildHandle(request.DiscordUsername, request.DiscordDiscriminator);
 
@@ -56,6 +56,6 @@ public class GetDiffForUserHandler : IRequestHandler<GetDiffForUserRequest, User
             }
         }
 
-        return new UserDiffResponse(diffMessages.Any(), diffMessages);
+        return new UserNameDiffResponse(diffMessages.Any(), diffMessages);
     }
 }
