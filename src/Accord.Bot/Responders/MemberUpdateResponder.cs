@@ -141,10 +141,12 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
 
         var image = _discordAvatarHelper.GetAvatar(user);
 
+        var timedOutUntilDiscordFormatted = DiscordFormatter.TimeToMarkdown(timedOutUntil);
+
         var embed = new Embed(
             Title: $"🤐 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} {durationMessage}",
             Description:
-            $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}Timed out until {timedOutUntil:dd/MM/yyyy HH:mm:ss} by {actor} for {reason}",
+            $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}Timed out until {timedOutUntilDiscordFormatted} by {actor} for {reason}",
             Thumbnail: image);
 
         var channels =
