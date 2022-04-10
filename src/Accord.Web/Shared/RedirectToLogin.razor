@@ -1,0 +1,10 @@
+﻿@using Microsoft.AspNetCore.Components
+@inject NavigationManager _navigation
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        _navigation.NavigateTo("/", true);
+    }
+}

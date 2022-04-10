@@ -1,0 +1,26 @@
+﻿@using Accord.Web.Services
+@inherits LayoutComponentBase
+@inject NavigationManager _navigationManager
+@inject UserIdentityService _userIdentityService 
+
+<div class="page">
+    <div class="main">
+    <NavMenu />
+        <div class="content px-4">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code
+{
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !await _userIdentityService.IsPartOfGuild())
+        {
+            _navigationManager.NavigateTo("not-enrolled");
+        }
+        
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
