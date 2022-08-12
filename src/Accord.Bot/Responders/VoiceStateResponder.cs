@@ -25,7 +25,7 @@ public class VoiceStateResponder : IResponder<IVoiceStateUpdate>
             || !gatewayEvent.Member.Value.User.HasValue)
             return Result.FromSuccess();
 
-        if (gatewayEvent.Member.Value.User.Value.IsBot.HasValue)
+        if (gatewayEvent.Member.Value.User.Value.IsBot == true)
             return Result.FromSuccess();
 
         IRequest type = gatewayEvent.ChannelID.HasValue

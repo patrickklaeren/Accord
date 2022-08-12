@@ -68,9 +68,7 @@ public class ReadyResponder : IResponder<IReady>
 
         _discordCache.SetGuildRoles(guild.Entity.ID, guild.Entity.Roles);
             
-        var channels = guild.Entity.Channels.HasValue
-            ? guild.Entity.Channels.Value
-            : (await _guildApi.GetGuildChannelsAsync(guild.Entity.ID, ct)).Entity!;
+        var channels = (await _guildApi.GetGuildChannelsAsync(guild.Entity.ID, ct)).Entity;
 
         _discordCache.SetGuildChannels(guild.Entity.ID, channels);
 
