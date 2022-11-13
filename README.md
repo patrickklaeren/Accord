@@ -5,11 +5,11 @@
 
 ## Reach accord, prevent discord, on Discord.
 
-A C# .NET 6 Discord bot with moderation, XP/guild participation and utilities aimed at all users within a guild. This is not a hosted bot, it is intended to be self hosted.
+A C# .NET 7 Discord bot with moderation, XP/guild participation and utilities aimed at all users within a guild. This is not a hosted bot, it is intended to be self hosted.
 
 ### How do I contribute
 
-Accord is actively developed with both Rider and Visual Studio 2022. It is recommended you use either IDE for a positive experience. However, Accord is built entirely on .NET 6 and therefore works anywhere `dotnet build` can be executed.
+Accord is actively developed with both Rider and Visual Studio 2022. It is recommended you use either IDE for a positive experience. However, Accord is built entirely on .NET 7 and therefore works anywhere `dotnet build` can be executed.
 
 You can grab an unassigned issue and comment on it to indicate your interest on championing it. Alternatively, if you have a suggestion for a new feature and want to champion this, create a new issue and it can be discussed in the repository.
 
@@ -19,7 +19,7 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
 
 **What you'll need**
 
-- Latest .NET 6 SDK
+- Latest .NET 7 SDK
 - SQL Server Developer Edition (Docker image available)
 - Discord Bot account
 
