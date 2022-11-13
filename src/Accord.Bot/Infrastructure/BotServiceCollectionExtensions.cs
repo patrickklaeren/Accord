@@ -20,7 +20,7 @@ public static class BotServiceCollectionExtensions
     {
         var discordConfigurationSection = configuration.GetSection("DiscordConfiguration");
 
-        var token = discordConfigurationSection["BotToken"];
+        var token = discordConfigurationSection["BotToken"]!;
 
         services
             .Configure<DiscordConfiguration>(discordConfigurationSection);

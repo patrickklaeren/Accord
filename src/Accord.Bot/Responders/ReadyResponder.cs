@@ -70,7 +70,10 @@ public class ReadyResponder : IResponder<IReady>
             
         var channels = (await _guildApi.GetGuildChannelsAsync(guild.Entity.ID, ct)).Entity;
 
-        _discordCache.SetGuildChannels(guild.Entity.ID, channels);
+        if(channels is not null)
+        {
+            _discordCache.SetGuildChannels(guild.Entity.ID, channels);
+        }
 
         var everyoneRole = guild.Entity.Roles.Single(x => x.Name == "@everyone");
         _discordCache.SetEveryoneRole(guild.Entity.ID, everyoneRole);

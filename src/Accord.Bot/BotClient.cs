@@ -20,7 +20,7 @@ public class BotClient
     private readonly SlashService _slashService;
     private readonly DiscordConfiguration _discordConfiguration;
 
-    public BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient, 
+    public BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient,
         SlashService slashService, IOptions<DiscordConfiguration> botConfiguration)
     {
         _slashService = slashService;
@@ -41,7 +41,7 @@ public class BotClient
             {
                 case ExceptionError exe:
                     {
-                        _logger.LogError(exe.Exception,"Exception during gateway connection: {ExceptionMessage}", exe.Message);
+                        _logger.LogError(exe.Exception, "Exception during gateway connection: {ExceptionMessage}", exe.Message);
                         break;
                     }
                 case GatewayWebSocketError:
@@ -61,21 +61,11 @@ public class BotClient
 
     private async Task InitialiseSlashCommands(CancellationToken cancellationToken)
     {
-        var slashSupport = _slashService.SupportsSlashCommands();
+        var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
 
-        if (!slashSupport.IsSuccess)
+        if (!updateSlash.IsSuccess)
         {
-            _logger.LogWarning("The registered commands of the bot don't support slash commands: {Reason}", slashSupport.Error.Message);
+            _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
         }
-        else
-        {
-            var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
-
-            if (!updateSlash.IsSuccess)
-            {
-                _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
-            }
-        }
-
     }
 }
