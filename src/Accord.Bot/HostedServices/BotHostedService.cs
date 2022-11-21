@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Accord.Bot.Infrastructure;
+namespace Accord.Bot.HostedServices;
 
 public class BotHostedService : IHostedService
 {

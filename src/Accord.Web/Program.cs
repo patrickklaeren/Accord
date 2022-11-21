@@ -1,5 +1,6 @@
 using System.Linq;
 using Accord.Bot;
+using Accord.Bot.HostedServices;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;

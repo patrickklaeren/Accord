@@ -11,7 +11,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
 
-namespace Accord.Bot.Infrastructure;
+namespace Accord.Bot.HostedServices;
 
 public class RemindersHostedService : BackgroundService
 {
@@ -31,15 +31,13 @@ public class RemindersHostedService : BackgroundService
 
         var channelApi = services.GetRequiredService<IDiscordRestChannelAPI>();
 
-        await ProcessReminders(mediator, channelApi, true, stoppingToken);
-
         while (!stoppingToken.IsCancellationRequested)
         {
-            await ProcessReminders(mediator, channelApi, false, stoppingToken);
+            await ProcessReminders(mediator, channelApi, stoppingToken);
         }
     }
 
-    private async Task ProcessReminders(IMediator mediator, IDiscordRestChannelAPI channelApi, bool discard, CancellationToken stoppingToken)
+    private async Task ProcessReminders(IMediator mediator, IDiscordRestChannelAPI channelApi, CancellationToken stoppingToken)
     {
         var reminders = await mediator.Send(new GetAllRemindersRequest(), stoppingToken);
 
@@ -47,7 +45,7 @@ public class RemindersHostedService : BackgroundService
 
         foreach (var reminder in processableReminders)
         {
-            if ((discard && (DateTime.Now - reminder.RemindAt) < TimeSpan.FromMinutes(1)) || !discard)
+            if (DateTime.Now - reminder.RemindAt < TimeSpan.FromMinutes(1))
             {
                 var embed = new Embed
                 {

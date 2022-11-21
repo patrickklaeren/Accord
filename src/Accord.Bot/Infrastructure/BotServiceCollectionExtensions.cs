@@ -3,6 +3,7 @@ using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
 using Accord.Bot.Helpers.Permissions;
+using Accord.Bot.HostedServices;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +49,7 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMessages;
             })
             .AddHostedService<RemindersHostedService>()
+            .AddHostedService<CleanUpHelpForumHostedService>()
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
@@ -65,7 +67,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()
             .WithCommandGroup<LgtmCommandGroup>()
-            .WithCommandGroup<QuestionThreadCommandGroup>();
+            .WithCommandGroup<HelpForumCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()

@@ -61,6 +61,9 @@ public class BotClient
 
     private async Task InitialiseSlashCommands(CancellationToken cancellationToken)
     {
+        if (_discordConfiguration.GuildId == default)
+            return;
+
         var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
 
         if (!updateSlash.IsSuccess)
