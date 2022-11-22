@@ -66,8 +66,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()
-            .WithCommandGroup<LgtmCommandGroup>()
-            .WithCommandGroup<HelpForumCommandGroup>();
+            .WithCommandGroup<LgtmCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()
