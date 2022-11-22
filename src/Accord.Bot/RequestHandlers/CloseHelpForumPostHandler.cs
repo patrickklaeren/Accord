@@ -25,11 +25,11 @@ public class CloseHelpForumPostHandler : AsyncRequestHandler<CloseHelpForumPostR
     protected override async Task Handle(CloseHelpForumPostRequest request, CancellationToken cancellationToken)
     {
         if (request.Channel.Name.HasValue
-            && !request.Channel.Name.Value!.EndsWith(PREFIX))
+            && !request.Channel.Name.Value!.StartsWith(PREFIX))
         {
             try
             {
-                var newTitle = PREFIX + " " + request.Channel.Name.Value!.Trim();
+                var newTitle = PREFIX + " " + request.Channel.Name.Value!.Replace("❔", string.Empty).Trim();
                 await _channelApi.ModifyThreadChannelAsync(request.Channel.ID, newTitle);
             }
             catch (Exception e)
