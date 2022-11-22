@@ -48,6 +48,7 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMembers;
                 o.Intents |= GatewayIntents.GuildMessages;
             })
+            .AddHostedService<CleanUpHelpForumHostedService>()
             .AddHostedService<RemindersHostedService>()
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()

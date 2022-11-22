@@ -68,6 +68,8 @@ public class HelpForumCommandGroup : AccordCommandGroup
 
         await _mediator.Send(new CloseHelpForumPostRequest(currentChannel.Entity));
 
+        await _commandResponder.Respond("Closed!");
+
         return Result.FromSuccess();
     }
 }

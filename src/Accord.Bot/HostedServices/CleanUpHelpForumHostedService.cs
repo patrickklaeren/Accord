@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using Accord.Bot.RequestHandlers;
 using Accord.Services.Helpers;
-using Accord.Services.Reminder;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,7 +42,7 @@ public class CleanUpHelpForumHostedService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             await CleanUpHelpForum(guildSnowflake, helpForumSnowflake, mediator, guildApi, channelApi, stoppingToken);
-            await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
         }
     }
 
@@ -55,7 +54,7 @@ public class CleanUpHelpForumHostedService : BackgroundService
         const int NUMBER_OF_HOURS_TO_GO_BACK = 24;
         var cutOff = processingAt.AddHours(-NUMBER_OF_HOURS_TO_GO_BACK);
 
-        var threads = await guildApi.ListActiveGuildThreadsAsync(guildId);
+        var threads = await guildApi.ListActiveGuildThreadsAsync(guildId, stoppingToken);
 
         if (!threads.IsSuccess)
             return;
@@ -94,7 +93,11 @@ public class CleanUpHelpForumHostedService : BackgroundService
                         ct: stoppingToken);
                 }
 
+                await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
+
                 await mediator.Send(new DeactivateForumPostRequest(thread), stoppingToken);
+
+                await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
             }
             catch (Exception ex)
             {
