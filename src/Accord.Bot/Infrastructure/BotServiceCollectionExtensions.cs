@@ -49,7 +49,6 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMessages;
             })
             .AddHostedService<RemindersHostedService>()
-            .AddHostedService<CleanUpHelpForumHostedService>()
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
@@ -66,7 +65,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()
-            .WithCommandGroup<LgtmCommandGroup>();
+            .WithCommandGroup<LgtmCommandGroup>()
+            .WithCommandGroup<HelpForumCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()
