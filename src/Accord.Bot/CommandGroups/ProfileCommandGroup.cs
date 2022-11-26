@@ -26,17 +26,20 @@ public class ProfileCommandGroup: AccordCommandGroup
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly CommandResponder _commandResponder;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext,
         IDiscordRestGuildAPI guildApi,
         DiscordAvatarHelper discordAvatarHelper,
-        CommandResponder commandResponder)
+        CommandResponder commandResponder,
+        ThumbnailHelper thumbnailHelper)
     {
         _mediator = mediator;
         _commandContext = commandContext;
         _guildApi = guildApi;
         _discordAvatarHelper = discordAvatarHelper;
         _commandResponder = commandResponder;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     [Command("profile"), Description("Get your profile")]
@@ -69,8 +72,12 @@ public class ProfileCommandGroup: AccordCommandGroup
         var guildUser = guildUserEntity.Entity;
         var (userDto, userMessagesInChannelDtos, userVoiceMinutesInChannelDtos) = response.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value);
-        var avatarImage = _discordAvatarHelper.GetAvatar(guildUser.User.Value);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
+            guildUser.User.Value.Discriminator, 
+            guildUser.User.Value.Avatar?.Value, 
+            guildUser.User.Value.Avatar?.HasGif == true);
+        
+        var avatarImage = _thumbnailHelper.GetAvatar(guildUser.User.Value);
 
         var builder = new StringBuilder();
 

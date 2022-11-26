@@ -73,7 +73,10 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
         {
             Author = new EmbedAuthor(
                 DiscordHandleHelper.BuildHandle(_commandContext.User.Username, _commandContext.User.Discriminator),
-                IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User)),
+                IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User.ID.Value, 
+                    _commandContext.User.Discriminator, 
+                    _commandContext.User.Avatar?.Value, 
+                    _commandContext.User.Avatar?.HasGif == true)),
             Title = "Hidden Channels",
             Description = sb.ToString()
         });

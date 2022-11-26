@@ -1,9 +1,7 @@
 ﻿using Accord.Bot.Infrastructure;
 using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Objects;
 
-namespace Accord.Bot.Helpers;
+namespace Accord.Services.Helpers;
 
 public class DiscordAvatarHelper
 {
@@ -14,27 +12,24 @@ public class DiscordAvatarHelper
         _discordConfiguration = discordConfiguration.Value;
     }
 
-    public EmbedThumbnail GetAvatar(IUser user)
+    public string GetAvatarUrl(ulong discordUserId, 
+        ushort discordDiscriminator, 
+        string? avatarHash,
+        bool showAsGif = false)
     {
-        var url = GetAvatarUrl(user);
-        return new EmbedThumbnail(url);
-    }
-
-    public string GetAvatarUrl(IUser user)
-    {
-        if (user.Avatar is null)
+        if (string.IsNullOrWhiteSpace(avatarHash))
         {
-            var resultModulus = user.Discriminator % 5;
+            var resultModulus = discordDiscriminator % 5;
             return $"{_discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
         }
 
         var extension = "png";
 
-        if (user.Avatar.HasGif)
+        if (showAsGif)
         {
             extension = "gif";
         }
 
-        return $"{_discordConfiguration.CdnBaseUrl}/avatars/{user.ID.Value}/{user.Avatar.Value}.{extension}";
+        return $"{_discordConfiguration.CdnBaseUrl}/avatars/{discordUserId}/{avatarHash}.{extension}";
     }
 }

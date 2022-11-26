@@ -19,16 +19,16 @@ public class LeftVoiceHandler : AsyncRequestHandler<LeftVoiceRequest>
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     public LeftVoiceHandler(IDiscordRestChannelAPI channelApi,
         IMediator mediator, IDiscordRestGuildAPI guildApi,
-        DiscordAvatarHelper discordAvatarHelper)
+        ThumbnailHelper thumbnailHelper)
     {
         _channelApi = channelApi;
         _mediator = mediator;
         _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     protected override async Task Handle(LeftVoiceRequest request, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public class LeftVoiceHandler : AsyncRequestHandler<LeftVoiceRequest>
 
         var user = guildMember.Entity.User.Value!;
 
-        var avatar = _discordAvatarHelper.GetAvatar(user);
+        var avatar = _thumbnailHelper.GetAvatar(user);
 
         var span = (request.DisconnectedDateTime - request.ConnectedDateTime).Humanize();
 

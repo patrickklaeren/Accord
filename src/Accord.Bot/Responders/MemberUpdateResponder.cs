@@ -27,16 +27,19 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestAuditLogAPI _auditLogApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     public MemberUpdateResponder(IMediator mediator,
         IDiscordRestChannelAPI channelApi,
         DiscordAvatarHelper discordAvatarHelper,
-        IDiscordRestAuditLogAPI auditLogApi)
+        IDiscordRestAuditLogAPI auditLogApi,
+        ThumbnailHelper thumbnailHelper)
     {
         _mediator = mediator;
         _channelApi = channelApi;
         _discordAvatarHelper = discordAvatarHelper;
         _auditLogApi = auditLogApi;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken cancellationToken = new())
@@ -62,7 +65,10 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             await HandleTimeOut(gatewayEvent, user, until, cancellationToken);
         }
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user.ID.Value, 
+            user.Discriminator, 
+            user.Avatar?.Value, 
+            user.Avatar?.HasGif == true);
 
         await _mediator.Send(
             new UpdateUserRequest(
@@ -86,7 +92,7 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         var channels =
             await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserUpdateLogs), cancellationToken);
 
-        var image = _discordAvatarHelper.GetAvatar(user);
+        var image = _thumbnailHelper.GetAvatar(user);
 
         var embed = new Embed(
             Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
@@ -139,7 +145,7 @@ public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             }
         }
 
-        var image = _discordAvatarHelper.GetAvatar(user);
+        var image = _thumbnailHelper.GetAvatar(user);
 
         var timedOutUntilDiscordFormatted = DiscordFormatter.TimeToMarkdown(timedOutUntil);
 

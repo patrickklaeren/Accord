@@ -18,16 +18,16 @@ public class JoinedVoiceHandler : AsyncRequestHandler<JoinedVoiceRequest>
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     public JoinedVoiceHandler(IDiscordRestChannelAPI channelApi,
         IMediator mediator, IDiscordRestGuildAPI guildApi,
-        DiscordAvatarHelper discordAvatarHelper)
+        ThumbnailHelper thumbnailHelper)
     {
         _channelApi = channelApi;
         _mediator = mediator;
         _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     protected override async Task Handle(JoinedVoiceRequest request, CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ public class JoinedVoiceHandler : AsyncRequestHandler<JoinedVoiceRequest>
 
         var user = guildMember.Entity.User.Value!;
 
-        var avatar = _discordAvatarHelper.GetAvatar(user);
+        var avatar = _thumbnailHelper.GetAvatar(user);
 
         var embed = new Embed(Title: $"📢 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined voice",
             Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) joined {DiscordFormatter.ChannelIdToMention(request.DiscordChannelId)}",

@@ -157,12 +157,14 @@ public class ReminderCommandGroup: AccordCommandGroup
         var guildUser = guildUserEntity.Entity;
         var (userDto, _, _) = userResponse.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
+            guildUser.User.Value.Discriminator, 
+            guildUser.User.Value.Avatar?.Value, 
+            guildUser.User.Value.Avatar?.HasGif == true);
 
         var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)
             ? userDto.UsernameWithDiscriminator
             : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator);
-
 
         var totalReminders = response.Value!.Count;
 

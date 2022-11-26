@@ -17,16 +17,16 @@ public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertReque
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     public NamePatternAlertHandler(IDiscordRestChannelAPI channelApi, 
         IMediator mediator, IDiscordRestGuildAPI guildApi, 
-        DiscordAvatarHelper discordAvatarHelper)
+        ThumbnailHelper thumbnailHelper)
     {
         _channelApi = channelApi;
         _mediator = mediator;
         _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     protected override async Task Handle(NamePatternAlertRequest request, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertReque
 
         var user = guildUser.Entity.User.Value;
 
-        var image = _discordAvatarHelper.GetAvatar(user!);
+        var image = _thumbnailHelper.GetAvatar(user!);
 
         var embed = new Embed(Title: "🚨 User name matches pattern",
             Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",

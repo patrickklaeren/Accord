@@ -19,7 +19,7 @@ public static class BotServiceCollectionExtensions
 {
     public static IServiceCollection AddDiscordBot(this IServiceCollection services, IConfiguration configuration)
     {
-        var discordConfigurationSection = configuration.GetSection("DiscordConfiguration");
+        var discordConfigurationSection = configuration.GetSection("Discord");
 
         var token = discordConfigurationSection["BotToken"]!;
 
@@ -34,7 +34,7 @@ public static class BotServiceCollectionExtensions
             .AddTransient<BotClient>()
             .AddSingleton<BotState>()
             .AddSingleton<DiscordCache>()
-            .AddScoped<DiscordAvatarHelper>()
+            .AddScoped<ThumbnailHelper>()
             .AddScoped<DiscordPermissionHelper>()
             .AddScoped<DiscordScopedCache>()
             .AddScoped<DiscordChannelParser>()

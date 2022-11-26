@@ -1,0 +1,14 @@
+﻿@page "/welcome"
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudText Typo="Typo.h1">Reach <strong>Accord</strong>, not Discord</MudText>
+    <MudText Typo="Typo.subtitle2">A Discord utilities and moderation bot for the C# Discord server, built in the open, on <a href="#">GitHub</a>.</MudText>
+    <MudButton Color="Color.Primary"
+               Variant="Variant.Filled"
+               Href="/login"
+               Class="mt-4">
+        Log in with your Discord account
+    </MudButton>
+</MudContainer>

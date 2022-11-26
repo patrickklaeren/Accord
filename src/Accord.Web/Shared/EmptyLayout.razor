@@ -1,0 +1,38 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>Accord</PageTitle>
+
+<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_accordTheme"/>
+
+<MudLayout>
+    @Body
+</MudLayout>
+
+@code {
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider = null!;
+    
+    private readonly MudTheme _accordTheme = new()
+    {
+        Palette = new Palette()
+        {
+            Primary = Colors.Teal.Default,
+            Secondary = Colors.Green.Accent4,
+            AppbarBackground = Colors.Teal.Default,
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Teal.Default,
+            AppbarBackground = Colors.Teal.Default,
+        },
+    };
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            StateHasChanged();
+        }
+    }
+}

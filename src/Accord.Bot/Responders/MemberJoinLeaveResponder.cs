@@ -28,13 +28,16 @@ public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IEventQueue _eventQueue;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
+    private readonly ThumbnailHelper _thumbnailHelper;
 
-    public MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, IEventQueue eventQueue, DiscordAvatarHelper discordAvatarHelper)
+    public MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, 
+        IEventQueue eventQueue, DiscordAvatarHelper discordAvatarHelper, ThumbnailHelper thumbnailHelper)
     {
         _mediator = mediator;
         _channelApi = channelApi;
         _eventQueue = eventQueue;
         _discordAvatarHelper = discordAvatarHelper;
+        _thumbnailHelper = thumbnailHelper;
     }
 
     public async Task<Result> RespondAsync(IGuildMemberAdd gatewayEvent, CancellationToken ct = new CancellationToken())
@@ -44,7 +47,10 @@ public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<
 
         var user = gatewayEvent.User.Value;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user.ID.Value, 
+            user.Discriminator, 
+            user.Avatar?.Value, 
+            user.Avatar?.HasGif == true);
 
         await _eventQueue.Queue(new AddUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, null, gatewayEvent.JoinedAt));
         await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), null, avatarUrl, gatewayEvent.JoinedAt)));
@@ -53,7 +59,7 @@ public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<
 
         if (channels.Any())
         {
-            var image = _discordAvatarHelper.GetAvatar(user);
+            var image = _thumbnailHelper.GetAvatar(user);
 
             var builder = new StringBuilder()
                 .AppendLine("**User Information**")
@@ -80,7 +86,7 @@ public class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<
     {
         var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
-        var image = _discordAvatarHelper.GetAvatar(gatewayEvent.User);
+        var image = _thumbnailHelper.GetAvatar(gatewayEvent.User);
 
         var user = gatewayEvent.User;
 
