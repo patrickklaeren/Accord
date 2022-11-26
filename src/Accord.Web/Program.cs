@@ -48,8 +48,8 @@ builder.Services
     .AddCookie()
     .AddDiscord(options =>
     {
-        options.ClientId = "851573413554552852";
-        options.ClientSecret = "AZIp9cbqwg8uoTF1jkmQ4BOpiuFh3GDE";
+        options.ClientId = builder.Configuration["Discord:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Discord:ClientSecret"]!;
         options.SaveTokens = true;
         
         options.Scope.Add("identify");
