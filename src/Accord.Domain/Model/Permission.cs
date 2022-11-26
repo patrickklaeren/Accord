@@ -12,7 +12,7 @@ public abstract class Permission
 public class UserPermission : Permission
 {
     public ulong UserId { get; set; }
-    public virtual User User { get; set; } = null!;
+    public User? User { get; set; }
 }
 
 public class RolePermission : Permission

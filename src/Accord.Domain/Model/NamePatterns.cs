@@ -5,12 +5,12 @@ namespace Accord.Domain.Model;
 public class NamePattern
 {
     public int Id { get; set; }
-    public string Pattern { get; set; } = null!;
+    public required string Pattern { get; set; }
     public PatternType Type { get; set; }
     public OnNamePatternDiscovery OnDiscovery { get; set; }
 
     public ulong AddedByUserId { get; set; }
-    public virtual User AddedByUser { get; set; } = null!;
+    public User? AddedByUser { get; set; }
     public DateTimeOffset AddedDateTime { get; set; }
 }
 

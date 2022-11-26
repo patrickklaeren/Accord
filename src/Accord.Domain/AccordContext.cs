@@ -16,19 +16,18 @@ public class AccordContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    public virtual DbSet<User> Users { get; set; } = null!;
-    public virtual DbSet<ChannelFlag> ChannelFlags { get; set; } = null!;
-    public virtual DbSet<Permission> Permissions { get; set; } = null!;
-    public virtual DbSet<UserPermission> UserPermissions { get; set; } = null!;
-    public virtual DbSet<RolePermission> RolePermissions { get; set; } = null!;
-    public virtual DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
-    public virtual DbSet<RunOption> RunOptions { get; set; } = null!;
-    public virtual DbSet<UserMessage> UserMessages { get; set; } = null!;
-    public virtual DbSet<NamePattern> NamePatterns { get; set; } = null!;
-    public virtual DbSet<UserReminder> UserReminders { get; set; } = null!;
-    public virtual DbSet<UserHiddenChannel> UserHiddenChannels { get; set; } = null!;
-
-    public virtual DbSet<UserReport> UserReports { get; set; } = null!;
-    public virtual DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
-    public virtual DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<ChannelFlag> ChannelFlags { get; set; } = null!;
+    public DbSet<Permission> Permissions { get; set; } = null!;
+    public DbSet<UserPermission> UserPermissions { get; set; } = null!;
+    public DbSet<RolePermission> RolePermissions { get; set; } = null!;
+    public DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
+    public DbSet<RunOption> RunOptions { get; set; } = null!;
+    public DbSet<UserMessage> UserMessages { get; set; } = null!;
+    public DbSet<NamePattern> NamePatterns { get; set; } = null!;
+    public DbSet<UserReminder> UserReminders { get; set; } = null!;
+    public DbSet<UserHiddenChannel> UserHiddenChannels { get; set; } = null!;
+    public DbSet<UserReport> UserReports { get; set; } = null!;
+    public DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
+    public DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
 }
