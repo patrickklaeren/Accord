@@ -12,7 +12,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Accord.Services.Xp;
+namespace Accord.Services.Participation;
 
 public sealed record CalculateParticipationRequest : IRequest;
 
@@ -27,10 +27,7 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    protected override Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken)
-    {
-        return Calculate();
-    }
+    protected override Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken) => Calculate();
 
     private async Task Calculate()
     {
@@ -41,19 +38,12 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
         using (var userResetScope = _serviceScopeFactory.CreateScope())
         await using (var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>())
         {
-            var usersToReset = await userResetContext
-                .Users
-                .Where(x => x.ParticipationPoints != 0 || x.ParticipationPercentile != 0 || x.ParticipationRank != 0)
-                .ToListAsync();
-
-            foreach (var userToReset in usersToReset)
-            {
-                userToReset.ParticipationPoints = 0;
-                userToReset.ParticipationPercentile = 0;
-                userToReset.ParticipationRank = 0;
-            }
-
-            await userResetContext.SaveChangesAsync();
+            await userResetContext.Users
+                .Where(x => x.ParticipationRank != 0 || x.ParticipationPercentile != 0 || x.ParticipationPoints != 0)
+                .ExecuteUpdateAsync(x => x
+                    .SetProperty(d => d.ParticipationPercentile, 0)
+                    .SetProperty(d => d.ParticipationPoints, 0)
+                    .SetProperty(d => d.ParticipationRank, 0));
         }
 
         var channelsExcludedFromXp = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
@@ -157,7 +147,7 @@ public class CalculateParticipation : AsyncRequestHandler<CalculateParticipation
         foreach (var user in orderedParticipation)
         {
             var rank = orderedParticipation.IndexOf(user) + 1;
-            var percentile = (1 - (rank / (double)orderedParticipation.Count)) * 100;
+            var percentile = (1 - rank / (double)orderedParticipation.Count) * 100;
             user.Percentile = percentile;
             user.Rank = rank;
         }

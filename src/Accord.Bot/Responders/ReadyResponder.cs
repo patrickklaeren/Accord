@@ -58,13 +58,18 @@ public class ReadyResponder : IResponder<IReady>
     private async Task CacheGuild(IUnavailableGuild unavailableGuild, IUser user, CancellationToken ct = default)
     {
         var guildMember = await _guildApi.GetGuildMemberAsync(unavailableGuild.ID, user.ID, ct);
+
         if (guildMember.IsSuccess)
+        {
             _discordCache.SetGuildSelfMember(unavailableGuild.ID, guildMember.Entity);
+        }
 
         var guild = await _guildApi.GetGuildAsync(unavailableGuild.ID, true, ct: ct);
-            
+
         if (!guild.IsSuccess)
+        {
             return;
+        }
 
         _discordCache.SetGuildRoles(guild.Entity.ID, guild.Entity.Roles);
             

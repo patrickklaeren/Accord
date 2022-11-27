@@ -2,6 +2,10 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" Version="7.0.0" />
+    <PackageReference Include="AutoConstructor" Version="3.2.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="LazyCache.AspNetCore" Version="2.4.0" />
     <PackageReference Include="MediatR" Version="11.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
@@ -10,6 +14,7 @@
     <PackageReference Include="Sentry.Serilog" Version="3.23.1" />
     <PackageReference Include="Serilog" Version="2.12.1-dev-01587" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+    <PackageReference Include="SourceInject" Version="0.1.12" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,5 @@
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Accord.Bot;
 using Accord.Bot.HostedServices;
 using Accord.Bot.Infrastructure;
@@ -10,12 +7,12 @@ using Accord.Domain;
 using Accord.Services;
 using Accord.Services.Helpers;
 using Accord.Services.Raid;
+using Accord.Web.Services;
 using AspNet.Security.OAuth.Discord;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +40,8 @@ builder.Services
     .AddSingleton<DiscordAvatarHelper>()
     .AddSingleton<IEventQueue, EventQueue>();
 
+builder.Services.Discover();
+
 builder.Services
     .AddAuthentication(options =>
     {
@@ -58,6 +57,8 @@ builder.Services
         options.AccessDeniedPath = "/welcome";
         
         options.Scope.Add("identify");
+        options.Scope.Add("guilds");
+        options.Scope.Add("guilds.members.read");
 
         options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id", ClaimValueTypes.UInteger64);
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username", ClaimValueTypes.String);
@@ -100,19 +101,6 @@ app.MapFallbackToPage("/_Host");
 
 app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
-
-app.MapGet("/discord/me", async Task<IResult> (IHttpContextAccessor contextAccessor, HttpClient client) =>
-{
-    if (contextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
-    {
-        return TypedResults.Unauthorized();
-    }
-
-    var token = await context.GetTokenAsync("access_token");
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    var response = await client.GetStringAsync("https://discordapp.com/api/users/@me");
-    return TypedResults.Ok(response);
-});
 
 using (var scope = app.Services.CreateScope())
 {

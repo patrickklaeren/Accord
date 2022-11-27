@@ -6,7 +6,7 @@ using Accord.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Accord.Services.Xp;
+namespace Accord.Services.Participation;
 
 public sealed record GetLeaderboardRequest : IRequest<Leaderboard>;
 

@@ -26,7 +26,7 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
     private readonly IMediator _mediator;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly CommandResponder _commandResponder;
-    private readonly DiscordScopedCache _discordCache;
+    private readonly DiscordCache _discordCache;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly DiscordPermissionHelper _discordPermissionHelper;
     private readonly DiscordChannelParser _discordChannelParser;
@@ -37,7 +37,7 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
         IDiscordRestChannelAPI channelApi,
         CommandResponder commandResponder,
         DiscordAvatarHelper discordAvatarHelper,
-        DiscordScopedCache discordCache,
+        DiscordCache discordCache,
         DiscordPermissionHelper discordPermissionHelper,
         ILogger<UserChannelHidingCommandGroup> logger,
         DiscordChannelParser discordChannelParser)
@@ -85,7 +85,7 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
     [Command("hide"), Description("Hide a channel for you")]
     public async Task<IResult> HideChannel(IChannel channel)
     {
-        var guildMember = await _discordCache.GetInvokingGuildMember();
+        var guildMember = await _discordCache.GetGuildMember();
         if (!guildMember.IsSuccess || guildMember.Entity == null)
             return await _commandResponder.Respond("There was an error executing this command. Try again later.");
 

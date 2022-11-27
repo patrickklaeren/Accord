@@ -1,9 +1,9 @@
 ﻿@page "/"
+@using Accord.Web.Services;
 @using Microsoft.AspNetCore.Http
 @using Accord.Services.Helpers
 @using System.Security.Claims
-@inject IHttpContextAccessor HttpContextAccessor
-@inject DiscordAvatarHelper DiscordAvatarHelper
+@inject DiscordUserService DiscordUserService
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -13,55 +13,32 @@
         <MudItem xs="12">
             <MudPaper Elevation="2" Class="pa-4 d-flex flex-wrap gap-4">
                 <MudAvatar Image="@_avatarUrl" Width="50"/>
-                <MudText Class="mt-2">Hello world</MudText>
+                <MudText Class="mt-2">Hello, @_nameInGuild</MudText>
             </MudPaper>
         </MudItem>
         
-        <MudItem xs="12" sm="6" md="6">
+        <MudItem xs="12" sm="6">
             <MudPaper Elevation="2" Class="pa-4">
                 <MudText Typo="Typo.h6">Messages processed</MudText>
                 <MudText Typo="Typo.caption">Number of messages processed discriminated by year</MudText>
                 <MudChart ChartType="ChartType.Line" ChartSeries="@_series" Width="100%" ChartOptions="_options"></MudChart>
             </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="6" md="6">
+
+        <MudItem xs="12" sm="6">
             <MudPaper Elevation="2" Class="pa-4">
                 <MudText Typo="Typo.h6">Onboarded users</MudText>
                 <MudText Typo="Typo.caption">Number of users Accord has first seen discriminated by year</MudText>
                 <MudChart ChartType="ChartType.Line" ChartSeries="@_series" Width="100%" ChartOptions="_options"></MudChart>
             </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-            </MudGrid>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
     private string _avatarUrl = null!;
-    
+    private string _nameInGuild = null!;
+
     private readonly ChartOptions _options = new ChartOptions
     {
         DisableLegend = true,
@@ -76,24 +53,16 @@
         new ChartSeries() { Name = "Series 1", Data = new double[] { 90, 79, 72, 69, 62, 62, 55, 65, 70 } },
         new ChartSeries() { Name = "Series 2", Data = new double[] { 35, 41, 35, 51, 49, 62, 69, 91, 148 } },
     };
-    
-    protected override void OnInitialized()
-    {
-        if (HttpContextAccessor.HttpContext is {User.Identity.IsAuthenticated: true} context)
-        {
-            var discordUserId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var discriminator = context.User.FindFirstValue("urn:discord:user:discriminator")!;
-            var avatarClaim = context.User.FindFirstValue("urn:discord:avatar:hash");
-            
-            if (avatarClaim is not null)
-            {
-                _avatarUrl = DiscordAvatarHelper.GetAvatarUrl(ulong.Parse(discordUserId), 
-                    ushort.Parse(discriminator), 
-                    avatarClaim);
-            }
-        }
-        
-        base.OnInitialized();
-    }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _avatarUrl = DiscordUserService.GetAvatarUrl();
+            _nameInGuild = await DiscordUserService.GetUsersNicknameInGuild();
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
 }

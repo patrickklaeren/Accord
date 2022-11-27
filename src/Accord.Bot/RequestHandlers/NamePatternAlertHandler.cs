@@ -54,7 +54,7 @@ public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertReque
 
         foreach (var channel in channelsToPostTo)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embeds: new[] { embed }, ct: cancellationToken);
+            await _channelApi.CreateMessageAsync(new Snowflake(channel), content: string.Empty, embeds: new[] { embed }, ct: cancellationToken);
         }
     }
 }

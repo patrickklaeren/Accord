@@ -3,9 +3,9 @@
 
 <PageTitle>Accord</PageTitle>
 
-<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_accordTheme"/>
-<MudDialogProvider/>
-<MudSnackbarProvider/>
+<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_accordTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Primary">
@@ -16,9 +16,6 @@
             <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
         </MudMenu>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        @*NavMenu*@
-    </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
@@ -28,26 +25,26 @@
     bool _drawerOpen = true;
     private bool _isDarkMode;
     private MudThemeProvider _mudThemeProvider = null!;
-    
+
     private readonly MudTheme _accordTheme = new()
-    {
-        Palette = new Palette()
         {
-            Primary = Colors.Teal.Default,
-            Secondary = Colors.Green.Accent4,
-            AppbarBackground = Colors.Red.Default,
-        },
-        PaletteDark = new PaletteDark()
-        {
-            Primary = Colors.Teal.Default
-        },
-        LayoutProperties = new LayoutProperties()
-        {
-            DrawerWidthLeft = "260px",
-            DrawerWidthRight = "300px"
-        }
-    };
-    
+            Palette = new Palette()
+            {
+                Primary = Colors.Teal.Default,
+                Secondary = Colors.Green.Accent4,
+                AppbarBackground = Colors.Red.Default,
+            },
+            PaletteDark = new PaletteDark()
+            {
+                Primary = Colors.Teal.Default
+            },
+            LayoutProperties = new LayoutProperties()
+            {
+                DrawerWidthLeft = "260px",
+                DrawerWidthRight = "300px"
+            }
+        };
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -56,7 +53,7 @@
             StateHasChanged();
         }
     }
-    
+
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
