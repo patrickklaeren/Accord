@@ -14,24 +14,13 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("name-pattern")]
-public class NamePatternCommandGroup: AccordCommandGroup
+[Group("name-pattern"), AutoConstructor]
+public partial class NamePatternCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly CommandResponder _commandResponder;
-
-    public NamePatternCommandGroup(ICommandContext commandContext,
-        IMediator mediator,
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-    }
 
     [Command("list"), Description("List all name patterns")]
     public async Task<IResult> List()

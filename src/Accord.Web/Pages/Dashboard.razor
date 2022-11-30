@@ -1,0 +1,80 @@
+﻿@page "/"
+@using Accord.Bot.Services;
+@using Accord.Web.Services;
+@using MediatR;
+@using Microsoft.AspNetCore.Http
+@using Accord.Services.Helpers
+@using System.Security.Claims
+@inject DiscordUserService DiscordUserService
+@inject IMediator Mediator
+
+<PageTitle>Dashboard</PageTitle>
+
+<MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
+    <MudGrid>
+        
+        <MudItem xs="12">
+            <MudPaper Elevation="2" Class="pa-4 d-flex flex-wrap gap-4">
+                <MudAvatar Image="@_avatarUrl" Width="50"/>
+                <MudText Class="mt-2">Hello, @_nameInGuild</MudText>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" sm="6">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.h6">Messages processed</MudText>
+                <MudText Typo="Typo.caption">Number of messages processed discriminated by year</MudText>
+                <MudChart ChartType="ChartType.Line" ChartSeries="@_series" Width="100%" ChartOptions="_options"></MudChart>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.h6">Onboarded users</MudText>
+                <MudText Typo="Typo.caption">Number of users Accord has first seen discriminated by year</MudText>
+                <MudChart ChartType="ChartType.Line" ChartSeries="@_series" Width="100%" ChartOptions="_options"></MudChart>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private string _avatarUrl = null!;
+    private string _nameInGuild = null!;
+
+    private readonly ChartOptions _options = new ChartOptions
+    {
+        DisableLegend = true,
+        InterpolationOption = InterpolationOption.Periodic,
+        YAxisFormat = "0",
+        XAxisLines = false,
+        YAxisLines = false,
+    };
+
+    private readonly List<ChartSeries> _series = new List<ChartSeries>()
+    {
+        new ChartSeries() { Name = "Series 1", Data = new double[] { 90, 79, 72, 69, 62, 62, 55, 65, 70 } },
+        new ChartSeries() { Name = "Series 2", Data = new double[] { 35, 41, 35, 51, 49, 62, 69, 91, 148 } },
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _avatarUrl = DiscordUserService.GetAvatarUrl();
+
+            var userId = DiscordUserService.GetDiscordId();
+
+            var memberInGuild = await Mediator.Send(new GetGuildMemberRequest(userId));
+
+            if (memberInGuild.Success)
+            {
+                _nameInGuild = memberInGuild.Value!.Nickname ?? memberInGuild.Value.Username;
+            }
+
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

@@ -12,22 +12,13 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertRequest>
+[AutoConstructor]
+public partial class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
-
-    public NamePatternAlertHandler(IDiscordRestChannelAPI channelApi, 
-        IMediator mediator, IDiscordRestGuildAPI guildApi, 
-        DiscordAvatarHelper discordAvatarHelper)
-    {
-        _channelApi = channelApi;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
-    }
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     protected override async Task Handle(NamePatternAlertRequest request, CancellationToken cancellationToken)
     {
@@ -45,7 +36,7 @@ public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertReque
 
         var user = guildUser.Entity.User.Value;
 
-        var image = _discordAvatarHelper.GetAvatar(user!);
+        var image = _thumbnailHelper.GetAvatar(user!);
 
         var embed = new Embed(Title: "🚨 User name matches pattern",
             Description: $"{user.ID.ToUserMention()} ({user.ID.Value})",
@@ -54,7 +45,7 @@ public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertReque
 
         foreach (var channel in channelsToPostTo)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), content: Constants.StaffSnowflake.ToRoleMention(), embeds: new[] { embed }, ct: cancellationToken);
+            await _channelApi.CreateMessageAsync(new Snowflake(channel), content: string.Empty, embeds: new[] { embed }, ct: cancellationToken);
         }
     }
 }

@@ -3,7 +3,6 @@ using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
 using Accord.Bot.Helpers.Permissions;
-using Accord.Bot.HostedServices;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,12 +18,9 @@ public static class BotServiceCollectionExtensions
 {
     public static IServiceCollection AddDiscordBot(this IServiceCollection services, IConfiguration configuration)
     {
-        var discordConfigurationSection = configuration.GetSection("DiscordConfiguration");
+        var discordConfigurationSection = configuration.GetSection("Discord");
 
         var token = discordConfigurationSection["BotToken"]!;
-
-        services
-            .Configure<DiscordConfiguration>(discordConfigurationSection);
 
         services
             .Configure<DiscordCommandResponderOptions>(o => o.Prefix = "!");
@@ -32,12 +28,9 @@ public static class BotServiceCollectionExtensions
         services
             .AddLogging()
             .AddTransient<BotClient>()
-            .AddSingleton<BotState>()
             .AddSingleton<DiscordCache>()
-            .AddScoped<DiscordAvatarHelper>()
+            .AddScoped<ThumbnailHelper>()
             .AddScoped<DiscordPermissionHelper>()
-            .AddScoped<DiscordScopedCache>()
-            .AddScoped<DiscordChannelParser>()
             .AddScoped<CommandResponder>()
             .AddDiscordGateway(_ => token)
             .Configure<DiscordGatewayClientOptions>(o =>
@@ -48,14 +41,12 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMembers;
                 o.Intents |= GatewayIntents.GuildMessages;
             })
-            .AddHostedService<CleanUpHelpForumHostedService>()
-            .AddHostedService<RemindersHostedService>()
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
 
         services.AddCommandTree()
-            .WithCommandGroup<XpCommandGroup>()
+            .WithCommandGroup<ParticipationCommandGroup>()
             .WithCommandGroup<GitHubChallengesCommandGroup>()
             .WithCommandGroup<ChannelFlagCommandGroup>()
             .WithCommandGroup<UserChannelHidingCommandGroup>()

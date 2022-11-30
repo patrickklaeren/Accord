@@ -11,16 +11,11 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class RaidAlertHandler : AsyncRequestHandler<RaidAlertRequest>
+[AutoConstructor]
+public partial class RaidAlertHandler : AsyncRequestHandler<RaidAlertRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IMediator _mediator;
-
-    public RaidAlertHandler(IDiscordRestChannelAPI channelApi, IMediator mediator)
-    {
-        _channelApi = channelApi;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
     {

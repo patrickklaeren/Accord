@@ -18,28 +18,17 @@ using Remora.Results;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
+[AutoConstructor]
+public partial class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly DiscordCache _discordCache;
     private readonly IMediator _mediator;
 
-    public RelayUserReportMessageHandler(
-        DiscordCache discordCache,
-        IDiscordRestWebhookAPI webhookApi,
-        DiscordAvatarHelper discordAvatarHelper,
-        IMediator mediator)
-    {
-        _discordCache = discordCache;
-        _webhookApi = webhookApi;
-        _discordAvatarHelper = discordAvatarHelper;
-        _mediator = mediator;
-    }
-
     protected override async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
     {
-        var member = await _discordCache.GetGuildMember(request.DiscordGuildId, request.AuthorDiscordUserId);
+        var member = await _discordCache.GetGuildMember(request.AuthorDiscordUserId);
 
         if (!member.IsSuccess || member.Entity is null || !member.Entity.User.HasValue)
             return;
@@ -65,7 +54,11 @@ public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReport
             fileData = new FileData($"{Guid.NewGuid()}{(String.IsNullOrEmpty(fileNameExtension) ? "" : $".{fileNameExtension}")}", stream);
         }
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value.ID.Value, 
+            member.Entity.User.Value.Discriminator, 
+            user.Avatar?.Value,
+            user.Avatar?.HasGif == true);
+        
         var username = member.Entity.Nickname.Value ?? user.Username;
 
         var otherAttachments = request.DiscordAttachments
@@ -106,9 +99,12 @@ public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReport
             if (originalMessage is null)
                 throw new InvalidOperationException("Cannot process without original message");
                 
-            var originalAuthor = await _discordCache.GetGuildMember(request.DiscordGuildId, originalMessage.AuthorUserId);
+            var originalAuthor = await _discordCache.GetGuildMember(originalMessage.AuthorUserId);
             var originalAuthorUser = originalAuthor.Entity!.User.Value;
-            var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser);
+            var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser.ID.Value, 
+                originalAuthorUser.Discriminator, 
+                originalAuthorUser.Avatar?.Value,
+                originalAuthorUser.Avatar?.HasGif == true);
             embeds.Add(new Embed
             {
                 Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(originalAuthor.Entity.User.Value.Username, originalAuthor.Entity.User.Value.Discriminator),

@@ -9,7 +9,7 @@ public class UserHiddenChannel
     public int Id { get; set; }
         
     public ulong UserId { get; set; }
-    public virtual User User { get; set; } = null!;
+    public User? User { get; set; }
         
     public ulong? ParentDiscordChannelId { get; set; }
     public ulong DiscordChannelId { get; set; }

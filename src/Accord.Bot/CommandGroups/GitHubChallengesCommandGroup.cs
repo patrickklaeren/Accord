@@ -13,19 +13,15 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("github")]
-public class GitHubChallengesCommandGroup : AccordCommandGroup
+[Group("github"), AutoConstructor]
+public partial class GitHubChallengesCommandGroup : AccordCommandGroup
 {
     private readonly CommandResponder _commandResponder;
     private readonly IMediator _mediator;
 
-    public GitHubChallengesCommandGroup(CommandResponder commandResponder, IMediator mediator)
-    {
-        _commandResponder = commandResponder;
-        _mediator = mediator;
-    }
-
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-challenge"), Description("Posts challenge to the current channel, parsed via its readme from the GitHub repository")]
+    [RequireDiscordPermission(DiscordPermission.Administrator), 
+        Command("post-challenge"), 
+        Description("Posts challenge to the current channel, parsed via its readme from the GitHub repository")]
     public async Task<IResult> PostChallenge(string readmeUrl)
     {
         var challengeResponse = await _mediator.Send(new GetGitHubChallengeRequest(readmeUrl));

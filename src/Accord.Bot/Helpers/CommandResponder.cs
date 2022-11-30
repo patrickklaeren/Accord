@@ -6,18 +6,12 @@ using Remora.Results;
 
 namespace Accord.Bot.Helpers;
 
-public class CommandResponder
+[AutoConstructor]
+public partial class CommandResponder
 {
     private readonly ICommandContext _commandContext;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestInteractionAPI _interactionApi;
-
-    public CommandResponder(IDiscordRestChannelAPI channelApi, ICommandContext commandContext, IDiscordRestInteractionAPI interactionApi)
-    {
-        _channelApi = channelApi;
-        _commandContext = commandContext;
-        _interactionApi = interactionApi;
-    }
 
     public async Task<IResult> Respond(string message)
     {

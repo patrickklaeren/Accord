@@ -9,21 +9,14 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("lgtm")]
-public class LgtmCommandGroup: AccordCommandGroup
+[Group("lgtm"), AutoConstructor]
+public partial class LgtmCommandGroup: AccordCommandGroup
 {
     private readonly CommandResponder _commandResponder;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly ICommandContext _commandContext;
 
     private const string ROLE_NAME = "LGTM";
-
-    public LgtmCommandGroup(CommandResponder commandResponder, IDiscordRestGuildAPI guildApi, ICommandContext commandContext)
-    {
-        _commandResponder = commandResponder;
-        _guildApi = guildApi;
-        _commandContext = commandContext;
-    }
 
     [Command("subscribe"), Description("Subscribe to LGTM role")]
     public async Task<IResult> Subscribe()

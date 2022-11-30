@@ -1,16 +1,22 @@
 using System.Linq;
+using System.Security.Claims;
 using Accord.Bot;
 using Accord.Bot.HostedServices;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
+using Accord.Services.Helpers;
 using Accord.Services.Raid;
+using AspNet.Security.OAuth.Discord;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MudBlazor.Services;
 using Sentry;
 using Serilog;
 using Serilog.Events;
@@ -22,23 +28,79 @@ var builder = WebApplication
 
 builder.Logging.AddSerilog(CreateLogger());
 
+var discordConfiguration = new DiscordConfiguration();
+builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
+
 builder.Services
     .AddDbContext<AccordContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("Database")))
     .AddLazyCache()
+    .AddHttpContextAccessor()
     .AddHttpClient()
     .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
     .AddDiscordBot(builder.Configuration)
+    .AddSingleton(discordConfiguration)
     .AddSingleton<RaidCalculator>()
+    .AddSingleton<DiscordAvatarHelper>()
     .AddSingleton<IEventQueue, EventQueue>();
 
-// Configure hosted services
+builder.Services.Discover();
+
 builder.Services
-    .AddHostedService<BotHostedService>()
-    .AddHostedService<EventQueueProcessor>();
+    .AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie()
+    .AddDiscord(options =>
+    {
+        options.ClientId = builder.Configuration["Discord:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Discord:ClientSecret"]!;
+        options.SaveTokens = true;
+        options.AccessDeniedPath = "/welcome";
+        
+        options.Scope.Add("identify");
+
+        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id", ClaimValueTypes.UInteger64);
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username", ClaimValueTypes.String);
+    });
+
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddMudServices();
+
+if (!bool.TryParse(builder.Configuration["Discord:DisableBot"], out var disableDiscordBot) 
+    || !disableDiscordBot)
+{
+    builder.Services
+        .AddHostedService<BotHostedService>()
+        .AddHostedService<CleanUpHelpForumHostedService>()
+        .AddHostedService<RemindersHostedService>();
+}
+
+builder.Services.AddHostedService<EventQueueProcessor>();
 
 var app = builder.Build();
 
 Log.Information("Host built...");
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCookiePolicy();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
+
+app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
+app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
 
 using (var scope = app.Services.CreateScope())
 {
@@ -57,8 +119,6 @@ using (var scope = app.Services.CreateScope())
 
 Log.Information("Ready to run");
 
-app.MapGet("/", () => "Hello world!");
-
 await app.RunAsync();
 
 ILogger CreateLogger()
@@ -74,9 +134,10 @@ ILogger CreateLogger()
         loggerConfiguration.WriteTo.Console();
     }
 
-    var sentrySection = builder.Configuration.GetSection("SentryConfiguration");
+    var sentrySection = builder.Configuration.GetSection("Sentry");
+    var isSentryDisabled = bool.TryParse(sentrySection["Disable"], out var disable) && disable;
 
-    if (!string.IsNullOrWhiteSpace(sentrySection["Dsn"]))
+    if (!string.IsNullOrWhiteSpace(sentrySection["Dsn"]) && !isSentryDisabled)
     {
         loggerConfiguration.WriteTo.Sentry(o =>
         {

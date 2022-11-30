@@ -12,18 +12,11 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("permission")]
-public class PermissionCommandGroup: AccordCommandGroup
+[Group("permission"), AutoConstructor]
+public partial class PermissionCommandGroup: AccordCommandGroup
 {
     private readonly IMediator _mediator;
     private readonly CommandResponder _commandResponder;
-
-    public PermissionCommandGroup(IMediator mediator,
-        CommandResponder commandResponder)
-    {
-        _mediator = mediator;
-        _commandResponder = commandResponder;
-    }
 
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user")]
     public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)

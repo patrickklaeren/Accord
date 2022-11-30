@@ -10,14 +10,10 @@ namespace Accord.Bot.RequestHandlers;
 
 public record DeactivateForumPostRequest(IChannel Channel) : IRequest;
 
-public class DeactivateForumPostHandler : AsyncRequestHandler<DeactivateForumPostRequest>
+[AutoConstructor]
+public partial class DeactivateForumPostHandler : AsyncRequestHandler<DeactivateForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
-
-    public DeactivateForumPostHandler(IDiscordRestChannelAPI channelApi)
-    {
-        _channelApi = channelApi;
-    }
 
     private const string PREFIX = "❔";
 

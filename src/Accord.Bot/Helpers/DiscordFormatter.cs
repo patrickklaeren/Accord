@@ -15,7 +15,6 @@ public static class DiscordFormatter
         $"<t:{dateTimeOffset.ToUnixTimeSeconds()}:{(char)type}>";
     public static string TimeToMarkdown(DateTime dateTime, TimeToMentionType type = TimeToMentionType.ShortDateTime) => TimeToMarkdown(dateTimeOffset: dateTime, type);
 
-
     public static string ToUserMention(this Snowflake snowflake) => UserIdToMention(snowflake.Value);
     public static string ToRoleMention(this Snowflake snowflake) => RoleIdToMention(snowflake.Value);
     public static string ToChannelMention(this Snowflake snowflake) => ChannelIdToMention(snowflake.Value);

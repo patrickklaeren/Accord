@@ -33,10 +33,14 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
 - Get the Id of the Discord Guild you will be testing the bot in, for the purposes of Slash command updating
 - Get your bot token from the [Discord developer portal](https://discord.com/developers/applications)
 - Set up configurations for development, using [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets)
-    - `dotnet user-secrets set DiscordConfiguration:GuildId GUILD_ID`
-    - `dotnet user-secrets set DiscordConfiguration:BotToken BOT_TOKEN`
+    - `dotnet user-secrets set Discord:ClientId CLIENT_ID`
+    - `dotnet user-secrets set Discord:ClientSecret CLIENT_SECRET`
+    - `dotnet user-secrets set Discord:GuildId GUILD_ID`
+    - `dotnet user-secrets set Discord:BotToken BOT_TOKEN`
 
 By default the bot will look for a SQL Server instance running on `localhost`. If your instance is not on `localhost` or has an otherwise differing connection string, set the `ConnectionStrings:Database` secret.
+
+If you want to disable the Discord bot instance, for any reason, you can override `Discord:DisableBot` to `true`, which will only run the hosting ASP.NET Core project, skipping bot initialisation. Do note that several parts of the frontend require the bot to have a connection established.
 
 **Invite your bot**
 
@@ -56,7 +60,7 @@ Currently you will need to build from source. There are no distributions at this
 - SQL Server
 - Web host for ASP.NET Core
 
-Set environment variables for `ConnectionStrings:Database`, `DiscordConfiguration:GuildId`, `DiscordConfiguration:BotToken`.
+Set environment variables for `ConnectionStrings:Database`, `Discord:GuildId`, `Discord:BotToken`, `Discord:ClientId`, `Discord:ClientSecret`.
 
 This bot is intended for single-guild usage.
 

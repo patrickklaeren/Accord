@@ -28,7 +28,7 @@ public class ReportCommandGroup: AccordCommandGroup
     private readonly IDiscordRestWebhookAPI _webhookApi;
     private readonly CommandResponder _commandResponder;
     private readonly DiscordAvatarHelper _avatarHelper;
-    private readonly DiscordScopedCache _discordCache;
+    private readonly DiscordCache _discordCache;
 
     public ReportCommandGroup(ICommandContext commandContext,
         IMediator mediator,
@@ -36,7 +36,7 @@ public class ReportCommandGroup: AccordCommandGroup
         CommandResponder commandResponder,
         IDiscordRestChannelAPI channelApi,
         DiscordAvatarHelper avatarHelper,
-        DiscordScopedCache discordCache,
+        DiscordCache discordCache,
         IDiscordRestWebhookAPI webhookApi)
     {
         _commandContext = commandContext;
@@ -171,7 +171,7 @@ public class ReportCommandGroup: AccordCommandGroup
         {
             Author = new EmbedAuthor(
                 DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator),
-                IconUrl: _avatarHelper.GetAvatarUrl(user)),
+                IconUrl: _avatarHelper.GetAvatarUrl(user.ID.Value, user.Discriminator, user.Avatar?.Value, user.Avatar?.HasGif == true)),
             Description = userInfoPayload.ToString(),
             Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
         };

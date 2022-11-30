@@ -11,14 +11,10 @@ namespace Accord.Bot.RequestHandlers;
 
 public record CloseHelpForumPostRequest(IChannel Channel) : IRequest;
 
-public class CloseHelpForumPostHandler : AsyncRequestHandler<CloseHelpForumPostRequest>
+[AutoConstructor]
+public partial class CloseHelpForumPostHandler : AsyncRequestHandler<CloseHelpForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
-
-    public CloseHelpForumPostHandler(IDiscordRestChannelAPI channelApi)
-    {
-        _channelApi = channelApi;
-    }
 
     private const string PREFIX = "✅";
 

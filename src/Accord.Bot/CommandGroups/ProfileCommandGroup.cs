@@ -19,25 +19,15 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-public class ProfileCommandGroup: AccordCommandGroup
+[AutoConstructor]
+public partial class ProfileCommandGroup: AccordCommandGroup
 {
     private readonly IMediator _mediator;
     private readonly ICommandContext _commandContext;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly CommandResponder _commandResponder;
-
-    public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext,
-        IDiscordRestGuildAPI guildApi,
-        DiscordAvatarHelper discordAvatarHelper,
-        CommandResponder commandResponder)
-    {
-        _mediator = mediator;
-        _commandContext = commandContext;
-        _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
-        _commandResponder = commandResponder;
-    }
+    private readonly ThumbnailHelper _thumbnailHelper;
 
     [Command("profile"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IGuildMember? member = null)
@@ -69,8 +59,12 @@ public class ProfileCommandGroup: AccordCommandGroup
         var guildUser = guildUserEntity.Entity;
         var (userDto, userMessagesInChannelDtos, userVoiceMinutesInChannelDtos) = response.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value);
-        var avatarImage = _discordAvatarHelper.GetAvatar(guildUser.User.Value);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
+            guildUser.User.Value.Discriminator, 
+            guildUser.User.Value.Avatar?.Value, 
+            guildUser.User.Value.Avatar?.HasGif == true);
+        
+        var avatarImage = _thumbnailHelper.GetAvatar(guildUser.User.Value);
 
         var builder = new StringBuilder();
 
@@ -91,14 +85,14 @@ public class ProfileCommandGroup: AccordCommandGroup
             builder.AppendLine($"Nickname: {userDto.Nickname}");
         }
 
-        builder.AppendLine($"Created: {userCreated.ToDiscordDateMarkdown()}");
+        builder.AppendLine($"Created: {userCreated.ToTimeMarkdown()}");
 
         if (userDto.JoinedGuildDateTime is not null)
         {
-            builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToDiscordDateMarkdown()}");
+            builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
         }
 
-        builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToDiscordDateMarkdown()}");
+        builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToTimeMarkdown()}");
 
         builder
             .AppendLine()

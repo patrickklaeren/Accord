@@ -22,27 +22,14 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("remind")]
-public class ReminderCommandGroup: AccordCommandGroup
+[Group("remind"), AutoConstructor]
+public partial class ReminderCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly CommandResponder _commandResponder;
-
-    public ReminderCommandGroup(ICommandContext commandContext,
-        IMediator mediator,
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder,
-        DiscordAvatarHelper discordAvatarHelper)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-        _discordAvatarHelper = discordAvatarHelper;
-    }
 
     [Command("me"), Description("Add a reminder for the invoking user.")]
     public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)
@@ -157,12 +144,14 @@ public class ReminderCommandGroup: AccordCommandGroup
         var guildUser = guildUserEntity.Entity;
         var (userDto, _, _) = userResponse.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value);
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
+            guildUser.User.Value.Discriminator, 
+            guildUser.User.Value.Avatar?.Value, 
+            guildUser.User.Value.Avatar?.HasGif == true);
 
         var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)
             ? userDto.UsernameWithDiscriminator
             : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator);
-
 
         var totalReminders = response.Value!.Count;
 

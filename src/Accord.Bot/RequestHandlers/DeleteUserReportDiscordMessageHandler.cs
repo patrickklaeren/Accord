@@ -8,15 +8,11 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class DeleteUserReportDiscordMessageHandler : AsyncRequestHandler<DeleteUserReportDiscordMessageRequest>
+[AutoConstructor]
+public partial class DeleteUserReportDiscordMessageHandler : AsyncRequestHandler<DeleteUserReportDiscordMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
 
-    public DeleteUserReportDiscordMessageHandler(IDiscordRestWebhookAPI webhookApi)
-    {
-        _webhookApi = webhookApi;
-    }
-    
     protected override async Task Handle(DeleteUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
     {
         await _webhookApi.DeleteWebhookMessageAsync(

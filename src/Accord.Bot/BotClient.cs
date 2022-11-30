@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Results;
@@ -13,21 +12,13 @@ using Remora.Results;
 
 namespace Accord.Bot;
 
-public class BotClient
+[AutoConstructor]
+public partial class BotClient
 {
     private readonly ILogger<BotClient> _logger;
     private readonly DiscordGatewayClient _discordGatewayClient;
     private readonly SlashService _slashService;
     private readonly DiscordConfiguration _discordConfiguration;
-
-    public BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient,
-        SlashService slashService, IOptions<DiscordConfiguration> botConfiguration)
-    {
-        _slashService = slashService;
-        _discordGatewayClient = discordGatewayClient;
-        _discordConfiguration = botConfiguration.Value;
-        _logger = logger;
-    }
 
     public async Task Run(CancellationToken cancellationToken)
     {
