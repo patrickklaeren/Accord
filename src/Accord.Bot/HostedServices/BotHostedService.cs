@@ -4,15 +4,11 @@ using Microsoft.Extensions.Hosting;
 
 namespace Accord.Bot.HostedServices;
 
-public class BotHostedService : IHostedService
+[AutoConstructor]
+public partial class BotHostedService : IHostedService
 {
     private readonly BotClient _botClient;
     private Task? _runTask;
-
-    public BotHostedService(BotClient botClient)
-    {
-        _botClient = botClient;
-    }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {

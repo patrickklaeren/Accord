@@ -15,19 +15,12 @@ using Remora.Discord.Rest.API;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class KickHandler : AsyncRequestHandler<KickRequest>
+[AutoConstructor]
+public partial class KickHandler : AsyncRequestHandler<KickRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-
-    public KickHandler(IDiscordRestChannelAPI channelApi, IMediator mediator,
-        IDiscordRestGuildAPI guildApi)
-    {
-        _channelApi = channelApi;
-        _mediator = mediator;
-        _guildApi = guildApi;
-    }
 
     protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
     {

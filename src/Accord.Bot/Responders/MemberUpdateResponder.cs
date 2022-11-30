@@ -21,26 +21,14 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
+[AutoConstructor]
+public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
 {
     private readonly IMediator _mediator;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestAuditLogAPI _auditLogApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly ThumbnailHelper _thumbnailHelper;
-
-    public MemberUpdateResponder(IMediator mediator,
-        IDiscordRestChannelAPI channelApi,
-        DiscordAvatarHelper discordAvatarHelper,
-        IDiscordRestAuditLogAPI auditLogApi,
-        ThumbnailHelper thumbnailHelper)
-    {
-        _mediator = mediator;
-        _channelApi = channelApi;
-        _discordAvatarHelper = discordAvatarHelper;
-        _auditLogApi = auditLogApi;
-        _thumbnailHelper = thumbnailHelper;
-    }
 
     public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken cancellationToken = new())
     {

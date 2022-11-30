@@ -7,7 +7,6 @@ using Accord.Domain;
 using Accord.Services;
 using Accord.Services.Helpers;
 using Accord.Services.Raid;
-using Accord.Web.Services;
 using AspNet.Security.OAuth.Discord;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -29,6 +28,9 @@ var builder = WebApplication
 
 builder.Logging.AddSerilog(CreateLogger());
 
+var discordConfiguration = new DiscordConfiguration();
+builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
+
 builder.Services
     .AddDbContext<AccordContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("Database")))
     .AddLazyCache()
@@ -36,6 +38,7 @@ builder.Services
     .AddHttpClient()
     .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
     .AddDiscordBot(builder.Configuration)
+    .AddSingleton(discordConfiguration)
     .AddSingleton<RaidCalculator>()
     .AddSingleton<DiscordAvatarHelper>()
     .AddSingleton<IEventQueue, EventQueue>();
@@ -57,12 +60,9 @@ builder.Services
         options.AccessDeniedPath = "/welcome";
         
         options.Scope.Add("identify");
-        options.Scope.Add("guilds");
-        options.Scope.Add("guilds.members.read");
 
         options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id", ClaimValueTypes.UInteger64);
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username", ClaimValueTypes.String);
-        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email", ClaimValueTypes.Email);
     });
 
 builder.Services.AddRazorPages();

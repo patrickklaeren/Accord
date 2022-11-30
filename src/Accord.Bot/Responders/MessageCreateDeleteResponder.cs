@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
 using Accord.Services.UserMessages;
@@ -9,16 +8,12 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MessageCreateDeleteResponder : IResponder<IMessageCreate>, 
+[AutoConstructor]
+public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>, 
     IResponder<IMessageDelete>, 
     IResponder<IMessageDeleteBulk>
 {
     private readonly IEventQueue _eventQueue;
-
-    public MessageCreateDeleteResponder(IEventQueue eventQueue)
-    {
-        _eventQueue = eventQueue;
-    }
 
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {

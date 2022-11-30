@@ -14,19 +14,12 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class BanHandler : AsyncRequestHandler<BanRequest>
+[AutoConstructor]
+public partial class BanHandler : AsyncRequestHandler<BanRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
-
-    public BanHandler(IDiscordRestChannelAPI channelApi, IMediator mediator, 
-        IDiscordRestGuildAPI guildApi)
-    {
-        _channelApi = channelApi;
-        _mediator = mediator;
-        _guildApi = guildApi;
-    }
 
     protected override async Task Handle(BanRequest request, CancellationToken cancellationToken)
     {

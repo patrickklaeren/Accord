@@ -1,16 +1,11 @@
 ﻿using Accord.Bot.Infrastructure;
-using Microsoft.Extensions.Options;
 
 namespace Accord.Services.Helpers;
 
-public class DiscordAvatarHelper
+[AutoConstructor]
+public partial class DiscordAvatarHelper
 {
     private readonly DiscordConfiguration _discordConfiguration;
-
-    public DiscordAvatarHelper(IOptions<DiscordConfiguration> discordConfiguration)
-    {
-        _discordConfiguration = discordConfiguration.Value;
-    }
 
     public string GetAvatarUrl(ulong discordUserId, 
         ushort discordDiscriminator, 

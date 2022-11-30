@@ -22,7 +22,6 @@ public partial class DiscordCache
         Priority = CacheItemPriority.NeverRemove
     };
 
-    [AutoConstructorInject("discordConfiguration.Value", "discordConfiguration", typeof(IOptions<DiscordConfiguration>))]
     private readonly DiscordConfiguration _discordConfiguration;
 
     public Snowflake GetSelfSnowflake() => _appCache.Get<Snowflake>($"{nameof(DiscordCache)}/SelfSnowflake");

@@ -15,17 +15,12 @@ using Serilog;
 
 namespace Accord.Bot.HostedServices;
 
-public class CleanUpHelpForumHostedService : BackgroundService
+[AutoConstructor]
+public partial class CleanUpHelpForumHostedService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly DiscordConfiguration _discordConfiguration;
 
-    public CleanUpHelpForumHostedService(IServiceScopeFactory serviceScopeFactory, 
-        IOptions<DiscordConfiguration> discordConfiguration)
-    {
-        _serviceScopeFactory = serviceScopeFactory;
-        _discordConfiguration = discordConfiguration.Value;
-    }
+    private readonly DiscordConfiguration _discordConfiguration;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

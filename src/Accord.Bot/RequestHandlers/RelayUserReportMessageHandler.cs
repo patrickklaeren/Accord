@@ -18,24 +18,13 @@ using Remora.Results;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
+[AutoConstructor]
+public partial class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReportMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly DiscordCache _discordCache;
     private readonly IMediator _mediator;
-
-    public RelayUserReportMessageHandler(
-        DiscordCache discordCache,
-        IDiscordRestWebhookAPI webhookApi,
-        DiscordAvatarHelper discordAvatarHelper,
-        IMediator mediator)
-    {
-        _discordCache = discordCache;
-        _webhookApi = webhookApi;
-        _discordAvatarHelper = discordAvatarHelper;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
     {

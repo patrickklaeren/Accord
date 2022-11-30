@@ -13,14 +13,10 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.HostedServices;
 
-public class RemindersHostedService : BackgroundService
+[AutoConstructor]
+public partial class RemindersHostedService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-
-    public RemindersHostedService(IServiceScopeFactory serviceScopeFactory)
-    {
-        _serviceScopeFactory = serviceScopeFactory;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

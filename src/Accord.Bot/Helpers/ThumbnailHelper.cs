@@ -4,14 +4,10 @@ using Remora.Discord.API.Objects;
 
 namespace Accord.Bot.Helpers;
 
-public class ThumbnailHelper
+[AutoConstructor]
+public partial class ThumbnailHelper
 {
     private readonly DiscordAvatarHelper _discordAvatarHelper;
-
-    public ThumbnailHelper(DiscordAvatarHelper discordAvatarHelper)
-    {
-        _discordAvatarHelper = discordAvatarHelper;
-    }
 
     public EmbedThumbnail GetAvatar(IUser user)
     {

@@ -23,19 +23,14 @@ public static class BotServiceCollectionExtensions
         var token = discordConfigurationSection["BotToken"]!;
 
         services
-            .Configure<DiscordConfiguration>(discordConfigurationSection);
-
-        services
             .Configure<DiscordCommandResponderOptions>(o => o.Prefix = "!");
 
         services
             .AddLogging()
             .AddTransient<BotClient>()
-            .AddSingleton<BotState>()
             .AddSingleton<DiscordCache>()
             .AddScoped<ThumbnailHelper>()
             .AddScoped<DiscordPermissionHelper>()
-            //.AddScoped<DiscordChannelParser>()
             .AddScoped<CommandResponder>()
             .AddDiscordGateway(_ => token)
             .Configure<DiscordGatewayClientOptions>(o =>

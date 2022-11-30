@@ -7,16 +7,11 @@ using Remora.Results;
 
 namespace Accord.Bot.Infrastructure;
 
-public class AfterCommandPostExecutionEvent : IPostExecutionEvent
+[AutoConstructor]
+public partial class AfterCommandPostExecutionEvent : IPostExecutionEvent
 {
     private readonly IDiscordRestInteractionAPI _interactionApi;
     private readonly IDiscordRestChannelAPI _channelApi;
-
-    public AfterCommandPostExecutionEvent(IDiscordRestInteractionAPI interactionApi, IDiscordRestChannelAPI channelApi)
-    {
-        _interactionApi = interactionApi;
-        _channelApi = channelApi;
-    }
 
     private const string DEFAULT_ERROR_MESSAGE = "Something went wrong, there is no message for this, help me out by submitting a useful message via my repo!";
     private const string NO_MATCHING_COMMAND_FOUND = "No matching command could be found.";

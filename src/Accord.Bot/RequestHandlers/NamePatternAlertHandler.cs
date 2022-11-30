@@ -12,22 +12,13 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertRequest>
+[AutoConstructor]
+public partial class NamePatternAlertHandler : AsyncRequestHandler<NamePatternAlertRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
     private readonly ThumbnailHelper _thumbnailHelper;
-
-    public NamePatternAlertHandler(IDiscordRestChannelAPI channelApi, 
-        IMediator mediator, IDiscordRestGuildAPI guildApi, 
-        ThumbnailHelper thumbnailHelper)
-    {
-        _channelApi = channelApi;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _thumbnailHelper = thumbnailHelper;
-    }
 
     protected override async Task Handle(NamePatternAlertRequest request, CancellationToken cancellationToken)
     {

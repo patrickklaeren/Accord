@@ -7,14 +7,10 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class EditUserReportDiscordMessageHandler : AsyncRequestHandler<EditUserReportDiscordMessageRequest>
+[AutoConstructor]
+public partial class EditUserReportDiscordMessageHandler : AsyncRequestHandler<EditUserReportDiscordMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
-
-    public EditUserReportDiscordMessageHandler(IDiscordRestWebhookAPI webhookApi)
-    {
-        _webhookApi = webhookApi;
-    }
 
     protected override async Task Handle(EditUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
     {
