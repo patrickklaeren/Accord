@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Bot.RequestHandlers;
@@ -11,30 +10,17 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Rest.Core;
 using Remora.Results;
-using Serilog;
 
 namespace Accord.Bot.CommandGroups;
 
-public class HelpForumCommandGroup : AccordCommandGroup
+[AutoConstructor]
+public partial class HelpForumCommandGroup : AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly CommandResponder _commandResponder;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IMediator _mediator;
-
-    public HelpForumCommandGroup(ICommandContext commandContext,
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder,
-        IDiscordRestChannelAPI channelApi,
-        IMediator mediator)
-    {
-        _commandContext = commandContext;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-        _channelApi = channelApi;
-        _mediator = mediator;
-    }
 
     private static readonly Snowflake[] AllowedRolesToCloseForumPosts = 
     {

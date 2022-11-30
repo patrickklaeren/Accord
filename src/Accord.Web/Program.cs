@@ -70,7 +70,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 
 if (!bool.TryParse(builder.Configuration["Discord:DisableBot"], out var disableDiscordBot) 
-    && !disableDiscordBot)
+    || !disableDiscordBot)
 {
     builder.Services
         .AddHostedService<BotHostedService>()

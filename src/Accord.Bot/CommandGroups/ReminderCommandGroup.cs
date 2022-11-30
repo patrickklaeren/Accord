@@ -22,27 +22,14 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("remind")]
-public class ReminderCommandGroup: AccordCommandGroup
+[Group("remind"), AutoConstructor]
+public partial class ReminderCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly CommandResponder _commandResponder;
-
-    public ReminderCommandGroup(ICommandContext commandContext,
-        IMediator mediator,
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder,
-        DiscordAvatarHelper discordAvatarHelper)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-        _discordAvatarHelper = discordAvatarHelper;
-    }
 
     [Command("me"), Description("Add a reminder for the invoking user.")]
     public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)

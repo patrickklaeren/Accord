@@ -39,7 +39,7 @@ public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReport
 
     protected override async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
     {
-        var member = await _discordCache.GetGuildMember(request.DiscordGuildId, request.AuthorDiscordUserId);
+        var member = await _discordCache.GetGuildMember(request.AuthorDiscordUserId);
 
         if (!member.IsSuccess || member.Entity is null || !member.Entity.User.HasValue)
             return;
@@ -110,7 +110,7 @@ public class RelayUserReportMessageHandler : AsyncRequestHandler<RelayUserReport
             if (originalMessage is null)
                 throw new InvalidOperationException("Cannot process without original message");
                 
-            var originalAuthor = await _discordCache.GetGuildMember(request.DiscordGuildId, originalMessage.AuthorUserId);
+            var originalAuthor = await _discordCache.GetGuildMember(originalMessage.AuthorUserId);
             var originalAuthorUser = originalAuthor.Entity!.User.Value;
             var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser.ID.Value, 
                 originalAuthorUser.Discriminator, 

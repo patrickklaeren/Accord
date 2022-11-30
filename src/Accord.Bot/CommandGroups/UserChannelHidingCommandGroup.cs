@@ -19,39 +19,18 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("channel")]
-public class UserChannelHidingCommandGroup: AccordCommandGroup
+[Group("channel"), AutoConstructor]
+public partial class UserChannelHidingCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IDiscordRestGuildAPI _guildApi;
     private readonly CommandResponder _commandResponder;
     private readonly DiscordCache _discordCache;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly DiscordPermissionHelper _discordPermissionHelper;
-    private readonly DiscordChannelParser _discordChannelParser;
     private readonly ILogger<UserChannelHidingCommandGroup> _logger;
-
-    public UserChannelHidingCommandGroup(ICommandContext commandContext,
-        IMediator mediator,
-        IDiscordRestChannelAPI channelApi,
-        CommandResponder commandResponder,
-        DiscordAvatarHelper discordAvatarHelper,
-        DiscordCache discordCache,
-        DiscordPermissionHelper discordPermissionHelper,
-        ILogger<UserChannelHidingCommandGroup> logger,
-        DiscordChannelParser discordChannelParser)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _channelApi = channelApi;
-        _commandResponder = commandResponder;
-        _discordAvatarHelper = discordAvatarHelper;
-        _discordCache = discordCache;
-        _discordPermissionHelper = discordPermissionHelper;
-        _logger = logger;
-        _discordChannelParser = discordChannelParser;
-    }
 
     [Command("hidden"), Description("Display your hidden channels")]
     public async Task<IResult> GetHiddenChannels()
@@ -85,7 +64,8 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
     [Command("hide"), Description("Hide a channel for you")]
     public async Task<IResult> HideChannel(IChannel channel)
     {
-        var guildMember = await _discordCache.GetGuildMember();
+        var guildMember = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, _commandContext.User.ID);
+
         if (!guildMember.IsSuccess || guildMember.Entity == null)
             return await _commandResponder.Respond("There was an error executing this command. Try again later.");
 
@@ -94,13 +74,11 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
             return await _commandResponder.Respond("This channel is already hidden for you.");
 
         var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
-        var hasUserPermissionToViewTheChannel = _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
-            _commandContext.GuildID.Value.Value,
+        var hasUserPermissionToViewTheChannel = await _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
             guildMember.Entity,
             channel,
             DiscordPermission.ViewChannel);
-        var hasBotPermissionToManageTheChannel = _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
-            _commandContext.GuildID.Value.Value,
+        var hasBotPermissionToManageTheChannel = await _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
             channel,
             DiscordPermission.ViewChannel, DiscordPermission.ManageRoles);
 
@@ -121,19 +99,19 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
 
         if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
         {
-            var channels = _discordCache.GetGuildChannels();
+            var channels = await _discordCache.GetGuildChannels();
+
             foreach (var inheritedChannel in channels)
             {
                 if (inheritedChannel.ParentID == channel.ID)
                 {
-                    var hasUserPermissionToViewTheInheritedChannel = _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
-                        _commandContext.GuildID.Value.Value,
+                    var hasUserPermissionToViewTheInheritedChannel = await _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
                         guildMember.Entity,
                         inheritedChannel,
                         DiscordPermission.ViewChannel);
+
                     var hasBotPermissionToManageTheInheritedChannel =
-                        _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
-                            _commandContext.GuildID.Value.Value,
+                        await _discordPermissionHelper.HasBotEffectivePermissionsInChannel(
                             inheritedChannel,
                             DiscordPermission.ViewChannel, DiscordPermission.ManageRoles);
 
@@ -210,36 +188,26 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
     [Command("show"), Description("Show a channel you've hidden")]
     public async Task<IResult> ShowChannel(string channelText)
     {
-        var results = _discordChannelParser.TryParse(channelText);
-        if (!results.IsSuccess)
-            return await _commandResponder.Respond($"Channel: {channelText} not found");
-
+        var channels = await _discordCache.GetGuildChannels();
         IChannel? channel;
 
-        if (results.Entity.Channels.Count == 1)
+        if(ulong.TryParse(channelText, out var channelId))
         {
-            channel = results.Entity.Channels[0];
-        }
-        else if (results.Entity is ApproximateChannelParsingResults approximateChannelParsingResults)
-        {
-            var minimumScore = approximateChannelParsingResults.Scores.Min(x => x.Value);
-            var result = approximateChannelParsingResults.Scores
-                .OrderBy(x => x.Value)
-                .FirstOrDefault(x => x.Value == minimumScore
-                                     && x.Key.HasUserPermissionOverwrite(_commandContext.User, DiscordPermission.ViewChannel, DiscordPermissionType.Deny))
-                .Key;
-            channel = result;
+            channel = channels
+                .Where(x => x.ID.Value == channelId)
+                .FirstOrDefault();
         }
         else
         {
-            var result = results.Entity.Channels
-                .FirstOrDefault(x => x.HasUserPermissionOverwrite(_commandContext.User, DiscordPermission.ViewChannel, DiscordPermissionType.Deny));
-                
-            channel = result;
+            channel = channels
+                .Where(x => string.Equals(x.Name.Value, channelText, System.StringComparison.InvariantCultureIgnoreCase))
+                .FirstOrDefault();
         }
 
-        if (channel == null)
+        if (channel is null)
+        {
             return await _commandResponder.Respond($"Channel: {channelText} not found");
+        }
 
         var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
 
@@ -258,7 +226,6 @@ public class UserChannelHidingCommandGroup: AccordCommandGroup
 
         if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
         {
-            var channels = _discordCache.GetGuildChannels();
             foreach (var inheritedChannel in channels)
             {
                 if (inheritedChannel.ParentID == channel.ID)

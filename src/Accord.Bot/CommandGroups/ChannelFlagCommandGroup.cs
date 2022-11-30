@@ -13,24 +13,13 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("channel-flag")]
-public class ChannelFlagCommandGroup: AccordCommandGroup
+[Group("channel-flag"), AutoConstructor]
+public partial class ChannelFlagCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly CommandResponder _commandResponder;
-
-    public ChannelFlagCommandGroup(ICommandContext commandContext,
-        IMediator mediator, 
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-    }
 
     [Command("add"), Description("Add flag to the current channel")]
     public async Task<IResult> AddFlag(string type, IChannel? channel = null)

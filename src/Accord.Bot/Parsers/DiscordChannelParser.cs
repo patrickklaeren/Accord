@@ -18,9 +18,9 @@ public record ApproximateChannelParsingResults(IReadOnlyList<IChannel> Channels,
 
 public class DiscordChannelParser : AbstractTypeParser<IChannel>
 {
-    private readonly DiscordScopedCache _discordCache;
+    private readonly DiscordCache _discordCache;
 
-    public DiscordChannelParser(DiscordScopedCache discordCache)
+    public DiscordChannelParser(DiscordCache discordCache)
     {
         _discordCache = discordCache;
     }
@@ -60,59 +60,21 @@ public class DiscordChannelParser : AbstractTypeParser<IChannel>
 
         return new ChannelParsingResults(channels);
     }
-
-    public Result<ApproximateChannelParsingResults> TryParseChannelFromNameLevenshtein(string value, IReadOnlyList<IChannel> channelList)
-    {
-        var channels = channelList
-            .Select(x => new
-            {
-                Channel = x,
-                Score = value
-                    .ToLowerInvariant()
-                    .Replace("#", "")
-                    .GetDamerauLevenshteinDistance(x.Name.Value!.ToLowerInvariant().Replace("#", ""))
-            })
-            .OrderBy(x => x.Score)
-            .Where(x => x.Score <= 2)
-            .ToDictionary(x => x.Channel, x => x.Score);
-        if (channels.Count == 0)
-            return new ParsingError<IChannel>(value);
-
-
-        return new ApproximateChannelParsingResults(channels.Keys.ToList(), channels);
-    }
-
-    public Result<ChannelParsingResults> TryParse(string value, bool allowApproximate = true)
+    
+    public override async ValueTask<Result<IChannel>> TryParseAsync(string value, CancellationToken ct = default)
     {
         Result<ChannelParsingResults> channelResult;
-        var guildChannels = _discordCache.GetGuildChannels();
+        var guildChannels = await _discordCache.GetGuildChannels();
 
         if ((channelResult = TryParseChannelFromId(value, guildChannels)).IsSuccess)
-            return channelResult.Entity;
+            return Result<IChannel>.FromSuccess(channelResult.Entity.Channels[0]);
 
         if ((channelResult = TryParseChannelFromSnowflake(value, guildChannels)).IsSuccess)
-            return channelResult.Entity;
+            return Result<IChannel>.FromSuccess(channelResult.Entity.Channels[0]);
 
         if ((channelResult = TryParseChannelFromName(value, guildChannels)).IsSuccess)
-            return channelResult.Entity;
+            return Result<IChannel>.FromSuccess(channelResult.Entity.Channels[0]);
 
-        if (!allowApproximate)
-            return channelResult;
-            
-        Result<ApproximateChannelParsingResults> approxChannelResult;
-        if ((approxChannelResult = TryParseChannelFromNameLevenshtein(value, guildChannels)).IsSuccess)
-            return approxChannelResult.Entity;
-            
-        return channelResult;
-    }
-
-    /// <inheritdoc />
-    public override ValueTask<Result<IChannel>> TryParseAsync(string value, CancellationToken ct = default)
-    {
-        var result = TryParse(value, false);
-        if (!result.IsSuccess)
-            return ValueTask.FromResult(Result<IChannel>.FromError(result.Error));
-
-        return ValueTask.FromResult(Result<IChannel>.FromSuccess(result.Entity.Channels[0]));
+        return Result<IChannel>.FromError(channelResult);
     }
 }

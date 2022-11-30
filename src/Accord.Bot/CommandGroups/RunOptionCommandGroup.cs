@@ -12,17 +12,11 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-public class RunOptionCommandGroup: AccordCommandGroup
+[AutoConstructor]
+public partial class RunOptionCommandGroup: AccordCommandGroup
 {
     private readonly IMediator _mediator;
     private readonly CommandResponder _commandResponder;
-
-    public RunOptionCommandGroup(IMediator mediator,
-        CommandResponder commandResponder)
-    {
-        _mediator = mediator;
-        _commandResponder = commandResponder;
-    }
 
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
     public async Task<IResult> Configure(string type, string value)

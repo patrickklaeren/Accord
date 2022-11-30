@@ -19,7 +19,8 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-public class ProfileCommandGroup: AccordCommandGroup
+[AutoConstructor]
+public partial class ProfileCommandGroup: AccordCommandGroup
 {
     private readonly IMediator _mediator;
     private readonly ICommandContext _commandContext;
@@ -27,20 +28,6 @@ public class ProfileCommandGroup: AccordCommandGroup
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly CommandResponder _commandResponder;
     private readonly ThumbnailHelper _thumbnailHelper;
-
-    public ProfileCommandGroup(IMediator mediator, ICommandContext commandContext,
-        IDiscordRestGuildAPI guildApi,
-        DiscordAvatarHelper discordAvatarHelper,
-        CommandResponder commandResponder,
-        ThumbnailHelper thumbnailHelper)
-    {
-        _mediator = mediator;
-        _commandContext = commandContext;
-        _guildApi = guildApi;
-        _discordAvatarHelper = discordAvatarHelper;
-        _commandResponder = commandResponder;
-        _thumbnailHelper = thumbnailHelper;
-    }
 
     [Command("profile"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IGuildMember? member = null)
@@ -98,14 +85,14 @@ public class ProfileCommandGroup: AccordCommandGroup
             builder.AppendLine($"Nickname: {userDto.Nickname}");
         }
 
-        builder.AppendLine($"Created: {userCreated.ToDiscordDateMarkdown()}");
+        builder.AppendLine($"Created: {userCreated.ToTimeMarkdown()}");
 
         if (userDto.JoinedGuildDateTime is not null)
         {
-            builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToDiscordDateMarkdown()}");
+            builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
         }
 
-        builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToDiscordDateMarkdown()}");
+        builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToTimeMarkdown()}");
 
         builder
             .AppendLine()

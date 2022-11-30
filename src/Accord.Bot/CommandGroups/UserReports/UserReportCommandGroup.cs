@@ -134,7 +134,7 @@ public class UserReportCommandGroup: AccordCommandGroup
         {
             var agentRoleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
 
-            var everyoneRole = _discordCache.GetEveryoneRole(_commandContext.GuildID.Value);
+            var everyoneRole = _discordCache.GetEveryoneRole();
 
             var selfBotPermissionOverwrite = new PermissionOverwrite(
                 _discordCache.GetSelfSnowflake(),
@@ -199,7 +199,7 @@ public class UserReportCommandGroup: AccordCommandGroup
 
         var roleId = await _mediator.Send(new GetUserReportsAgentRoleIdRequest());
 
-        var everyoneRole = _discordCache.GetEveryoneRole(_commandContext.GuildID.Value);
+        var everyoneRole = _discordCache.GetEveryoneRole();
 
         if (inboxCategoryId is null
             || channelsInGuild.All(x => x.ID.Value != inboxCategoryId))

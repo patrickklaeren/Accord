@@ -3,7 +3,6 @@ using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Helpers;
 using Accord.Bot.Helpers.Permissions;
-using Accord.Bot.HostedServices;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,8 +35,7 @@ public static class BotServiceCollectionExtensions
             .AddSingleton<DiscordCache>()
             .AddScoped<ThumbnailHelper>()
             .AddScoped<DiscordPermissionHelper>()
-            .AddScoped<DiscordScopedCache>()
-            .AddScoped<DiscordChannelParser>()
+            //.AddScoped<DiscordChannelParser>()
             .AddScoped<CommandResponder>()
             .AddDiscordGateway(_ => token)
             .Configure<DiscordGatewayClientOptions>(o =>
@@ -53,7 +51,7 @@ public static class BotServiceCollectionExtensions
             .AddParser<TimeSpanParser>();
 
         services.AddCommandTree()
-            .WithCommandGroup<XpCommandGroup>()
+            .WithCommandGroup<ParticipationCommandGroup>()
             .WithCommandGroup<GitHubChallengesCommandGroup>()
             .WithCommandGroup<ChannelFlagCommandGroup>()
             .WithCommandGroup<UserChannelHidingCommandGroup>()

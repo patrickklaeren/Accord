@@ -18,7 +18,7 @@ public class GuildUpdateResponder : IResponder<IGuildUpdate>
 
     public Task<Result> RespondAsync(IGuildUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.SetGuildRoles(gatewayEvent.ID, gatewayEvent.Roles);
+        _discordCache.InvalidateGuildRoles();
         return Task.FromResult(Result.FromSuccess());
     }
 }

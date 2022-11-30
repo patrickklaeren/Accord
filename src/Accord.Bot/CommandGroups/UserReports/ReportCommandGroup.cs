@@ -28,7 +28,7 @@ public class ReportCommandGroup: AccordCommandGroup
     private readonly IDiscordRestWebhookAPI _webhookApi;
     private readonly CommandResponder _commandResponder;
     private readonly DiscordAvatarHelper _avatarHelper;
-    private readonly DiscordScopedCache _discordCache;
+    private readonly DiscordCache _discordCache;
 
     public ReportCommandGroup(ICommandContext commandContext,
         IMediator mediator,
@@ -36,7 +36,7 @@ public class ReportCommandGroup: AccordCommandGroup
         CommandResponder commandResponder,
         IDiscordRestChannelAPI channelApi,
         DiscordAvatarHelper avatarHelper,
-        DiscordScopedCache discordCache,
+        DiscordCache discordCache,
         IDiscordRestWebhookAPI webhookApi)
     {
         _commandContext = commandContext;
