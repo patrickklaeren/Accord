@@ -24,7 +24,7 @@ public partial class DeactivateForumPostHandler : AsyncRequestHandler<Deactivate
         {
             try
             {
-                var newTitle = PREFIX + " " + request.Channel.Name.Value!.Trim();
+                var newTitle = PREFIX + " " + request.Channel.Name.Value!.Trim().Replace(PREFIX, string.Empty);
                 await _channelApi.ModifyThreadChannelAsync(request.Channel.ID, newTitle, ct: cancellationToken);
             }
             catch (Exception e)
