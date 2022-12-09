@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Accord.Services.Helpers;
-using CoenM.ImageHash;
-using CoenM.ImageHash.HashAlgorithms;
 
 namespace Accord.Services.Raid;
 
@@ -18,33 +14,10 @@ public class RaidCalculator
 
     private static readonly TimeSpan AccountCreationRange = TimeSpan.FromHours(2);
     private static readonly TimeSpan JoinCooldown = TimeSpan.FromSeconds(15);
-    private static DateTime ARBITRARY_EPOCH = new(2021, 09, 01);
-    private const ulong THIS_IS_THE_HASH = 17287036140796347265;
-    private const int ARBITRARY_SIMILARITY_FACTORY = 95;
+    private static readonly DateTime ArbitraryEpoch = new(2021, 09, 01);
 
-    private readonly IHttpClientFactory _httpClientFactory;
-
-    public RaidCalculator(IHttpClientFactory httpClientFactory)
+    public RaidResponse CalculateIsRaid(UserJoin userJoin, int sequentialLimit, int accountCreationSimilarityLimit)
     {
-        _httpClientFactory = httpClientFactory;
-    }
-
-    public async Task<RaidResponse> CalculateIsRaid(UserJoin userJoin, int sequentialLimit, int accountCreationSimilarityLimit)
-    {
-        // Check for avatars known to be part of coordinated raids
-        if (userJoin.AvatarUrl is not null)
-        {
-            var client = _httpClientFactory.CreateClient();
-            await using var imageStream = await client.GetStreamAsync(userJoin.AvatarUrl);
-            var hashAlgorithm = new AverageHash();
-            var avatarHash = hashAlgorithm.Hash(imageStream!);
-
-            if (CompareHash.Similarity(avatarHash, THIS_IS_THE_HASH) > ARBITRARY_SIMILARITY_FACTORY)
-            {
-                return new(true, "Avatar similarity");
-            }
-        }
-
         // Check for accounts created in the same range
         if(IsAccountCreationRisk(userJoin, accountCreationSimilarityLimit))
         {
@@ -70,7 +43,7 @@ public class RaidCalculator
     {
         var accountCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userJoin.DiscordUserId);
 
-        if(accountCreated < ARBITRARY_EPOCH)
+        if(accountCreated < ArbitraryEpoch)
         {
             return false;
         }
