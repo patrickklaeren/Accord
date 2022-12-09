@@ -1,0 +1,58 @@
+﻿@page "/settings/permissions-for-roles"
+@using Accord.Bot.Services;
+@using MediatR;
+@inject IMediator Mediator
+
+<PageTitle>@PageTitleFactory.Title("Permissions for Roles")</PageTitle>
+
+<MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
+    <MudTable Items="@Elements" Dense="true" Hover="true" Filter="new Func<DiscordGuildRoleDto,bool>(FilterRoles)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Guild Roles</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="roleSearch" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>ID</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="ID">@context.DiscordRoleId</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private string roleSearch = "";
+    private DiscordGuildRoleDto selectedItem1 = null;
+    private HashSet<DiscordGuildRoleDto> selectedItems = new HashSet<DiscordGuildRoleDto>();
+
+    private IEnumerable<DiscordGuildRoleDto> Elements = new List<DiscordGuildRoleDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var roles = await Mediator.Send(new GetGuildRolesRequest());
+
+        if (roles.Failure)
+        {
+            return;
+        }
+
+        Elements = roles.Value!;
+    }
+
+    private bool FilterRoles(DiscordGuildRoleDto element) => FilterRolesHandler(element, roleSearch);
+
+    private bool FilterRolesHandler(DiscordGuildRoleDto element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

@@ -191,6 +191,12 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
         var channels = await _discordCache.GetGuildChannels();
         IChannel? channel;
 
+        if (!channels.Any())
+        {
+            await _commandResponder.Respond("I found no channels in this Discord!");
+            return Result.FromSuccess();
+        }
+
         if(ulong.TryParse(channelText, out var channelId))
         {
             channel = channels
