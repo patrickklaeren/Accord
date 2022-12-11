@@ -13,14 +13,10 @@ public sealed record GetLeaderboardRequest : IRequest<Leaderboard>;
 public sealed record Leaderboard(List<MessageUser> MessageUsers);
 public record MessageUser(ulong DiscordUserId, float ParticipationPoints);
 
-public class GetLeaderboardHandler : IRequestHandler<GetLeaderboardRequest, Leaderboard>
+[AutoConstructor]
+public partial class GetLeaderboardHandler : IRequestHandler<GetLeaderboardRequest, Leaderboard>
 {
     private readonly AccordContext _db;
-
-    public GetLeaderboardHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<Leaderboard> Handle(GetLeaderboardRequest request, CancellationToken cancellationToken)
     {

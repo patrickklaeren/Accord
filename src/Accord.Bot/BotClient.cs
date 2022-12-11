@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
+using Accord.Services;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;

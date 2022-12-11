@@ -16,19 +16,14 @@ public sealed record GetUserReportRequest(ulong DiscordUserId) : IRequest<UserRe
 
 public sealed record InvalidateGetUserReportRequest(ulong DiscordUserId, ulong DiscordInboxChannelId, ulong DiscordOutboxChannelId) : IRequest;
 
-public class GetUserReportHandler :
+[AutoConstructor]
+public partial class GetUserReportHandler :
     RequestHandler<InvalidateGetUserReportRequest>,
     IRequestHandler<GetUserReportByChannelRequest, UserReport?>,
     IRequestHandler<GetUserReportRequest, UserReport?>
 {
     private readonly IAppCache _appCache;
     private readonly AccordContext _accordContext;
-
-    public GetUserReportHandler(IAppCache appCache, AccordContext accordContext)
-    {
-        _appCache = appCache;
-        _accordContext = accordContext;
-    }
 
     public async Task<UserReport?> Handle(GetUserReportByChannelRequest request, CancellationToken cancellationToken)
     {

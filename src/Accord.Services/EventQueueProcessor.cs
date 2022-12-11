@@ -9,20 +9,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Accord.Services;
 
-public class EventQueueProcessor : BackgroundService
+[AutoConstructor]
+public partial class EventQueueProcessor : BackgroundService
 {
     private readonly ILogger<EventQueueProcessor> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IEventQueue _eventQueue;
-
-    public EventQueueProcessor(ILogger<EventQueueProcessor> logger,
-        IServiceScopeFactory serviceScopeFactory,
-        IEventQueue eventQueue)
-    {
-        _logger = logger;
-        _serviceScopeFactory = serviceScopeFactory;
-        _eventQueue = eventQueue;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

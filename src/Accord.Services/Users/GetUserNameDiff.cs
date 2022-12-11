@@ -12,14 +12,10 @@ namespace Accord.Services.Users;
 public sealed record GetUserNameDiffRequest(ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IRequest<UserNameDiffResponse>;
 public sealed record UserNameDiffResponse(bool HasDiff, List<string> Messages);
 
-public class GetUserNameDiffHandler : IRequestHandler<GetUserNameDiffRequest, UserNameDiffResponse>
+[AutoConstructor]
+public partial class GetUserNameDiffHandler : IRequestHandler<GetUserNameDiffRequest, UserNameDiffResponse>
 {
     private readonly AccordContext _db;
-
-    public GetUserNameDiffHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<UserNameDiffResponse> Handle(GetUserNameDiffRequest request, CancellationToken cancellationToken)
     {

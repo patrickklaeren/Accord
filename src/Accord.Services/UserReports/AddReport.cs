@@ -17,14 +17,10 @@ public sealed record AddReportRequest(ulong DiscordUserId,
     ulong InboxDiscordMessageProxyWebhookId,
     string InboxDiscordMessageProxyWebhookToken) : IRequest;
 
-public class AddReportHandler : AsyncRequestHandler<AddReportRequest>
+[AutoConstructor]
+public partial class AddReportHandler : AsyncRequestHandler<AddReportRequest>
 {
     private readonly AccordContext _db;
-
-    public AddReportHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
     {

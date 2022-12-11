@@ -14,18 +14,13 @@ public sealed record GetUserReportMessageRequest(ulong DiscordMessageId) : IRequ
 
 public sealed record InvalidateGetUserReportMessageRequest(ulong DiscordMessageId) : IRequest;
 
-public class GetUserReportMessageHandler :
+[AutoConstructor]
+public partial class GetUserReportMessageHandler :
     RequestHandler<InvalidateGetUserReportMessageRequest>,
     IRequestHandler<GetUserReportMessageRequest, UserReportMessage?>
 {
     private readonly AccordContext _accordContext;
     private readonly IAppCache _appCache;
-
-    public GetUserReportMessageHandler(AccordContext accordContext, IAppCache appCache)
-    {
-        _accordContext = accordContext;
-        _appCache = appCache;
-    }
 
     public async Task<UserReportMessage?> Handle(GetUserReportMessageRequest request, CancellationToken cancellationToken) =>
         await _appCache.GetOrAdd(

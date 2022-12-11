@@ -8,14 +8,10 @@ namespace Accord.Services.UserMessages;
 
 public sealed record DeleteMessageRequest(ulong DiscordMessageId) : IRequest;
 
-public class DeleteMessageHandler : AsyncRequestHandler<DeleteMessageRequest>
+[AutoConstructor]
+public partial class DeleteMessageHandler : AsyncRequestHandler<DeleteMessageRequest>
 {
     private readonly AccordContext _db;
-
-    public DeleteMessageHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     protected override async Task Handle(DeleteMessageRequest request, CancellationToken cancellationToken)
     {

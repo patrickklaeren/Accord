@@ -34,16 +34,11 @@ public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId,
     public ulong DiscordUserId => AuthorDiscordUserId;
 }
 
-public class AddUserReportMessageHandler : AsyncRequestHandler<AddUserReportMessageRequest>
+[AutoConstructor]
+public partial class AddUserReportMessageHandler : AsyncRequestHandler<AddUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public AddUserReportMessageHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(AddUserReportMessageRequest request, CancellationToken cancellationToken)
     {

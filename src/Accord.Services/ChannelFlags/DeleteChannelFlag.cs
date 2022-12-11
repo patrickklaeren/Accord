@@ -10,16 +10,11 @@ namespace Accord.Services.ChannelFlags;
 
 public sealed record DeleteChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) : IRequest<ServiceResponse>;
 
-public class DeleteChannelFlagHandler : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
+[AutoConstructor]
+public partial class DeleteChannelFlagHandler : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public DeleteChannelFlagHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(DeleteChannelFlagRequest request, CancellationToken cancellationToken)
     {

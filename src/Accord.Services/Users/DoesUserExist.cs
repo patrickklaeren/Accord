@@ -12,16 +12,11 @@ public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
 
 public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest;
 
-public class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
+[AutoConstructor]
+public partial class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public DoesUserExistHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<bool> Handle(UserExistsRequest request, CancellationToken cancellationToken)
     {

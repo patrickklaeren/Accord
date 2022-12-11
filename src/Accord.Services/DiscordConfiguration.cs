@@ -1,4 +1,4 @@
-﻿namespace Accord.Bot.Infrastructure;
+﻿namespace Accord.Services;
 
 public class DiscordConfiguration
 {

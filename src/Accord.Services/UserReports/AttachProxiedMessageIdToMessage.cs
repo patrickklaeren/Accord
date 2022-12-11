@@ -6,18 +6,13 @@ using MediatR;
 namespace Accord.Services.UserReports;
 
 public sealed record AttachProxiedMessageIdToMessageRequest(ulong DiscordMessageId, ulong DiscordProxiedMessageId) : IRequest<ServiceResponse>;
-public class AttachProxiedMessageIdToMessageHandler : IRequestHandler<AttachProxiedMessageIdToMessageRequest, ServiceResponse>
+
+[AutoConstructor]
+public partial class AttachProxiedMessageIdToMessageHandler : IRequestHandler<AttachProxiedMessageIdToMessageRequest, ServiceResponse>
 {
-        
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-        
-    public AttachProxiedMessageIdToMessageHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
-
+    
     public async Task<ServiceResponse> Handle(AttachProxiedMessageIdToMessageRequest request, CancellationToken cancellationToken)
     {
         var message = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);

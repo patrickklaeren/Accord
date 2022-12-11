@@ -16,18 +16,12 @@ public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto U
 
 public sealed record RaidAlertRequest(ulong DiscordGuildId, bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
 
-public class RaidCalculationHandler : AsyncRequestHandler<RaidCalculationRequest>
+[AutoConstructor]
+public partial class RaidCalculationHandler : AsyncRequestHandler<RaidCalculationRequest>
 {
     private readonly RaidCalculator _raidCalculator;
     private readonly IMediator _mediator;
     private readonly AccordContext _db;
-
-    public RaidCalculationHandler(RaidCalculator raidCalculator, IMediator mediator, AccordContext db)
-    {
-        _raidCalculator = raidCalculator;
-        _mediator = mediator;
-        _db = db;
-    }
 
     protected override async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {

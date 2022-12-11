@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Services.GitHubChallenges;
 using Accord.Services.Users;
 using MediatR;
 using Remora.Commands.Attributes;

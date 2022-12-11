@@ -17,19 +17,13 @@ public sealed record UserDto(ulong Id, string? UsernameWithDiscriminator, string
 public sealed record UserMessagesInChannelDto(ulong DiscordChannelId, int NumberOfMessages);
 public sealed record UserVoiceMinutesInChannelDto(ulong DiscordChannelId, double NumberOfMinutes);
 
-public class GetUserHandler : IRequestHandler<GetUserRequest, ServiceResponse<GetUserDto>>
+[AutoConstructor]
+public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceResponse<GetUserDto>>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
     private readonly IAppCache _appCache;
     private const int NUMBER_OF_DAYS_TO_LOOK_BACK = 30;
-
-    public GetUserHandler(AccordContext db, IMediator mediator, IAppCache appCache)
-    {
-        _db = db;
-        _mediator = mediator;
-        _appCache = appCache;
-    }
 
     public async Task<ServiceResponse<GetUserDto>> Handle(GetUserRequest request, CancellationToken cancellationToken)
     {

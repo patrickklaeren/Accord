@@ -9,14 +9,10 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportsStatisticsForUserRequest(ulong DiscordUserId) : IRequest<int>;
 
-public class GetUserReportStatisticsForUserHandler : IRequestHandler<GetUserReportsStatisticsForUserRequest, int>
+[AutoConstructor]
+public partial class GetUserReportStatisticsForUserHandler : IRequestHandler<GetUserReportsStatisticsForUserRequest, int>
 {
     private readonly AccordContext _db;
-
-    public GetUserReportStatisticsForUserHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<int> Handle(GetUserReportsStatisticsForUserRequest request, CancellationToken cancellationToken)
     {

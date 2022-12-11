@@ -10,16 +10,11 @@ namespace Accord.Services.Users;
 
 public sealed record HasTimeOutChangedRequest(ulong DiscordUserId, DateTimeOffset? Candidate) : IRequest<bool>;
 
-public class HasTimeOutChangedHandler : IRequestHandler<HasTimeOutChangedRequest, bool>
+[AutoConstructor]
+public partial class HasTimeOutChangedHandler : IRequestHandler<HasTimeOutChangedRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public HasTimeOutChangedHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<bool> Handle(HasTimeOutChangedRequest request, CancellationToken cancellationToken)
     {

@@ -10,14 +10,10 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportsInboxCategoryIdRequest : IRequest<ulong?>;
 
-public class GetUserReportsInboxCategoryIdHandler : IRequestHandler<GetUserReportsInboxCategoryIdRequest, ulong?>
+[AutoConstructor]
+public partial class GetUserReportsInboxCategoryIdHandler : IRequestHandler<GetUserReportsInboxCategoryIdRequest, ulong?>
 {
     private readonly AccordContext _db;
-
-    public GetUserReportsInboxCategoryIdHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<ulong?> Handle(GetUserReportsInboxCategoryIdRequest request, CancellationToken cancellationToken)
     {

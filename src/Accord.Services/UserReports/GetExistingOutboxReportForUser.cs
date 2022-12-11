@@ -10,14 +10,10 @@ namespace Accord.Services.UserReports;
 public sealed record GetExistingOutboxReportForUserRequest(ulong DiscordUserId) : IRequest<ExistingOutboxReportForUserDto>;
 public sealed record ExistingOutboxReportForUserDto(bool HasExistingReport, ulong? OutboxDiscordChannelId);
 
-public class GetExistingOutboxReportForUserHandler : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
+[AutoConstructor]
+public partial class GetExistingOutboxReportForUserHandler : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
 {
     private readonly AccordContext _db;
-
-    public GetExistingOutboxReportForUserHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
     {

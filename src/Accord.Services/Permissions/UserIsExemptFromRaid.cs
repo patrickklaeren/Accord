@@ -13,17 +13,12 @@ namespace Accord.Services.Permissions;
 
 public sealed record UserIsExemptFromRaidRequest(ulong UserId) : IRequest<bool>;
 
-public class UserIsExemptFromRaid : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserIsExemptFromRaidRequest, bool>
+[AutoConstructor]
+public partial class UserIsExemptFromRaid : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserIsExemptFromRaidRequest, bool>
 {
     private static readonly string AllowlistedUsersCacheKey = $"{nameof(UserIsExemptFromRaid)}/{nameof(GetAllowlistedUsers)}";
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public UserIsExemptFromRaid(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<bool> Handle(UserIsExemptFromRaidRequest request, CancellationToken cancellationToken)
     {

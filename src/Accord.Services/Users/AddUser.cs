@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
 using Accord.Services.Moderation;
-using Accord.Services.NamePatterns;
 using MediatR;
 
 namespace Accord.Services.Users;
@@ -17,16 +16,11 @@ public sealed record AddUserRequest(ulong DiscordGuildId,
     string? DiscordNickname,
     DateTimeOffset JoinedDateTime) : IRequest;
 
-public class AddUserHandler : AsyncRequestHandler<AddUserRequest>
+[AutoConstructor]
+public partial class AddUserHandler : AsyncRequestHandler<AddUserRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public AddUserHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
     {
@@ -49,8 +43,5 @@ public class AddUserHandler : AsyncRequestHandler<AddUserRequest>
         await _db.SaveChangesAsync(cancellationToken);
 
         await _mediator.Send(new InvalidateUserExistsRequest(request.DiscordUserId), cancellationToken);
-
-        await _mediator.Send(new ScanNameForPatternsRequest(request.DiscordGuildId, 
-            new GuildUserDto(user.Id, request.DiscordUsername, request.DiscordDiscriminator, user.Nickname, request.DiscordAvatarUrl, user.JoinedGuildDateTime.Value)), cancellationToken);
     }
 }

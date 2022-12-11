@@ -14,16 +14,11 @@ namespace Accord.Services.Permissions;
 public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
 public sealed record PermissionsUpdateNotification(ulong UserId) : INotification;
 
-public class UserHasPermission : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
+[AutoConstructor]
+public partial class UserHasPermission : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public UserHasPermission(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)
     {

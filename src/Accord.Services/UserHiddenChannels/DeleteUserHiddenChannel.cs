@@ -11,16 +11,11 @@ namespace Accord.Services.UserHiddenChannels;
 
 public sealed record DeleteUserHiddenChannelRequest(ulong DiscordUserId, ulong DiscordChannelId, List<ulong>? DependentDiscordChannelIds = default) : IRequest<ServiceResponse>;
 
-public class DeleteUserHiddenChannelHandler : IRequestHandler<DeleteUserHiddenChannelRequest, ServiceResponse>
+[AutoConstructor]
+public partial class DeleteUserHiddenChannelHandler : IRequestHandler<DeleteUserHiddenChannelRequest, ServiceResponse>
 {
     private readonly IMediator _mediator;
     private readonly AccordContext _accordContext;
-
-    public DeleteUserHiddenChannelHandler(IMediator mediator, AccordContext accordContext)
-    {
-        _mediator = mediator;
-        _accordContext = accordContext;
-    }
 
     public async Task<ServiceResponse> Handle(DeleteUserHiddenChannelRequest request, CancellationToken cancellationToken)
     {

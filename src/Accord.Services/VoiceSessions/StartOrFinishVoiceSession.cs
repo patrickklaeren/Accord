@@ -27,16 +27,11 @@ public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
 // subsequent voice connections. This sucks.
 // https://discord.com/developers/docs/resources/voice#voice-state-object
 
-public class StartVoiceSessionHandler : AsyncRequestHandler<StartVoiceSessionRequest>
+[AutoConstructor]
+public partial class StartVoiceSessionHandler : AsyncRequestHandler<StartVoiceSessionRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public StartVoiceSessionHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(StartVoiceSessionRequest request, CancellationToken cancellationToken)
     {
@@ -61,16 +56,11 @@ public class StartVoiceSessionHandler : AsyncRequestHandler<StartVoiceSessionReq
     }
 }
 
-public class FinishVoiceSessionHandler : AsyncRequestHandler<FinishVoiceSessionRequest>
+[AutoConstructor]
+public partial class FinishVoiceSessionHandler : AsyncRequestHandler<FinishVoiceSessionRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public FinishVoiceSessionHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(FinishVoiceSessionRequest request, CancellationToken cancellationToken)
     {

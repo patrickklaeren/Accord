@@ -24,7 +24,6 @@ public class AccordContext : DbContext
     public DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
     public DbSet<RunOption> RunOptions { get; set; } = null!;
     public DbSet<UserMessage> UserMessages { get; set; } = null!;
-    public DbSet<NamePattern> NamePatterns { get; set; } = null!;
     public DbSet<UserReminder> UserReminders { get; set; } = null!;
     public DbSet<UserHiddenChannel> UserHiddenChannels { get; set; } = null!;
     public DbSet<UserReport> UserReports { get; set; } = null!;

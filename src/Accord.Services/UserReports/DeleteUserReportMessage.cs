@@ -19,16 +19,11 @@ public sealed record DeleteUserReportMessageRequest(
         UserReportChannelType DiscordChannelType)
     : IRequest;
 
-public class DeleteUserReportMessageHandler : AsyncRequestHandler<DeleteUserReportMessageRequest>
+[AutoConstructor]
+public partial class DeleteUserReportMessageHandler : AsyncRequestHandler<DeleteUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public DeleteUserReportMessageHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(DeleteUserReportMessageRequest request, CancellationToken cancellationToken)
     {

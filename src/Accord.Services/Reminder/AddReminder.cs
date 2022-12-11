@@ -9,17 +9,12 @@ using MediatR;
 namespace Accord.Services.Reminder;
 
 public sealed record AddReminderRequest(ulong DiscordUserId, ulong DiscordChannelId, TimeSpan TimeSpan, String Message) : IRequest<ServiceResponse>;
-public class AddReminderHandler : IRequestHandler<AddReminderRequest, ServiceResponse>
+
+[AutoConstructor]
+public partial class AddReminderHandler : IRequestHandler<AddReminderRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public AddReminderHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-            
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(AddReminderRequest request, CancellationToken cancellationToken)
     {

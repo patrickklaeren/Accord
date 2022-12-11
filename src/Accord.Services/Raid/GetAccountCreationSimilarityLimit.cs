@@ -13,16 +13,11 @@ namespace Accord.Services.Raid;
 public sealed record GetAccountCreationSimilarityLimitRequest : IRequest<int>; 
 public sealed record InvalidateGetAccountCreationSimilarityLimitRequest : IRequest;
 
-public class GetAccountCreationSimilarityLimitHandler : RequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
+[AutoConstructor]
+public partial class GetAccountCreationSimilarityLimitHandler : RequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetAccountCreationSimilarityLimitHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<int> Handle(GetAccountCreationSimilarityLimitRequest request, CancellationToken cancellationToken)
     {

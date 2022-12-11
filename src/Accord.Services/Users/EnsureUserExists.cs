@@ -9,16 +9,11 @@ namespace Accord.Services.Users;
 
 public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest;
 
-public class EnsureUserExistsHandler : AsyncRequestHandler<EnsureUserExistsRequest>
+[AutoConstructor]
+public partial class EnsureUserExistsHandler : AsyncRequestHandler<EnsureUserExistsRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public EnsureUserExistsHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(EnsureUserExistsRequest request, CancellationToken cancellationToken)
     {

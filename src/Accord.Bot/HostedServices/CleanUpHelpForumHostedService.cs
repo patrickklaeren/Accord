@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using Accord.Bot.RequestHandlers;
+using Accord.Services;
 using Accord.Services.Helpers;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

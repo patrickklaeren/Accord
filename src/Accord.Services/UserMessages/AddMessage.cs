@@ -10,14 +10,10 @@ namespace Accord.Services.UserMessages;
 public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
     : IRequest, IEnsureUserExistsRequest;
 
-public class AddMessageHandler : AsyncRequestHandler<AddMessageRequest>
+[AutoConstructor]
+public partial class AddMessageHandler : AsyncRequestHandler<AddMessageRequest>
 {
     private readonly AccordContext _db;
-
-    public AddMessageHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     protected override async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
     {

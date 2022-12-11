@@ -11,16 +11,11 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportChannelTypeRequest(ulong DiscordChannelId) : IRequest<UserReportChannelType>;
 
-public class GetUserReportChannelTypeHandler : IRequestHandler<GetUserReportChannelTypeRequest, UserReportChannelType>
+[AutoConstructor]
+public partial class GetUserReportChannelTypeHandler : IRequestHandler<GetUserReportChannelTypeRequest, UserReportChannelType>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetUserReportChannelTypeHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<UserReportChannelType> Handle(GetUserReportChannelTypeRequest channelTypeRequest, CancellationToken cancellationToken)
     {

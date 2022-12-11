@@ -20,24 +20,17 @@ public sealed record GetReminderRequest(ulong DiscordUserId, int ReminderId) : I
 public sealed record UserHasReminderRequest(ulong DiscordUserId, int ReminderId) : IRequest<ServiceResponse<bool>>;
 
 public sealed record InvalidateGetRemindersRequest(ulong DiscordUserId) : IRequest;
-    
-public class GetRemindersHandler : 
+
+[AutoConstructor]
+public partial class GetRemindersHandler : 
     RequestHandler<InvalidateGetRemindersRequest>, 
     IRequestHandler<GetReminderRequest, ServiceResponse<UserReminder>>, 
     IRequestHandler<UserHasReminderRequest, ServiceResponse<bool>>, 
     IRequestHandler<GetRemindersRequest, ServiceResponse<List<UserReminder>>>, 
     IRequestHandler<GetAllRemindersRequest, ServiceResponse<List<UserReminder>>>
 {
-        
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetRemindersHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
-
 
     public async Task<ServiceResponse<List<UserReminder>>> Handle(GetRemindersRequest request, CancellationToken cancellationToken)
     {

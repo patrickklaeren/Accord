@@ -47,7 +47,6 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<PermissionCommandGroup>()
             .WithCommandGroup<RunOptionCommandGroup>()
             .WithCommandGroup<ReminderCommandGroup>()
-            .WithCommandGroup<NamePatternCommandGroup>()
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()

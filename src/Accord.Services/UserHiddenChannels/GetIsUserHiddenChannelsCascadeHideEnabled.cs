@@ -10,14 +10,10 @@ namespace Accord.Services.UserHiddenChannels;
 
 public sealed record GetIsUserHiddenChannelsCascadeHideEnabledRequest : IRequest<bool>;
 
-public class GetIsUserHiddenChannelsCascadeHideEnabled : IRequestHandler<GetIsUserHiddenChannelsCascadeHideEnabledRequest, bool>
+[AutoConstructor]
+public partial class GetIsUserHiddenChannelsCascadeHideEnabled : IRequestHandler<GetIsUserHiddenChannelsCascadeHideEnabledRequest, bool>
 {
     private readonly AccordContext _db;
-
-    public GetIsUserHiddenChannelsCascadeHideEnabled(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<bool> Handle(GetIsUserHiddenChannelsCascadeHideEnabledRequest request, CancellationToken cancellationToken)
     {

@@ -10,14 +10,10 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportsAgentRoleIdRequest : IRequest<ulong?>;
 
-public class GetUserReportsAgentRoleIdHandler : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
+[AutoConstructor]
+public partial class GetUserReportsAgentRoleIdHandler : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
 {
     private readonly AccordContext _db;
-
-    public GetUserReportsAgentRoleIdHandler(AccordContext db)
-    {
-        _db = db;
-    }
 
     public async Task<ulong?> Handle(GetUserReportsAgentRoleIdRequest request, CancellationToken cancellationToken)
     {

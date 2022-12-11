@@ -13,16 +13,11 @@ namespace Accord.Services.Raid;
 public sealed record GetIsInRaidModeRequest : IRequest<bool>;
 public sealed record InvalidateGetIsInRaidModeRequest : IRequest;
 
-public class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
+[AutoConstructor]
+public partial class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetIsInRaidModeHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<bool> Handle(GetIsInRaidModeRequest request, CancellationToken cancellationToken)
     {

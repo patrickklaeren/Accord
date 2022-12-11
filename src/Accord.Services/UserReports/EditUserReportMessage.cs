@@ -23,16 +23,11 @@ public sealed record EditUserReportDiscordMessageRequest(
         List<DiscordAttachmentDto> Attachments)
     : IRequest;
 
-public class EditUserReportMessageHandler : AsyncRequestHandler<EditUserReportMessageRequest>
+[AutoConstructor]
+public partial class EditUserReportMessageHandler : AsyncRequestHandler<EditUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public EditUserReportMessageHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     protected override async Task Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
     {

@@ -15,19 +15,13 @@ public sealed record GetUserHiddenChannelsRequest(ulong DiscordUserId) : IReques
 
 public sealed record InvalidateGetUserHiddenChannelsRequest(ulong DiscordUserId) : IRequest;
 
-public class GetUserHiddenChannelsHandler :
+[AutoConstructor]
+public partial class GetUserHiddenChannelsHandler :
     RequestHandler<InvalidateGetUserHiddenChannelsRequest>,
     IRequestHandler<GetUserHiddenChannelsRequest, List<UserHiddenChannel>>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-
-    public GetUserHiddenChannelsHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<List<UserHiddenChannel>> Handle(GetUserHiddenChannelsRequest request, CancellationToken cancellationToken) =>
         await _appCache.GetOrAddAsync(

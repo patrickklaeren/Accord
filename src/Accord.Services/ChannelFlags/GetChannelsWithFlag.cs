@@ -15,16 +15,11 @@ public sealed record GetChannelsWithFlagRequest(ChannelFlagType Flag) : IRequest
 
 public sealed record InvalidateGetChannelsWithFlagRequest(ChannelFlagType Flag) : IRequest;
 
-public class GetChannelsWithFlagHandler : RequestHandler<InvalidateGetChannelsWithFlagRequest>, IRequestHandler<GetChannelsWithFlagRequest, List<ulong>>
+[AutoConstructor]
+public partial class GetChannelsWithFlagHandler : RequestHandler<InvalidateGetChannelsWithFlagRequest>, IRequestHandler<GetChannelsWithFlagRequest, List<ulong>>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetChannelsWithFlagHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<List<ulong>> Handle(GetChannelsWithFlagRequest request, CancellationToken cancellationToken)
     {

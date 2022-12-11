@@ -1,6 +1,4 @@
-﻿using Accord.Bot.Infrastructure;
-
-namespace Accord.Services.Helpers;
+﻿namespace Accord.Services.Helpers;
 
 [AutoConstructor, RegisterSingleton]
 public partial class DiscordAvatarHelper

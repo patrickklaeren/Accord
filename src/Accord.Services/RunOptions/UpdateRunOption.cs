@@ -11,16 +11,11 @@ namespace Accord.Services.RunOptions;
 
 public sealed record UpdateRunOptionRequest(RunOptionType Type, string RawValue) : IRequest<ServiceResponse>;
 
-public class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
+[AutoConstructor]
+public partial class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public UpdateRunOptionHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
     {

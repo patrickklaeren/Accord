@@ -12,16 +12,11 @@ namespace Accord.Services.ChannelFlags;
 public sealed record AddChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) 
     : IRequest<ServiceResponse>;
 
-public class AddChannelFlagHandler : IRequestHandler<AddChannelFlagRequest, ServiceResponse>
+[AutoConstructor]
+public partial class AddChannelFlagHandler : IRequestHandler<AddChannelFlagRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public AddChannelFlagHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(AddChannelFlagRequest request, CancellationToken cancellationToken)
     {

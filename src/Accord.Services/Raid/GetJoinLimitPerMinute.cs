@@ -13,16 +13,11 @@ namespace Accord.Services.Raid;
 public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>; 
 public sealed record InvalidateGetJoinLimitPerMinuteRequest : IRequest;
 
-public class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
+[AutoConstructor]
+public partial class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
-
-    public GetJoinLimitPerMinuteHandler(AccordContext db, IAppCache appCache)
-    {
-        _db = db;
-        _appCache = appCache;
-    }
 
     public async Task<int> Handle(GetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
     {

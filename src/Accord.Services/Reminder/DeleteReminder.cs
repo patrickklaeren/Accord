@@ -11,18 +11,13 @@ public sealed record DeleteReminderRequest(ulong DiscordUserId, int ReminderId) 
 
 public sealed record DeleteAllRemindersRequest(ulong DiscordUserId) : IRequest<ServiceResponse>;
 
-public class DeleteReminderHandler :
+[AutoConstructor]
+public partial class DeleteReminderHandler :
     IRequestHandler<DeleteReminderRequest, ServiceResponse>,
     IRequestHandler<DeleteAllRemindersRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public DeleteReminderHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(DeleteReminderRequest request, CancellationToken cancellationToken)
     {

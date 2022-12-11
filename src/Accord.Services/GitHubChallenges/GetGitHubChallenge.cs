@@ -5,20 +5,14 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using MediatR;
 
-namespace Accord.Services.Users;
+namespace Accord.Services.GitHubChallenges;
 
 public sealed record GetGitHubChallengeRequest(string ChallengeReadMeUrl) : IRequest<ServiceResponse<GitHubChallengeDto>>;
 
-public class GetGitHubChallengeHandler : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
+[AutoConstructor]
+public partial class GetGitHubChallengeHandler : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
 {
-    private readonly IMediator _mediator;
     private readonly HttpClient _httpClient;
-
-    public GetGitHubChallengeHandler(IMediator mediator, HttpClient httpClient)
-    {
-        _mediator = mediator;
-        _httpClient = httpClient;
-    }
 
     public async Task<ServiceResponse<GitHubChallengeDto>> Handle(GetGitHubChallengeRequest request, CancellationToken cancellationToken)
     {

@@ -15,18 +15,13 @@ public sealed record AddUserHiddenChannelRequest(ulong DiscordUserId, ulong Disc
 
 public sealed record AddUserHiddenChannelsRequest(ulong DiscordUserId, ulong DiscordChannelId, IReadOnlyList<ulong> DependentDiscordChannelIds) : IRequest<ServiceResponse>;
 
-public class AddUserHiddenChannelHandler :
+[AutoConstructor]
+public partial class AddUserHiddenChannelHandler :
     IRequestHandler<AddUserHiddenChannelRequest, ServiceResponse>,
     IRequestHandler<AddUserHiddenChannelsRequest, ServiceResponse>
 {
     private readonly AccordContext _accordContext;
     private readonly IMediator _mediator;
-
-    public AddUserHiddenChannelHandler(AccordContext accordContext, IMediator mediator)
-    {
-        _accordContext = accordContext;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(AddUserHiddenChannelRequest request, CancellationToken cancellationToken)
     {

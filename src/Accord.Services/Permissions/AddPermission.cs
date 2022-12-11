@@ -10,16 +10,11 @@ namespace Accord.Services.Permissions;
 public sealed record AddPermissionForRoleRequest(ulong DiscordRoleId, PermissionType Permission) : IRequest<ServiceResponse>;
 public sealed record AddPermissionForUserRequest(ulong DiscordUserId, PermissionType Permission) : IRequest<ServiceResponse>;
 
-public class AddPermissionHandler : IRequestHandler<AddPermissionForUserRequest, ServiceResponse>, IRequestHandler<AddPermissionForRoleRequest, ServiceResponse>
+[AutoConstructor]
+public partial class AddPermissionHandler : IRequestHandler<AddPermissionForUserRequest, ServiceResponse>, IRequestHandler<AddPermissionForRoleRequest, ServiceResponse>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
-
-    public AddPermissionHandler(AccordContext db, IMediator mediator)
-    {
-        _db = db;
-        _mediator = mediator;
-    }
 
     public async Task<ServiceResponse> Handle(AddPermissionForUserRequest request, CancellationToken cancellationToken)
     {
