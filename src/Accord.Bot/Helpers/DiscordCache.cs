@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
@@ -12,7 +11,7 @@ using Remora.Results;
 
 namespace Accord.Bot.Helpers;
 
-[AutoConstructor]
+[AutoConstructor, RegisterSingleton]
 public partial class DiscordCache
 {
     private readonly IDiscordRestGuildAPI _guildApi;

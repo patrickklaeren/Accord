@@ -10,6 +10,7 @@ using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -20,13 +21,11 @@ public partial class NamePatternCommandGroup: AccordCommandGroup
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
 
     [Command("list"), Description("List all name patterns")]
     public async Task<IResult> List()
     {
-        var user = await _commandContext.ToPermissionUser(_guildApi);
-
         var response = await _mediator.Send(new GetNamePatternsRequest());
 
         var blocked = response.Any(x => x.Type == PatternType.Blocked)
@@ -45,9 +44,7 @@ public partial class NamePatternCommandGroup: AccordCommandGroup
                 new("Allowed", allowed),
             });
 
-        await _commandResponder.Respond(embed);
-
-        return Result.FromSuccess();
+        return await _feedbackService.SendContextualEmbedAsync(embed);
     }
 
     [Command("allow"), Description("Add name pattern to allow")]
@@ -57,8 +54,9 @@ public partial class NamePatternCommandGroup: AccordCommandGroup
 
         var response = await _mediator.Send(new AddNamePatternRequest(user, pattern, PatternType.Allowed, OnNamePatternDiscovery.DoNothing));
 
-        await response.GetAction(async () => await _commandResponder.Respond($"{pattern} Allowed"),
-            async () => await _commandResponder.Respond(response.ErrorMessage));
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"{pattern} Allowed"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
     }
@@ -70,17 +68,16 @@ public partial class NamePatternCommandGroup: AccordCommandGroup
 
         if (!isParsedOnDiscovery || !Enum.IsDefined(actualOnDiscovery))
         {
-            await _commandResponder.Respond("Pattern discovery is not found");
+            return await _feedbackService.SendContextualAsync("Pattern discovery is not found");
         }
-        else
-        {
-            var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            var response = await _mediator.Send(new AddNamePatternRequest(user, pattern, PatternType.Blocked, actualOnDiscovery));
+        var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            await response.GetAction(async () => await _commandResponder.Respond($"{pattern} Blocked, will {actualOnDiscovery}"),
-                async () => await _commandResponder.Respond(response.ErrorMessage));
-        }
+        var response = await _mediator.Send(new AddNamePatternRequest(user, pattern, PatternType.Blocked, actualOnDiscovery));
+
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"{pattern} Blocked, will {actualOnDiscovery}"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
     }
@@ -92,8 +89,9 @@ public partial class NamePatternCommandGroup: AccordCommandGroup
 
         var response = await _mediator.Send(new DeleteNamePatternRequest(user, pattern));
 
-        await response.GetAction(async () => await _commandResponder.Respond($"{pattern} removed"),
-            async () => await _commandResponder.Respond(response.ErrorMessage));
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"{pattern} removed"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
     }

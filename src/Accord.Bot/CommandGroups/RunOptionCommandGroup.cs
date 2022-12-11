@@ -7,7 +7,9 @@ using Accord.Services.RunOptions;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -16,29 +18,23 @@ namespace Accord.Bot.CommandGroups;
 public partial class RunOptionCommandGroup: AccordCommandGroup
 {
     private readonly IMediator _mediator;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
 
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot")]
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot"), Ephemeral]
     public async Task<IResult> Configure(string type, string value)
     {
         if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
         {
-            await _commandResponder.Respond("Configuration is not found");
+            return await _feedbackService.SendContextualAsync("Configuration is not found");
         }
-        else
+
+        var response = await _mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
+
+        if (response.Success)
         {
-            var response = await _mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
-
-            if (response.Success)
-            {
-                await _commandResponder.Respond($"{actualRunOptionType} configuration updated to {value}");
-            }
-            else
-            {
-                await _commandResponder.Respond($"{response.ErrorMessage}");
-            }
+            return await _feedbackService.SendContextualAsync($"{actualRunOptionType} configuration updated to {value}");
         }
 
-        return Result.FromSuccess();
+        return await _feedbackService.SendContextualAsync(response.ErrorMessage);
     }
 }

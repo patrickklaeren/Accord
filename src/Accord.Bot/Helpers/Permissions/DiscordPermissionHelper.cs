@@ -48,6 +48,7 @@ public static class DiscordPermissionHelperExtensions
                   ));
 }
 
+[RegisterScoped]
 public class DiscordPermissionHelper
 {
     private readonly DiscordCache _discordCache;

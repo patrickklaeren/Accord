@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Bot.Infrastructure;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
 using MediatR;
@@ -9,6 +10,7 @@ using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -19,7 +21,7 @@ public partial class ChannelFlagCommandGroup: AccordCommandGroup
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
 
     [Command("add"), Description("Add flag to the current channel")]
     public async Task<IResult> AddFlag(string type, IChannel? channel = null)
@@ -28,19 +30,19 @@ public partial class ChannelFlagCommandGroup: AccordCommandGroup
 
         if (!isParsedEnumValue || !Enum.IsDefined(actualChannelFlag))
         {
-            await _commandResponder.Respond("Type of flag is not found");
+            return await _feedbackService.SendContextualAsync("Type of flag is not found");
         }
-        else
-        {
-            var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            var channelId = channel?.ID.Value ?? _commandContext.ChannelID.Value;
+        var proxy = _commandContext.GetCommandProxy();
+        var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            var response = await _mediator.Send(new AddChannelFlagRequest(user, actualChannelFlag, channelId));
+        var channelId = channel?.ID.Value ?? proxy.ChannelId.Value;
 
-            await response.GetAction(async () => await _commandResponder.Respond($"{actualChannelFlag} flag added"),
-                async () => await _commandResponder.Respond(response.ErrorMessage));
-        }
+        var response = await _mediator.Send(new AddChannelFlagRequest(user, actualChannelFlag, channelId));
+
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"{actualChannelFlag} flag added"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
     }
@@ -52,19 +54,19 @@ public partial class ChannelFlagCommandGroup: AccordCommandGroup
 
         if (!isParsedEnumValue || !Enum.IsDefined(actualChannelFlag))
         {
-            await _commandResponder.Respond("Type of flag is not found");
+            return await _feedbackService.SendContextualAsync("Type of flag is not found");
         }
-        else
-        {
-            var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            var channelId = channel?.ID.Value ?? _commandContext.ChannelID.Value;
+        var user = await _commandContext.ToPermissionUser(_guildApi);
 
-            var response = await _mediator.Send(new DeleteChannelFlagRequest(user, actualChannelFlag, channelId));
+        var proxy = _commandContext.GetCommandProxy();
+        var channelId = channel?.ID.Value ?? proxy.ChannelId.Value;
 
-            await response.GetAction(async () => await _commandResponder.Respond($"{actualChannelFlag} flag removed"),
-                async () => await _commandResponder.Respond(response.ErrorMessage));
-        }
+        var response = await _mediator.Send(new DeleteChannelFlagRequest(user, actualChannelFlag, channelId));
+
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"{actualChannelFlag} flag removed"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
     }

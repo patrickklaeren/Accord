@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
@@ -10,8 +11,7 @@ namespace Accord.Bot.Infrastructure;
 [AutoConstructor]
 public partial class AfterCommandPostExecutionEvent : IPostExecutionEvent
 {
-    private readonly IDiscordRestInteractionAPI _interactionApi;
-    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly FeedbackService _feedbackService;
 
     private const string DEFAULT_ERROR_MESSAGE = "Something went wrong, there is no message for this, help me out by submitting a useful message via my repo!";
     private const string NO_MATCHING_COMMAND_FOUND = "No matching command could be found.";
@@ -22,21 +22,10 @@ public partial class AfterCommandPostExecutionEvent : IPostExecutionEvent
         {
             var responseMessage = commandResult.Error?.Message ?? DEFAULT_ERROR_MESSAGE;
 
-            if (responseMessage == NO_MATCHING_COMMAND_FOUND)
+            if (responseMessage != NO_MATCHING_COMMAND_FOUND)
             {
-                // We do not care if it is not a matching command, leave it and
-                // continue
+                await _feedbackService.SendContextualAsync(responseMessage, ct: ct);
             }
-            else if (context is InteractionContext interactionContext)
-            {
-                await _interactionApi.EditOriginalInteractionResponseAsync(interactionContext.ApplicationID, interactionContext.Token, content: responseMessage, ct: ct);
-            }
-            else
-            {
-                await _channelApi.CreateMessageAsync(context.ChannelID, content: responseMessage, ct: ct);
-            }
-
-            return Result.FromSuccess();
         }
 
         return Result.FromSuccess();

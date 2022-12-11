@@ -2,7 +2,7 @@
 
 namespace Accord.Services.Helpers;
 
-[AutoConstructor]
+[AutoConstructor, RegisterSingleton]
 public partial class DiscordAvatarHelper
 {
     private readonly DiscordConfiguration _discordConfiguration;

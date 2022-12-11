@@ -9,6 +9,7 @@ using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Conditions;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -16,7 +17,7 @@ namespace Accord.Bot.CommandGroups;
 [Group("github"), AutoConstructor]
 public partial class GitHubChallengesCommandGroup : AccordCommandGroup
 {
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
     private readonly IMediator _mediator;
 
     [RequireDiscordPermission(DiscordPermission.Administrator), 
@@ -28,7 +29,7 @@ public partial class GitHubChallengesCommandGroup : AccordCommandGroup
 
         if (challengeResponse.Failure)
         {
-            return await _commandResponder.Respond(challengeResponse.ErrorMessage);
+            return await _feedbackService.SendContextualAsync(challengeResponse.ErrorMessage);
         }
 
         var challenge = challengeResponse.Value!;
@@ -42,7 +43,7 @@ public partial class GitHubChallengesCommandGroup : AccordCommandGroup
 
         if (challenge.ContributedBy is not null)
         {
-            var formattedMentions = string.Join(", ", challenge.ContributedBy.Select(x => DiscordFormatter.UserIdToMention(x)));
+            var formattedMentions = string.Join(", ", challenge.ContributedBy.Select(DiscordFormatter.UserIdToMention));
             fields.Add(new EmbedField("Contributed by", formattedMentions));
         }
 
@@ -53,6 +54,6 @@ public partial class GitHubChallengesCommandGroup : AccordCommandGroup
             Url: challenge.Link,
             Fields: fields.ToArray());
 
-        return await _commandResponder.Respond(embed);
+        return await _feedbackService.SendContextualEmbedAsync(embed);
     }
 }

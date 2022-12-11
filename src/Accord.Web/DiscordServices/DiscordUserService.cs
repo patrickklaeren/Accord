@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace Accord.Web.Services;
 
-[AutoConstructor, Inject(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped)]
+[AutoConstructor, RegisterScoped]
 public partial class DiscordUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

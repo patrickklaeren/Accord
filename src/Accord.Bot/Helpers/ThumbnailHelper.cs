@@ -4,7 +4,7 @@ using Remora.Discord.API.Objects;
 
 namespace Accord.Bot.Helpers;
 
-[AutoConstructor]
+[AutoConstructor, RegisterScoped]
 public partial class ThumbnailHelper
 {
     private readonly DiscordAvatarHelper _discordAvatarHelper;

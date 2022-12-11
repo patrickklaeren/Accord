@@ -14,40 +14,23 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups.UserReports;
 
-public class ReportCommandGroup: AccordCommandGroup
+[AutoConstructor]
+public partial class ReportCommandGroup: AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestWebhookAPI _webhookApi;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
     private readonly DiscordAvatarHelper _avatarHelper;
     private readonly DiscordCache _discordCache;
-
-    public ReportCommandGroup(ICommandContext commandContext,
-        IMediator mediator,
-        IDiscordRestGuildAPI guildApi,
-        CommandResponder commandResponder,
-        IDiscordRestChannelAPI channelApi,
-        DiscordAvatarHelper avatarHelper,
-        DiscordCache discordCache,
-        IDiscordRestWebhookAPI webhookApi)
-    {
-        _commandContext = commandContext;
-        _mediator = mediator;
-        _guildApi = guildApi;
-        _commandResponder = commandResponder;
-        _channelApi = channelApi;
-        _avatarHelper = avatarHelper;
-        _discordCache = discordCache;
-        _webhookApi = webhookApi;
-    }
 
     [Command("report"), Description("Start a user report")]
     public async Task<IResult> Report()
@@ -56,18 +39,19 @@ public class ReportCommandGroup: AccordCommandGroup
 
         if (!response)
         {
-            await _commandResponder.Respond("User reports are disabled!");
-            return Result.FromSuccess();
+            return await _feedbackService.SendContextualAsync("User reports are disabled!");
         }
 
-        var (hasExistingReport, outboxDiscordChannelId) = await _mediator.Send(new GetExistingOutboxReportForUserRequest(_commandContext.User.ID.Value));
+        var proxy = _commandContext.GetCommandProxy();
+
+        var (hasExistingReport, outboxDiscordChannelId) = await _mediator.Send(new GetExistingOutboxReportForUserRequest(proxy.UserId.Value));
 
         if (hasExistingReport && outboxDiscordChannelId is not null)
         {
-            await _commandResponder.Respond(
+            await _feedbackService.SendContextualAsync(
                 $"You have already an open report. Visit {DiscordFormatter.ChannelIdToMention(outboxDiscordChannelId.Value)} to continue with your report");
             await _channelApi.CreateMessageAsync(new Snowflake(outboxDiscordChannelId.Value),
-                $"{DiscordFormatter.UserIdToMention(_commandContext.User.ID.Value)} Here!");
+                $"{DiscordFormatter.UserIdToMention(proxy.UserId.Value)} Here!");
             return Result.FromSuccess();
         }
 
@@ -81,7 +65,9 @@ public class ReportCommandGroup: AccordCommandGroup
             // TODO Figure out how to panic here
             throw new InvalidOperationException("Cannot create report when there is no agent role");
         }
-
+        
+        var guildMember = await _discordCache.GetGuildMember(proxy.UserId.Value);
+        
         var everyonePermissionOverwrite = new PermissionOverwrite(
             everyoneRole.ID,
             PermissionOverwriteType.Role,
@@ -99,20 +85,20 @@ public class ReportCommandGroup: AccordCommandGroup
             new DiscordPermissionSet(BigInteger.Zero));
 
         var reporterPermissionOverwrite = new PermissionOverwrite(
-            _commandContext.User.ID,
+           proxy.UserId,
             PermissionOverwriteType.Member,
             new DiscordPermissionSet(DiscordPermission.ViewChannel, DiscordPermission.SendMessages),
             new DiscordPermissionSet(BigInteger.Zero));
 
-        var outboxChannel = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
-            $"{_commandContext.User.Username}-{_commandContext.User.Discriminator.ToPaddedDiscriminator()}",
+        var outboxChannel = await _guildApi.CreateGuildChannelAsync(proxy.GuildId,
+            $"{guildMember.Entity.User.Value.Username}-{guildMember.Entity.User.Value.Discriminator.ToPaddedDiscriminator()}",
             ChannelType.GuildText,
             parentID: new Snowflake(outboxCategoryId!.Value),
             permissionOverwrites: new[] {selfBotPermissionOverwrite, everyonePermissionOverwrite, reporterPermissionOverwrite});
 
         if (!outboxChannel.IsSuccess)
         {
-            await _commandResponder.Respond("Failed creating report!");
+            await _feedbackService.SendContextualAsync("Failed creating report!");
             return Result.FromError(outboxChannel.Error);
         }
 
@@ -125,8 +111,8 @@ public class ReportCommandGroup: AccordCommandGroup
         if (!outboxChannelMessageProxyWebhook.IsSuccess)
             return await RevertReportCreation(outboxChannel);
 
-        var inboxChannel = await _guildApi.CreateGuildChannelAsync(_commandContext.GuildID.Value,
-            $"{_commandContext.User.Username}-{_commandContext.User.Discriminator.ToPaddedDiscriminator()}-inbox",
+        var inboxChannel = await _guildApi.CreateGuildChannelAsync(proxy.GuildId,
+            $"{guildMember.Entity.User.Value.Username}-{guildMember.Entity.User.Value.Discriminator.ToPaddedDiscriminator()}-inbox",
             ChannelType.GuildText,
             parentID: new Snowflake(inboxCategoryId!.Value));
 
@@ -141,7 +127,7 @@ public class ReportCommandGroup: AccordCommandGroup
         if (!inboxChannelMessageProxyWebhook.IsSuccess)
             return await RevertReportCreation(outboxChannel, outboxChannelMessageProxyWebhook, inboxChannel);
 
-        await _mediator.Send(new AddReportRequest(_commandContext.User.ID.Value,
+        await _mediator.Send(new AddReportRequest(proxy.UserId.Value,
             outboxChannel.Entity.ID.Value,
             outboxChannelMessageProxyWebhook.Entity.ID.Value,
             outboxChannelMessageProxyWebhook.Entity.Token.Value!,
@@ -149,20 +135,18 @@ public class ReportCommandGroup: AccordCommandGroup
             inboxChannelMessageProxyWebhook.Entity.ID.Value,
             inboxChannelMessageProxyWebhook.Entity.Token.Value!));
 
-        await _commandResponder.Respond($"Report created, go to {outboxChannel.Entity.ID.ToChannelMention()}");
+        await _feedbackService.SendContextualAsync($"Report created, go to {outboxChannel.Entity.ID.ToChannelMention()}");
 
-        await _channelApi.CreateMessageAsync(outboxChannel.Entity.ID, $"Start your report here {_commandContext.User.ID.ToUserMention()}");
+        await _channelApi.CreateMessageAsync(outboxChannel.Entity.ID, $"Start your report here {proxy.UserId.ToUserMention()}");
 
-        var user = _commandContext.User;
-
-        var reportStatisticsForUser = await _mediator.Send(new GetUserReportsStatisticsForUserRequest(_commandContext.User.ID.Value));
+        var reportStatisticsForUser = await _mediator.Send(new GetUserReportsStatisticsForUserRequest(proxy.UserId.Value));
 
         var userInfoPayload = new StringBuilder()
             .AppendLine("**User Information**")
-            .AppendLine($"ID: {user.ID.Value}")
-            .AppendLine($"Profile: {user.ID.ToUserMention()}")
-            .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}")
-            .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(user.ID.Value):yyy-MM-dd HH:mm:ss}")
+            .AppendLine($"ID: {proxy.UserId.Value}")
+            .AppendLine($"Profile: {proxy.UserId.ToUserMention()}")
+            .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(guildMember.Entity.User.Value.Username, guildMember.Entity.User.Value.Discriminator)}")
+            .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(proxy.UserId.Value):yyy-MM-dd HH:mm:ss}")
             .AppendLine()
             .AppendLine("**Report Statistics**")
             .AppendLine($"Previous reports: {reportStatisticsForUser}");
@@ -170,8 +154,11 @@ public class ReportCommandGroup: AccordCommandGroup
         var infoEmbed = new Embed()
         {
             Author = new EmbedAuthor(
-                DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator),
-                IconUrl: _avatarHelper.GetAvatarUrl(user.ID.Value, user.Discriminator, user.Avatar?.Value, user.Avatar?.HasGif == true)),
+                DiscordHandleHelper.BuildHandle(guildMember.Entity.User.Value.Username, guildMember.Entity.User.Value.Discriminator),
+                IconUrl: _avatarHelper.GetAvatarUrl(guildMember.Entity.User.Value.ID.Value, 
+                    guildMember.Entity.User.Value.Discriminator, 
+                    guildMember.Entity.User.Value.Avatar?.Value, 
+                    guildMember.Entity.User.Value.Avatar?.HasGif == true)),
             Description = userInfoPayload.ToString(),
             Footer = new EmbedFooter("See logs for this user's reports via the /userreport logs command")
         };
@@ -186,27 +173,27 @@ public class ReportCommandGroup: AccordCommandGroup
         Result<IChannel> inboxChannel = default,
         Result<IWebhook> inboxChannelMessageProxyWebhook = default)
     {
-        if (outboxChannel.IsSuccess && outboxChannel.Entity != null)
+        if (outboxChannel.IsSuccess)
         {
             await _channelApi.DeleteChannelAsync(outboxChannel.Entity!.ID);
         }
 
-        if (outboxChannelMessageProxyWebhook.IsSuccess && outboxChannelMessageProxyWebhook.Entity != null)
+        if (outboxChannelMessageProxyWebhook is { IsSuccess: true, Entity: { } })
         {
             await _webhookApi.DeleteWebhookAsync(outboxChannelMessageProxyWebhook.Entity!.ID);
         }
 
-        if (inboxChannel.IsSuccess && inboxChannel.Entity != null)
+        if (inboxChannel is { IsSuccess: true, Entity: { } })
         {
             await _channelApi.DeleteChannelAsync(inboxChannel.Entity!.ID);
         }
 
-        if (inboxChannelMessageProxyWebhook.IsSuccess && inboxChannelMessageProxyWebhook.Entity != null)
+        if (inboxChannelMessageProxyWebhook is { IsSuccess: true, Entity: { } })
         {
             await _webhookApi.DeleteWebhookAsync(inboxChannelMessageProxyWebhook.Entity!.ID);
         }
 
-        return await _commandResponder.Respond("Report creation failed, please try again later.");
+        return await _feedbackService.SendContextualAsync("Report creation failed, please try again later.");
     }
         
 }

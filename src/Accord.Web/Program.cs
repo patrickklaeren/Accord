@@ -5,8 +5,6 @@ using Accord.Bot.HostedServices;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
-using Accord.Services.Helpers;
-using Accord.Services.Raid;
 using AspNet.Security.OAuth.Discord;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -39,11 +37,8 @@ builder.Services
     .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
     .AddDiscordBot(builder.Configuration)
     .AddSingleton(discordConfiguration)
-    .AddSingleton<RaidCalculator>()
-    .AddSingleton<DiscordAvatarHelper>()
-    .AddSingleton<IEventQueue, EventQueue>();
-
-builder.Services.Discover();
+    .AutoRegister()
+    .AutoRegisterFromAccordServices();
 
 builder.Services
     .AddAuthentication(options =>

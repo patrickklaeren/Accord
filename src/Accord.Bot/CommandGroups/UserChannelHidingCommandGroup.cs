@@ -14,7 +14,10 @@ using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Messages;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -25,53 +28,66 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
     private readonly DiscordCache _discordCache;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly DiscordPermissionHelper _discordPermissionHelper;
     private readonly ILogger<UserChannelHidingCommandGroup> _logger;
 
-    [Command("hidden"), Description("Display your hidden channels")]
+    [Command("hidden"), Description("Display your hidden channels"), Ephemeral]
     public async Task<IResult> GetHiddenChannels()
     {
-        var hiddenChannelsForUser = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
+        var proxy = _commandContext.GetCommandProxy();
+
+        var hiddenChannelsForUser = await _mediator.Send(new GetUserHiddenChannelsRequest(proxy.UserId.Value));
 
         if (!hiddenChannelsForUser.Any())
         {
-            return await _commandResponder.Respond("You don't have any hidden channel yet");
+            return await _feedbackService.SendContextualAsync("You don't have any hidden channel yet");
         }
 
-        StringBuilder sb = new();
+        StringBuilder stringBuilder = new();
+        
         foreach (var blockedChannel in hiddenChannelsForUser.Where(x => x.ParentDiscordChannelId == null))
         {
-            sb.AppendLine($"{DiscordFormatter.ChannelIdToMention(blockedChannel.DiscordChannelId)}");
+            stringBuilder.AppendLine($"{DiscordFormatter.ChannelIdToMention(blockedChannel.DiscordChannelId)}");
         }
 
-        return await _commandResponder.Respond(new Embed
+        var userRequest = await _discordCache.GetGuildMember(proxy.UserId.Value);
+
+        if (!userRequest.IsSuccess)
+        {
+            return await _feedbackService.SendContextualAsync("Failed listing hidden channels");
+        }
+
+        var user = userRequest.Entity.User.Value;
+
+        return await _feedbackService.SendContextualEmbedAsync(new Embed
         {
             Author = new EmbedAuthor(
-                DiscordHandleHelper.BuildHandle(_commandContext.User.Username, _commandContext.User.Discriminator),
-                IconUrl: _discordAvatarHelper.GetAvatarUrl(_commandContext.User.ID.Value, 
-                    _commandContext.User.Discriminator, 
-                    _commandContext.User.Avatar?.Value, 
-                    _commandContext.User.Avatar?.HasGif == true)),
+                DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator),
+                IconUrl: _discordAvatarHelper.GetAvatarUrl(user.ID.Value, 
+                    user.Discriminator, 
+                    user.Avatar?.Value, 
+                    user.Avatar?.HasGif == true)),
             Title = "Hidden Channels",
-            Description = sb.ToString()
+            Description = stringBuilder.ToString()
         });
     }
 
-    [Command("hide"), Description("Hide a channel for you")]
+    [Command("hide"), Description("Hide a channel for you"), Ephemeral]
     public async Task<IResult> HideChannel(IChannel channel)
     {
-        var guildMember = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, _commandContext.User.ID);
+        var proxy = _commandContext.GetCommandProxy();
 
-        if (!guildMember.IsSuccess || guildMember.Entity == null)
-            return await _commandResponder.Respond("There was an error executing this command. Try again later.");
+        var guildMember = await _discordCache.GetGuildMember(proxy.UserId.Value);
 
-        var activeHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
+        if (!guildMember.IsSuccess)
+            return await _feedbackService.SendContextualAsync("There was an error executing this command. Try again later.");
+
+        var activeHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(proxy.UserId.Value));
         if (activeHiddenChannels.Any(x => x.DiscordChannelId == channel.ID.Value))
-            return await _commandResponder.Respond("This channel is already hidden for you.");
+            return await _feedbackService.SendContextualAsync("This channel is already hidden for you.");
 
         var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
         var hasUserPermissionToViewTheChannel = await _discordPermissionHelper.HasUserEffectivePermissionsInChannel(
@@ -83,7 +99,7 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
             DiscordPermission.ViewChannel, DiscordPermission.ManageRoles);
 
         if (!hasBotPermissionToManageTheChannel || !hasUserPermissionToViewTheChannel)
-            return await _commandResponder.Respond($"This channel cannot be hidden!");
+            return await _feedbackService.SendContextualAsync($"This channel cannot be hidden!");
 
         var resultList = new List<(ulong Channel, Result Result)>
         {
@@ -91,7 +107,7 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
                 channel.ID.Value,
                 await _channelApi.EditChannelPermissionsAsync(
                     channel.ID,
-                    _commandContext.User.ID,
+                    proxy.UserId,
                     type: PermissionOverwriteType.Member,
                     deny: new DiscordPermissionSet(DiscordPermission.ViewChannel))
             )
@@ -125,7 +141,7 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
                             inheritedChannel.ID.Value,
                             await _channelApi.EditChannelPermissionsAsync(
                                 inheritedChannel.ID,
-                                _commandContext.User.ID,
+                                proxy.UserId,
                                 type: PermissionOverwriteType.Member,
                                 deny: new DiscordPermissionSet(DiscordPermission.ViewChannel))
                         ));
@@ -137,25 +153,25 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
 
             if (successfulHiddenChannels.Count != resultList.Count)
             {
-                await _commandResponder.Respond(
+                await _feedbackService.SendContextualAsync(
                     $"{successfulHiddenChannels.Count}/{resultList.Count} channels in the category {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} have been hidden.");
 
                 var errors = string.Join("\n\t", failedHiddenChannels.Select(x => x.Result.Error!.Message));
 
                 _logger.LogWarning("Hiding Channels under the category {Category} for user: {User}#{Discriminator}({Id}) produced the following errors:\n{Errors}",
                     channel.Name.Value,
-                    _commandContext.User.Username,
-                    _commandContext.User.Discriminator,
-                    _commandContext.User.ID.Value,
+                    guildMember.Entity.User.Value.Username,
+                    guildMember.Entity.User.Value.Discriminator,
+                    guildMember.Entity.User.Value.ID.Value,
                     errors);
             }
             else
             {
-                await _commandResponder.Respond($"All the channels in the category: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} have been hidden.");
+                await _feedbackService.SendContextualAsync($"All the channels in the category: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} have been hidden.");
             }
 
             await _mediator.Send(new AddUserHiddenChannelsRequest(
-                _commandContext.User.ID.Value,
+                proxy.UserId.Value,
                 channel.ID.Value,
                 successfulHiddenChannels.Select(x => x.Channel).Where(x => x != channel.ID.Value).ToList()));
         }
@@ -163,20 +179,20 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
         {
             if (!resultList[0].Result.IsSuccess)
             {
-                await _commandResponder.Respond($"An error occured while hiding channel: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)}");
+                await _feedbackService.SendContextualAsync($"An error occured while hiding channel: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)}");
                 _logger.LogWarning("Hiding channel {Channel} for user: {User}#{Discriminator}({Id}) produced the following error:\n\t{Error}",
                     channel.Name.Value,
-                    _commandContext.User.Username,
-                    _commandContext.User.Discriminator,
-                    _commandContext.User.ID.Value,
+                    guildMember.Entity.User.Value.Username,
+                    guildMember.Entity.User.Value.Discriminator,
+                    guildMember.Entity.User.Value.ID.Value,
                     resultList[0].Result.Error!.Message);
             }
             else
             {
-                await _commandResponder.Respond($"Channel {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} has been hidden");
+                await _feedbackService.SendContextualAsync($"Channel {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} has been hidden");
 
                 await _mediator.Send(new AddUserHiddenChannelRequest(
-                    _commandContext.User.ID.Value,
+                    proxy.UserId.Value,
                     channel.ID.Value
                 ));
             }
@@ -185,7 +201,7 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
         return Result.FromSuccess();
     }
 
-    [Command("show"), Description("Show a channel you've hidden")]
+    [Command("show"), Description("Show a channel you've hidden"), Ephemeral]
     public async Task<IResult> ShowChannel(string channelText)
     {
         var channels = await _discordCache.GetGuildChannels();
@@ -193,7 +209,7 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
 
         if (!channels.Any())
         {
-            await _commandResponder.Respond("I found no channels in this Discord!");
+            await _feedbackService.SendContextualAsync("I found no channels in this Discord!");
             return Result.FromSuccess();
         }
 
@@ -212,23 +228,27 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
 
         if (channel is null)
         {
-            return await _commandResponder.Respond($"Channel: {channelText} not found");
+            return await _feedbackService.SendContextualAsync($"Channel: {channelText} not found");
         }
+        
+        var proxy = _commandContext.GetCommandProxy();
 
         var isCascadeEnabled = await _mediator.Send(new GetIsUserHiddenChannelsCascadeHideEnabledRequest());
 
         var resultList = new List<(ulong Channel, Result Result)>();
-        var activeUserHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(_commandContext.User.ID.Value));
+        var activeUserHiddenChannels = await _mediator.Send(new GetUserHiddenChannelsRequest(proxy.UserId.Value));
+        
+        var guildMember = await _discordCache.GetGuildMember(proxy.UserId.Value);
 
-        var userHasDenyPermission = channel.HasUserPermissionOverwrite(_commandContext.User, DiscordPermission.ViewChannel, DiscordPermissionType.Deny);
+        var userHasDenyPermission = channel.HasUserPermissionOverwrite(guildMember.Entity.User.Value, DiscordPermission.ViewChannel, DiscordPermissionType.Deny);
 
         if (activeUserHiddenChannels.All(x => x.DiscordChannelId != channel.ID.Value) && !userHasDenyPermission)
-            return await _commandResponder.Respond("This channel is not hidden for you.");
+            return await _feedbackService.SendContextualAsync("This channel is not hidden for you.");
 
         if (!userHasDenyPermission)
             resultList.Add((channel.ID.Value, Result.FromSuccess()));
         else
-            resultList.Add((channel.ID.Value, await _channelApi.DeleteChannelPermissionAsync(channel.ID, _commandContext.User.ID)));
+            resultList.Add((channel.ID.Value, await _channelApi.DeleteChannelPermissionAsync(channel.ID, proxy.UserId)));
 
         if (channel.Type == ChannelType.GuildCategory && isCascadeEnabled)
         {
@@ -236,10 +256,10 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
             {
                 if (inheritedChannel.ParentID == channel.ID)
                 {
-                    if (!inheritedChannel.HasUserPermissionOverwrite(_commandContext.User, DiscordPermission.ViewChannel, DiscordPermissionType.Deny))
+                    if (!inheritedChannel.HasUserPermissionOverwrite(guildMember.Entity.User.Value, DiscordPermission.ViewChannel, DiscordPermissionType.Deny))
                         resultList.Add((inheritedChannel.ID.Value, Result.FromSuccess()));
                     else
-                        resultList.Add((inheritedChannel.ID.Value, await _channelApi.DeleteChannelPermissionAsync(inheritedChannel.ID, _commandContext.User.ID)));
+                        resultList.Add((inheritedChannel.ID.Value, await _channelApi.DeleteChannelPermissionAsync(inheritedChannel.ID, proxy.UserId)));
                 }
             }
 
@@ -248,42 +268,42 @@ public partial class UserChannelHidingCommandGroup: AccordCommandGroup
 
             if (successfulShownChannels.Count != resultList.Count)
             {
-                await _commandResponder.Respond(
+                await _feedbackService.SendContextualAsync(
                     $"{successfulShownChannels.Count}/{resultList.Count} channels in the category {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} are now visible.");
 
                 var errors = string.Join("\n\t", failedShownChannels.Select(x => x.Result.Error!.Message));
 
                 _logger.LogWarning("Showing Channels under the category {Category} for user: {User}#{Discriminator}({Id}) produced the following errors:\n{Errors}",
                     channel.Name.Value,
-                    _commandContext.User.Username,
-                    _commandContext.User.Discriminator,
-                    _commandContext.User.ID.Value,
+                    guildMember.Entity.User.Value.Username,
+                    guildMember.Entity.User.Value.Discriminator,
+                    guildMember.Entity.User.Value.ID.Value,
                     errors);
             }
             else
             {
-                await _commandResponder.Respond($"All the channels in the category: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} are now visible.");
+                await _feedbackService.SendContextualAsync($"All the channels in the category: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} are now visible.");
             }
 
             var channelsToRemoveFromDb = successfulShownChannels.Where(x => activeUserHiddenChannels.Any(y => y.DiscordChannelId == x.Channel)).Select(x => x.Channel).ToList();
-            await _mediator.Send(new DeleteUserHiddenChannelRequest(_commandContext.User.ID.Value, channel.ID.Value, channelsToRemoveFromDb));
+            await _mediator.Send(new DeleteUserHiddenChannelRequest(proxy.UserId.Value, channel.ID.Value, channelsToRemoveFromDb));
         }
         else
         {
             if (!resultList[0].Result.IsSuccess)
             {
-                await _commandResponder.Respond($"An error occured while showing channel: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)}");
+                await _feedbackService.SendContextualAsync($"An error occured while showing channel: {DiscordFormatter.ChannelIdToMention(channel.ID.Value)}");
                 _logger.LogWarning("Showing channel {Channel} for user: {User}#{Discriminator}({Id}) produced the following error:\n\t{Error}",
                     channel.Name.Value,
-                    _commandContext.User.Username,
-                    _commandContext.User.Discriminator,
-                    _commandContext.User.ID.Value,
+                    guildMember.Entity.User.Value.Username,
+                    guildMember.Entity.User.Value.Discriminator,
+                    guildMember.Entity.User.Value.ID.Value,
                     resultList[0].Result.Error!.Message);
             }
             else
             {
-                await _commandResponder.Respond($"Channel {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} is now visible");
-                await _mediator.Send(new DeleteUserHiddenChannelRequest(_commandContext.User.ID.Value, channel.ID.Value));
+                await _feedbackService.SendContextualAsync($"Channel {DiscordFormatter.ChannelIdToMention(channel.ID.Value)} is now visible");
+                await _mediator.Send(new DeleteUserHiddenChannelRequest(proxy.UserId.Value, channel.ID.Value));
             }
         }
 

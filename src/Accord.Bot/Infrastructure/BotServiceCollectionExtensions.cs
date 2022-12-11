@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
-using Accord.Bot.Helpers;
-using Accord.Bot.Helpers.Permissions;
 using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,11 +25,7 @@ public static class BotServiceCollectionExtensions
 
         services
             .AddLogging()
-            .AddTransient<BotClient>()
-            .AddSingleton<DiscordCache>()
-            .AddScoped<ThumbnailHelper>()
-            .AddScoped<DiscordPermissionHelper>()
-            .AddScoped<CommandResponder>()
+            .AutoRegister()
             .AddDiscordGateway(_ => token)
             .Configure<DiscordGatewayClientOptions>(o =>
             {

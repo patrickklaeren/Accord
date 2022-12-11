@@ -12,7 +12,7 @@ using Remora.Results;
 
 namespace Accord.Bot;
 
-[AutoConstructor]
+[AutoConstructor, RegisterTransient]
 public partial class BotClient
 {
     private readonly ILogger<BotClient> _logger;

@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
@@ -12,37 +14,39 @@ namespace Accord.Bot.CommandGroups;
 [Group("lgtm"), AutoConstructor]
 public partial class LgtmCommandGroup: AccordCommandGroup
 {
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly ICommandContext _commandContext;
 
     private const string ROLE_NAME = "LGTM";
 
-    [Command("subscribe"), Description("Subscribe to LGTM role")]
+    [Command("subscribe"), Description("Subscribe to LGTM role"), Ephemeral]
     public async Task<IResult> Subscribe()
     {
-        var roles = await _guildApi.GetGuildRolesAsync(_commandContext.GuildID.Value);
+        var proxy = _commandContext.GetCommandProxy();
+        var roles = await _guildApi.GetGuildRolesAsync(proxy.GuildId);
             
         if (roles.IsSuccess && roles.Entity.Any(x => x.Name == ROLE_NAME))
         {
             var role = roles.Entity.Single(x => x.Name == ROLE_NAME);
-            await _guildApi.AddGuildMemberRoleAsync(_commandContext.GuildID.Value, _commandContext.User.ID, role.ID);
+            await _guildApi.AddGuildMemberRoleAsync(proxy.GuildId, proxy.UserId, role.ID);
         }
-            
-        return await _commandResponder.Respond("Subscribed!");
+        
+        return await _feedbackService.SendContextualAsync("Subscribed!");
     }
 
     [Command("unsubscribe"), Description("Unsubscribe from LGTM role")]
     public async Task<IResult> Unsubscribe()
     {
-        var roles = await _guildApi.GetGuildRolesAsync(_commandContext.GuildID.Value);
+        var proxy = _commandContext.GetCommandProxy();
+        var roles = await _guildApi.GetGuildRolesAsync(proxy.GuildId);
             
         if (roles.IsSuccess && roles.Entity.Any(x => x.Name == ROLE_NAME))
         {
             var role = roles.Entity.Single(x => x.Name == ROLE_NAME);
-            await _guildApi.RemoveGuildMemberRoleAsync(_commandContext.GuildID.Value, _commandContext.User.ID, role.ID);
+            await _guildApi.RemoveGuildMemberRoleAsync(proxy.GuildId, proxy.UserId, role.ID);
         }
             
-        return await _commandResponder.Respond("Unsubscribed!");
+        return await _feedbackService.SendContextualAsync("Unsubscribed!");
     }
 }

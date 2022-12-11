@@ -14,6 +14,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
 
@@ -26,7 +27,7 @@ public partial class ProfileCommandGroup: AccordCommandGroup
     private readonly ICommandContext _commandContext;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly CommandResponder _commandResponder;
+    private readonly FeedbackService _feedbackService;
     private readonly ThumbnailHelper _thumbnailHelper;
 
     [Command("profile"), Description("Get your profile")]
@@ -34,26 +35,25 @@ public partial class ProfileCommandGroup: AccordCommandGroup
     {
         if (member is not null && !member.User.HasValue)
         {
-            await _commandResponder.Respond("Failed finding user");
-            Result.FromSuccess();
+            return await _feedbackService.SendContextualAsync("Failed finding user");
         }
 
-        var userId = member?.User.Value!.ID.Value ?? _commandContext.User.ID.Value;
+        var proxy = _commandContext.GetCommandProxy();
+
+        var userId = member?.User.Value!.ID.Value ?? proxy.UserId.Value;
 
         var response = await _mediator.Send(new GetUserRequest(userId));
 
         if (!response.Success)
         {
-            await _commandResponder.Respond(response.ErrorMessage);
-            return Result.FromSuccess();
+            return await _feedbackService.SendContextualAsync(response.ErrorMessage);
         }
 
-        var guildUserEntity = await _guildApi.GetGuildMemberAsync(_commandContext.GuildID.Value, new Snowflake(userId));
+        var guildUserEntity = await _guildApi.GetGuildMemberAsync(proxy.GuildId, new Snowflake(userId));
 
         if (!guildUserEntity.IsSuccess || !guildUserEntity.Entity.User.HasValue)
         {
-            await _commandResponder.Respond("Couldn't find user in Guild");
-            return Result.FromSuccess();
+            return await _feedbackService.SendContextualAsync("Couldn't find user in Guild");
         }
 
         var guildUser = guildUserEntity.Entity;
@@ -137,8 +137,6 @@ public partial class ProfileCommandGroup: AccordCommandGroup
             Thumbnail: avatarImage,
             Description: builder.ToString());
 
-        await _commandResponder.Respond(embed);
-
-        return Result.FromSuccess();
+        return await _feedbackService.SendContextualEmbedAsync(embed);
     }
 }
