@@ -9,12 +9,6 @@ public static class DiscordHandleHelper
 
     public static string BuildHandle(string username, ulong discriminator)
     {
-        return BuildHandle(username, discriminator.ToString("0000"));
-    }
-
-    public static (string username, string discriminator) DeconstructHandle(string handle)
-    {
-        var split = handle.Split('#');
-        return (split[0], split[1]);
+        return discriminator is 0 ? username : BuildHandle(username, discriminator.ToString("0000"));
     }
 }

@@ -47,8 +47,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             await HandleUserDiff(user, messages, cancellationToken);
         }
 
-        if (gatewayEvent.CommunicationDisabledUntil.HasValue
-            && gatewayEvent.CommunicationDisabledUntil.Value is { } until)
+        if (gatewayEvent.CommunicationDisabledUntil is { HasValue: true, Value: { } until })
         {
             await HandleTimeOut(gatewayEvent, user, until, cancellationToken);
         }
