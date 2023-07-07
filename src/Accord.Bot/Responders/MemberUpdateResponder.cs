@@ -105,8 +105,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         if (!timeoutHasChanged)
             return;
 
-        var logRequest = await _auditLogApi.GetAuditLogAsync(gatewayEvent.GuildID, 
-            actionType: AuditLogEvent.MemberUpdate, ct: cancellationToken);
+        var logRequest = await _auditLogApi.GetGuildAuditLogAsync(gatewayEvent.GuildID, actionType: AuditLogEvent.MemberUpdate, ct: cancellationToken);
 
         var durationMessage = "has been timed out";
         var actor = "a moderator";
@@ -120,16 +119,15 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
                 .Where(x => x.TargetID == rawUserId)
                 .Where(x => x.UserID != null)
                 .Where(x => x.Changes.HasValue && x.Changes.Value.Any(a => a.Key == "communication_disabled_until"))
-                .OrderByDescending(x => x.ID)
-                .FirstOrDefault();
+                .MaxBy(x => x.ID);
 
-            if (probableAudit is { } audit)
+            if (probableAudit != null)
             {
-                var timedOutFrom = audit.ID.Timestamp;
+                var timedOutFrom = probableAudit.ID.Timestamp;
                 var durationOfTimeout = timedOutUntil - timedOutFrom;
                 durationMessage = $"has been timed out for {durationOfTimeout.Humanize()}";
-                actor = $"{DiscordFormatter.UserIdToMention(audit.UserID!.Value.Value)}";
-                reason = audit.Reason.HasValue ? audit.Reason.Value : "an unknown reason";
+                actor = $"{DiscordFormatter.UserIdToMention(probableAudit.UserID!.Value.Value)}";
+                reason = probableAudit.Reason.HasValue ? probableAudit.Reason.Value : "an unknown reason";
             }
         }
 

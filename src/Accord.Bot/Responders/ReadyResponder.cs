@@ -31,7 +31,7 @@ public partial class ReadyResponder : IResponder<IReady>
         _discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
         await CacheGuild(gatewayEvent.User, ct);
 
-        var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
+        var updateCommand = new UpdatePresence(UserStatus.Online, false, null, new IActivity[]
         {
             new Activity("for everything", ActivityType.Watching)
         });
