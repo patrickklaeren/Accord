@@ -39,7 +39,8 @@ public static class BotServiceCollectionExtensions
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
 
-        services.AddCommandTree()
+        services
+            .AddCommandTree()
             .WithCommandGroup<ParticipationCommandGroup>()
             .WithCommandGroup<GitHubChallengesCommandGroup>()
             .WithCommandGroup<ChannelFlagCommandGroup>()
