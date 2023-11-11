@@ -20,7 +20,7 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
 **What you'll need**
 
 - Latest .NET 7 SDK
-- SQL Server Developer Edition (Docker image available)
+- Postgres (Docker image available)
 - Discord Bot account
 
 **How to get Accord running in development**
@@ -37,8 +37,9 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
     - `dotnet user-secrets set Discord:ClientSecret CLIENT_SECRET`
     - `dotnet user-secrets set Discord:GuildId GUILD_ID`
     - `dotnet user-secrets set Discord:BotToken BOT_TOKEN`
+- Optionally use the `dev.docker-compose.yml` file to get a local Postgres and pgadmin instance for development
 
-By default the bot will look for a SQL Server instance running on `localhost`. If your instance is not on `localhost` or has an otherwise differing connection string, set the `ConnectionStrings:Database` secret.
+By default the bot will look for a Postgres instance running on `localhost`. If your instance is not on `localhost` or has an otherwise differing connection string, set the `ConnectionStrings:Database` secret.
 
 If you want to disable the Discord bot instance, for any reason, you can override `Discord:DisableBot` to `true`, which will only run the hosting ASP.NET Core project, skipping bot initialisation. Do note that several parts of the frontend require the bot to have a connection established.
 
@@ -54,10 +55,39 @@ Start the bot. This will apply migrations automatically via Entity Framework.
 
 ### How to self host
 
-Currently you will need to build from source. There are no distributions at this time.
+You can build from source or host via the published Docker image. An example `docker-compose.yml` is below.
+
+```yml
+version: '3.1'
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+
+  bot:
+    image: ghcr.io/patrickklaeren/accord:main
+    depends_on:
+      - postgres
+    restart: always
+    environment:
+      ConnectionStrings__Database: ${CONNECTIONSTRINGS_DATABASE}
+      Discord__ClientSecret: ${DISCORD_CLIENTID}
+      Discord__ClientId: ${DISCORD_CLIENTID}
+      Discord__GuildId: ${DISCORD_GUILDID}
+      Discord__BotToken: ${DISCORD_BOTTOKEN}
+    ports:
+      - '80:80'
+      - '443:443'
+```
 
 **Requirements**
-- SQL Server
+- Postgres
 - Web host for ASP.NET Core
 
 Set environment variables for `ConnectionStrings:Database`, `Discord:GuildId`, `Discord:BotToken`, `Discord:ClientId`, `Discord:ClientSecret`.
@@ -70,3 +100,4 @@ Notable dependencies for this project include:
 - [Remora](https://github.com/Nihlus/Remora.Discord)
 - [MediatR](https://github.com/jbogard/MediatR)
 - [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
+- [Npgsql EF Core Provider](https://www.npgsql.org/efcore/)
