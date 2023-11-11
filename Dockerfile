@@ -4,6 +4,7 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+COPY ["Directory.Build.props", "./"]
 WORKDIR /src
 COPY ["src/Accord.Web/Accord.Web.csproj", "src/Accord.Web/"]
 COPY ["src/Accord.Bot/Accord.Bot.csproj", "src/Accord.Bot/"]

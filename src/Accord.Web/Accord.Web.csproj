@@ -27,10 +27,4 @@
     <ProjectReference Include="..\Accord.Services\Accord.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\..\.dockerignore">
-      <Link>.dockerignore</Link>
-    </Content>
-  </ItemGroup>
-
 </Project>
