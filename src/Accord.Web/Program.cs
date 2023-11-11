@@ -29,8 +29,9 @@ builder.Logging.AddSerilog(CreateLogger());
 var discordConfiguration = new DiscordConfiguration();
 builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
 
-builder.Services
-    .AddDbContext<AccordContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("Database")))
+builder
+    .Services
+    .AddDatabase(builder.Configuration.GetConnectionString("Database")!)
     .AddLazyCache()
     .AddHttpContextAccessor()
     .AddHttpClient()

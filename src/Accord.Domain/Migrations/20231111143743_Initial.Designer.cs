@@ -3,36 +3,41 @@ using System;
 using Accord.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
 
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    [Migration("20210620114903_RenameUserReportColumns")]
-    partial class RenameUserReportColumns
+    [Migration("20231111143743_Initial")]
+    partial class Initial
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.6")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Accord.Domain.Model.ChannelFlag", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("DiscordChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -42,65 +47,38 @@ namespace Accord.Domain.Migrations
                     b.ToTable("ChannelFlags");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.NamePattern", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<decimal>("AddedByUserId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<DateTimeOffset>("AddedDateTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("OnDiscovery")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Pattern")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddedByUserId");
-
-                    b.ToTable("NamePatterns");
-                });
-
             modelBuilder.Entity("Accord.Domain.Model.Permission", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Permission");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.RunOption", b =>
                 {
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Type");
 
@@ -141,50 +119,96 @@ namespace Accord.Domain.Migrations
                         {
                             Type = 6,
                             Value = ""
+                        },
+                        new
+                        {
+                            Type = 8,
+                            Value = "False"
+                        },
+                        new
+                        {
+                            Type = 7,
+                            Value = "3"
                         });
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.User", b =>
                 {
                     b.Property<decimal>("Id")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset>("FirstSeenDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("JoinedGuildDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("LastSeenDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Nickname")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
+
+                    b.Property<double>("ParticipationPercentile")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("ParticipationPoints")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ParticipationRank")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("TimedOutUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UsernameWithDiscriminator")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Xp")
-                        .HasColumnType("real");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DiscordChannelId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal?>("ParentDiscordChannelId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserHiddenChannels");
+                });
+
             modelBuilder.Entity("Accord.Domain.Model.UserMessage", b =>
                 {
                     b.Property<decimal>("Id")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("DiscordChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset>("SentDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.HasKey("Id");
 
@@ -193,30 +217,76 @@ namespace Accord.Domain.Migrations
                     b.ToTable("UserMessages");
                 });
 
+            modelBuilder.Entity("Accord.Domain.Model.UserReminder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DiscordChannelId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("RemindAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserReminders");
+                });
+
             modelBuilder.Entity("Accord.Domain.Model.UserReports.UserReport", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("ClosedByUserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset?>("ClosedDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("InboxDiscordChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("InboxDiscordMessageProxyWebhookId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("InboxDiscordMessageProxyWebhookToken")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("OpenedByUserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset>("OpenedDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("OutboxDiscordChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("OutboxDiscordMessageProxyWebhookId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("OutboxDiscordMessageProxyWebhookToken")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -230,41 +300,44 @@ namespace Accord.Domain.Migrations
             modelBuilder.Entity("Accord.Domain.Model.UserReports.UserReportBlock", b =>
                 {
                     b.Property<decimal>("Id")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("BlockedByUserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<DateTimeOffset>("BlockedDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BlockedByUserId");
 
-                    b.ToTable("UserThreadBlocks");
+                    b.ToTable("UserReportBlocks");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserReports.UserReportMessage", b =>
                 {
                     b.Property<decimal>("Id")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<decimal>("AuthorUserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("DiscordProxyMessageId")
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<bool>("IsInternal")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("SentDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserReportId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -272,37 +345,38 @@ namespace Accord.Domain.Migrations
 
                     b.HasIndex("UserReportId");
 
-                    b.ToTable("UserThreadMessages");
+                    b.ToTable("UserReportMessages");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.VoiceSession", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("DiscordChannelId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.Property<string>("DiscordSessionId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("EndDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("HasBeenCountedToXp")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<double?>("MinutesInVoiceChannel")
-                        .HasColumnType("float");
+                        .HasColumnType("double precision");
 
                     b.Property<DateTimeOffset>("StartDateTime")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.HasKey("Id");
 
@@ -316,11 +390,10 @@ namespace Accord.Domain.Migrations
                     b.HasBaseType("Accord.Domain.Model.Permission");
 
                     b.Property<decimal>("RoleId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.HasIndex("RoleId", "Type")
-                        .IsUnique()
-                        .HasFilter("[RoleId] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasDiscriminator().HasValue("RolePermission");
                 });
@@ -330,27 +403,37 @@ namespace Accord.Domain.Migrations
                     b.HasBaseType("Accord.Domain.Model.Permission");
 
                     b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
+                        .HasColumnType("numeric(20,0)");
 
                     b.HasIndex("UserId", "Type")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasDiscriminator().HasValue("UserPermission");
                 });
 
-            modelBuilder.Entity("Accord.Domain.Model.NamePattern", b =>
+            modelBuilder.Entity("Accord.Domain.Model.UserHiddenChannel", b =>
                 {
-                    b.HasOne("Accord.Domain.Model.User", "AddedByUser")
+                    b.HasOne("Accord.Domain.Model.User", "User")
                         .WithMany()
-                        .HasForeignKey("AddedByUserId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AddedByUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserMessage", b =>
+                {
+                    b.HasOne("Accord.Domain.Model.User", "User")
+                        .WithMany("Messages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Accord.Domain.Model.UserReminder", b =>
                 {
                     b.HasOne("Accord.Domain.Model.User", "User")
                         .WithMany()
@@ -428,6 +511,11 @@ namespace Accord.Domain.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Accord.Domain.Model.User", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.UserReports.UserReport", b =>

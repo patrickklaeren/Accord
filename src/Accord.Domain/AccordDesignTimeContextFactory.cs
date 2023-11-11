@@ -8,7 +8,7 @@ public class AccordDesignTimeContextFactory : IDesignTimeDbContextFactory<Accord
     AccordContext IDesignTimeDbContextFactory<AccordContext>.CreateDbContext(string[] args)
     {
         var builder = new DbContextOptionsBuilder<AccordContext>();
-        builder.UseSqlServer("Server=localhost;Database=Accord-Dev;Trusted_Connection=True;TrustServerCertificate=True");
+        builder.UseNpgsql("Host=127.0.0.1;Username=postgres;Password=password;Database=Accord-Dev");
         return new AccordContext(builder.Options);
     }
 }
