@@ -101,15 +101,7 @@ app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthen
 using (var scope = app.Services.CreateScope())
 {
     Log.Information("Scope created...");
-
-    var services = scope.ServiceProvider;
-
-    await using var db = services.GetRequiredService<AccordContext>();
-
-    Log.Information("Got Db context");
-
-    await db.Database.MigrateAsync();
-
+    await AccordContextExtensions.Migrate(scope.ServiceProvider.GetRequiredService<AccordContext>());
     Log.Information("Migrated!");
 }
 
