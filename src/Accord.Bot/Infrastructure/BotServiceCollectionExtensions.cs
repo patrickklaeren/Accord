@@ -36,11 +36,8 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMessages;
             })
             .AddDiscordCommands(true)
-            .AddPostExecutionEvent<AfterCommandPostExecutionEvent>();
-
-        services
-            .AddInteractivity()
-            .AddInteractionGroup<ReminderCommandGroupInteractions>();
+            .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
+            .AddParser<TimeSpanParser>();
 
         services
             .AddCommandTree()

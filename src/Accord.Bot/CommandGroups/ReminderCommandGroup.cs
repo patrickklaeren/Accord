@@ -35,106 +35,29 @@ public partial class ReminderCommandGroup : AccordCommandGroup
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly FeedbackService _feedbackService;
-    private readonly IDiscordRestInteractionAPI _discordRestInteractionApi;
 
     [Command("me"), Description("Add a reminder for yourself")]
     [SuppressInteractionResponse(true)]
-    public async Task<IResult> AddReminder()
+    public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)
     {
-        if (!_commandContext.TryGetUserID(out var discordUserId))
-        {
-            return await _feedbackService.SendContextualAsync("Failed to get the Discord user ID");
-        }
+        var sanitizedMessage = message.DiscordSanitize();
 
-        if (_commandContext is not IInteractionContext interactionContext)
-        {
-            return (Result)await _feedbackService.SendContextualWarningAsync
-            (
-                "This command can only be used with slash commands.",
-                discordUserId,
-                new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral)
-            );
-        }
+        _commandContext.TryGetUserID(out var userId);
+        _commandContext.TryGetChannelID(out var channelId);
 
-        var response = new InteractionResponse
-        (
-            InteractionCallbackType.Modal,
-            new
-            (
-                new InteractionModalCallbackData
-                (
-                    CustomIDHelpers.CreateModalID("add-reminder-modal"),
-                    "Add a reminder",
-                    new[]
-                    {
-                        new ActionRowComponent
-                        (
-                            new[]
-                            {
-                                new TextInputComponent
-                                (
-                                    "description",
-                                    TextInputStyle.Paragraph,
-                                    "What should I remind you about?",
-                                    1,
-                                    500,
-                                    true,
-                                    default,
-                                    "Remind me to put a semi colon on the end of line 69420"
-                                )
-                            }
-                        ),
-                        new ActionRowComponent
-                        (
-                            new[]
-                            {
-                                new TextInputComponent
-                                (
-                                    "number",
-                                    TextInputStyle.Short,
-                                    "When should I remind you?",
-                                    1,
-                                    3,
-                                    true,
-                                    default,
-                                    "1"
-                                )
-                            }
-                        ),
-                        new ActionRowComponent
-                        (
-                            new[]
-                            {
-                                new StringSelectComponent(
-                                    "period-unit",
-                                    new ISelectOption[]
-                                    {
-                                        new SelectOption("Seconds", "Seconds"),
-                                        new SelectOption("Minutes", "Minutes"),
-                                        new SelectOption("Hours", "Hours"),
-                                        new SelectOption("Days", "Days"),
-                                        new SelectOption("Weeks", "Weeks"),
-                                        new SelectOption("Years", "Years"),
-                                    },
-                                    "Hours",
-                                    1,
-                                    1)
-                            }
-                        )
-                    }
-                )
-            )
+        var response = await _mediator.Send(new AddReminderRequest(
+            userId.Value,
+            channelId.Value,
+            timeSpan,
+            sanitizedMessage
+        ));
+
+        await response.GetAction(
+            async () => await _feedbackService.SendContextualAsync($"You will be reminded about it in {timeSpan.Humanize()}"),
+            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage)
         );
 
-        var result = await _discordRestInteractionApi.CreateInteractionResponseAsync
-        (
-            interactionContext.Interaction.ID,
-            interactionContext.Interaction.Token,
-            response,
-            ct: CancellationToken
-        );
-
-        return result;
+        return Result.FromSuccess();
     }
 
     [Command("list"), Description("List pending reminders"), Ephemeral]
