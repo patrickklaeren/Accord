@@ -17,12 +17,12 @@ public sealed record AddUserRequest(ulong DiscordGuildId,
     DateTimeOffset JoinedDateTime) : IRequest;
 
 [AutoConstructor]
-public partial class AddUserHandler : AsyncRequestHandler<AddUserRequest>
+public partial class AddUserHandler : IRequestHandler<AddUserRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
+    public async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
     {
         var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
 

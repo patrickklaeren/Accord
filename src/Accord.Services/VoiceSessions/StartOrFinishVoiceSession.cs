@@ -28,12 +28,12 @@ public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
 // https://discord.com/developers/docs/resources/voice#voice-state-object
 
 [AutoConstructor]
-public partial class StartVoiceSessionHandler : AsyncRequestHandler<StartVoiceSessionRequest>
+public partial class StartVoiceSessionHandler : IRequestHandler<StartVoiceSessionRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(StartVoiceSessionRequest request, CancellationToken cancellationToken)
+    public async Task Handle(StartVoiceSessionRequest request, CancellationToken cancellationToken)
     {
         if (await _db.VoiceConnections.AnyAsync(a => a.DiscordSessionId == request.DiscordSessionId && a.EndDateTime == null, cancellationToken))
         {
@@ -57,12 +57,12 @@ public partial class StartVoiceSessionHandler : AsyncRequestHandler<StartVoiceSe
 }
 
 [AutoConstructor]
-public partial class FinishVoiceSessionHandler : AsyncRequestHandler<FinishVoiceSessionRequest>
+public partial class FinishVoiceSessionHandler : IRequestHandler<FinishVoiceSessionRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(FinishVoiceSessionRequest request, CancellationToken cancellationToken)
+    public async Task Handle(FinishVoiceSessionRequest request, CancellationToken cancellationToken)
     {
         var session = await _db.VoiceConnections
             .Where(x => x.DiscordSessionId == request.DiscordSessionId)

@@ -12,13 +12,13 @@ namespace Accord.Bot.RequestHandlers;
 public record CloseHelpForumPostRequest(IChannel Channel) : IRequest;
 
 [AutoConstructor]
-public partial class CloseHelpForumPostHandler : AsyncRequestHandler<CloseHelpForumPostRequest>
+public partial class CloseHelpForumPostHandler : IRequestHandler<CloseHelpForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
 
     private const string PREFIX = "✅";
 
-    protected override async Task Handle(CloseHelpForumPostRequest request, CancellationToken cancellationToken)
+    public async Task Handle(CloseHelpForumPostRequest request, CancellationToken cancellationToken)
     {
         if (request.Channel.Name.HasValue
             && !request.Channel.Name.Value!.StartsWith(PREFIX))

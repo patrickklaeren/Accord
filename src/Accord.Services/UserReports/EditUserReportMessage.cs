@@ -24,12 +24,12 @@ public sealed record EditUserReportDiscordMessageRequest(
     : IRequest;
 
 [AutoConstructor]
-public partial class EditUserReportMessageHandler : AsyncRequestHandler<EditUserReportMessageRequest>
+public partial class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessageRequest>
 {
     private readonly AccordContext _db;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
+    public async Task Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
     {
         if (request.DiscordChannelType == UserReportChannelType.None)
         {

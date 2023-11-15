@@ -14,7 +14,7 @@ public sealed record GetAccountCreationSimilarityLimitRequest : IRequest<int>;
 public sealed record InvalidateGetAccountCreationSimilarityLimitRequest : IRequest;
 
 [AutoConstructor]
-public partial class GetAccountCreationSimilarityLimitHandler : RequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
+public partial class GetAccountCreationSimilarityLimitHandler : IRequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -41,8 +41,9 @@ public partial class GetAccountCreationSimilarityLimitHandler : RequestHandler<I
         return int.Parse(value);
     }
 
-    protected override void Handle(InvalidateGetAccountCreationSimilarityLimitRequest request)
+    public Task Handle(InvalidateGetAccountCreationSimilarityLimitRequest request, CancellationToken cancellationToken)
     {
         _appCache.Remove(BuildGetLimitCacheKey());
+        return Task.CompletedTask;
     }
 }

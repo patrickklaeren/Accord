@@ -18,41 +18,123 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Interactivity;
 using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
 [Group("remind"), AutoConstructor]
-public partial class ReminderCommandGroup: AccordCommandGroup
+public partial class ReminderCommandGroup : AccordCommandGroup
 {
     private readonly ICommandContext _commandContext;
     private readonly IMediator _mediator;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordAvatarHelper _discordAvatarHelper;
     private readonly FeedbackService _feedbackService;
+    private readonly IDiscordRestInteractionAPI _discordRestInteractionApi;
 
-    [Command("me"), Description("Add a reminder for yourself"), Ephemeral]
-    public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)
+    [Command("me"), Description("Add a reminder for yourself")]
+    [SuppressInteractionResponse(true)]
+    public async Task<IResult> AddReminder()
     {
-        var proxy = _commandContext.GetCommandProxy();
-        
-        var sanitizedMessage = message.DiscordSanitize();
+        if (!_commandContext.TryGetUserID(out var discordUserId))
+        {
+            return await _feedbackService.SendContextualAsync("Failed to get the Discord user ID");
+        }
 
-        var response = await _mediator.Send(new AddReminderRequest(
-            proxy.UserId.Value,
-            proxy.ChannelId.Value,
-            timeSpan,
-            sanitizedMessage
-        ));
+        if (_commandContext is not IInteractionContext interactionContext)
+        {
+            return (Result)await _feedbackService.SendContextualWarningAsync
+            (
+                "This command can only be used with slash commands.",
+                discordUserId,
+                new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral)
+            );
+        }
 
-        await response.GetAction(
-            async () => await _feedbackService.SendContextualAsync($"You will be reminded about it in {timeSpan.Humanize()}"),
-            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage)
+        var response = new InteractionResponse
+        (
+            InteractionCallbackType.Modal,
+            new
+            (
+                new InteractionModalCallbackData
+                (
+                    CustomIDHelpers.CreateModalID("add-reminder-modal"),
+                    "Add a reminder",
+                    new[]
+                    {
+                        new ActionRowComponent
+                        (
+                            new[]
+                            {
+                                new TextInputComponent
+                                (
+                                    "description",
+                                    TextInputStyle.Paragraph,
+                                    "What should I remind you about?",
+                                    1,
+                                    500,
+                                    true,
+                                    default,
+                                    "Remind me to put a semi colon on the end of line 69420"
+                                )
+                            }
+                        ),
+                        new ActionRowComponent
+                        (
+                            new[]
+                            {
+                                new TextInputComponent
+                                (
+                                    "number",
+                                    TextInputStyle.Short,
+                                    "When should I remind you?",
+                                    1,
+                                    3,
+                                    true,
+                                    default,
+                                    "1"
+                                )
+                            }
+                        ),
+                        new ActionRowComponent
+                        (
+                            new[]
+                            {
+                                new StringSelectComponent(
+                                    "period-unit",
+                                    new ISelectOption[]
+                                    {
+                                        new SelectOption("Seconds", "Seconds"),
+                                        new SelectOption("Minutes", "Minutes"),
+                                        new SelectOption("Hours", "Hours"),
+                                        new SelectOption("Days", "Days"),
+                                        new SelectOption("Weeks", "Weeks"),
+                                        new SelectOption("Years", "Years"),
+                                    },
+                                    "Hours",
+                                    1,
+                                    1)
+                            }
+                        )
+                    }
+                )
+            )
         );
 
-        return Result.FromSuccess();
+        var result = await _discordRestInteractionApi.CreateInteractionResponseAsync
+        (
+            interactionContext.Interaction.ID,
+            interactionContext.Interaction.Token,
+            response,
+            ct: CancellationToken
+        );
+
+        return result;
     }
 
     [Command("list"), Description("List pending reminders"), Ephemeral]
@@ -102,7 +184,7 @@ public partial class ReminderCommandGroup: AccordCommandGroup
     public async Task<IResult> DeleteAllReminders()
     {
         var proxy = _commandContext.GetCommandProxy();
-        
+
         var response = await _mediator.Send(new DeleteAllRemindersRequest(proxy.UserId.Value));
 
         await response.GetAction(async () => await _feedbackService.SendContextualAsync($"Your reminders have been deleted."),
@@ -150,9 +232,9 @@ public partial class ReminderCommandGroup: AccordCommandGroup
         var guildUser = guildUserEntity.Entity;
         var (userDto, _, _) = userResponse.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
-            guildUser.User.Value.Discriminator, 
-            guildUser.User.Value.Avatar?.Value, 
+        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
+            guildUser.User.Value.Discriminator,
+            guildUser.User.Value.Avatar?.Value,
             guildUser.User.Value.Avatar?.HasGif == true);
 
         var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)

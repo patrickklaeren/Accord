@@ -18,12 +18,12 @@ public sealed record UpdateUserRequest(ulong DiscordGuildId,
     DateTimeOffset? JoinedDateTime) : IRequest;
 
 [AutoConstructor]
-public partial class UpdateUserHandler : AsyncRequestHandler<UpdateUserRequest>
+public partial class UpdateUserHandler : IRequestHandler<UpdateUserRequest>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
 
-    protected override async Task Handle(UpdateUserRequest request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateUserRequest request, CancellationToken cancellationToken)
     {
         var user = await _db.Users
             .SingleOrDefaultAsync(x => x.Id == request.DiscordUserId, cancellationToken);

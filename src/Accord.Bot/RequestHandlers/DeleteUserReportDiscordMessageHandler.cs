@@ -9,11 +9,11 @@ using Remora.Rest.Core;
 namespace Accord.Bot.RequestHandlers;
 
 [AutoConstructor]
-public partial class DeleteUserReportDiscordMessageHandler : AsyncRequestHandler<DeleteUserReportDiscordMessageRequest>
+public partial class DeleteUserReportDiscordMessageHandler : IRequestHandler<DeleteUserReportDiscordMessageRequest>
 {
     private readonly IDiscordRestWebhookAPI _webhookApi;
 
-    protected override async Task Handle(DeleteUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
     {
         await _webhookApi.DeleteWebhookMessageAsync(
             new Snowflake(request.DiscordProxyWebhookId),

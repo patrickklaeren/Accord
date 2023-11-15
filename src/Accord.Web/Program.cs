@@ -35,7 +35,7 @@ builder
     .AddLazyCache()
     .AddHttpContextAccessor()
     .AddHttpClient()
-    .AddMediatR(typeof(ServiceResponse).Assembly, typeof(BotClient).Assembly)
+    .AddMediatR(d => d.RegisterServicesFromAssemblies(typeof(BotClient).Assembly, typeof(ServiceResponse).Assembly))
     .AddDiscordBot(builder.Configuration)
     .AddSingleton(discordConfiguration)
     .AutoRegister()
@@ -133,7 +133,7 @@ ILogger CreateLogger()
             o.MinimumEventLevel = LogEventLevel.Warning;
             o.Dsn = sentrySection["Dsn"];
             o.Environment = sentrySection["Environment"];
-            o.BeforeSend = BeforeSend;
+            o.SetBeforeSend(BeforeSend);
         });
     }
 

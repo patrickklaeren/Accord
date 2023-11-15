@@ -16,7 +16,7 @@ public sealed record InvalidateGetUserReportMessageRequest(ulong DiscordMessageI
 
 [AutoConstructor]
 public partial class GetUserReportMessageHandler :
-    RequestHandler<InvalidateGetUserReportMessageRequest>,
+    IRequestHandler<InvalidateGetUserReportMessageRequest>,
     IRequestHandler<GetUserReportMessageRequest, UserReportMessage?>
 {
     private readonly AccordContext _accordContext;
@@ -29,9 +29,6 @@ public partial class GetUserReportMessageHandler :
             DateTimeOffset.Now.AddMinutes(10)
         );
 
-    protected override void Handle(InvalidateGetUserReportMessageRequest request) => 
-        _appCache.Remove(BuildGetUserReportMessage(request.DiscordMessageId));
-
     private Task<UserReportMessage?> GetUserReportMessage(ulong discordMessageId, CancellationToken ctx = default) =>
         _accordContext.UserReportMessages
             .Where(x => x.Id == discordMessageId || x.DiscordProxyMessageId == discordMessageId)
@@ -39,4 +36,10 @@ public partial class GetUserReportMessageHandler :
 
     private string BuildGetUserReportMessage(ulong discordMessageId) =>
         $"{nameof(GetUserReportMessageHandler)}/{nameof(GetUserReportMessage)}/{discordMessageId}";
+
+    public Task Handle(InvalidateGetUserReportMessageRequest request, CancellationToken cancellationToken)
+    {
+        _appCache.Remove(BuildGetUserReportMessage(request.DiscordMessageId));
+        return Task.CompletedTask;
+    }
 }

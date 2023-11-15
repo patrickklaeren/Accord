@@ -17,13 +17,13 @@ public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto U
 public sealed record RaidAlertRequest(ulong DiscordGuildId, bool IsRaidDetected, bool IsInExistingRaidMode, bool IsAutoRaidModeEnabled) : IRequest;
 
 [AutoConstructor]
-public partial class RaidCalculationHandler : AsyncRequestHandler<RaidCalculationRequest>
+public partial class RaidCalculationHandler : IRequestHandler<RaidCalculationRequest>
 {
     private readonly RaidCalculator _raidCalculator;
     private readonly IMediator _mediator;
     private readonly AccordContext _db;
 
-    protected override async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
+    public async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {
         var bypassRaidCheck = await _mediator.Send(new UserIsExemptFromRaidRequest(request.User.Id), cancellationToken);
 

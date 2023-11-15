@@ -1,9 +1,9 @@
-﻿using Accord.Services.Helpers;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Security.Claims;
+using Accord.Services.Helpers;
+using Microsoft.AspNetCore.Http;
 
-namespace Accord.Web.Services;
+namespace Accord.Web.DiscordServices;
 
 [AutoConstructor, RegisterScoped]
 public partial class DiscordUserService
@@ -13,7 +13,7 @@ public partial class DiscordUserService
 
     public string GetAvatarUrl()
     {
-        if (!(_httpContextAccessor.HttpContext is { User.Identity.IsAuthenticated: true } context))
+        if (_httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
         {
             throw new InvalidOperationException("Cannot get avatar for user when they are not authenticated");
         }
@@ -29,7 +29,7 @@ public partial class DiscordUserService
 
     public ulong GetDiscordId()
     {
-        if (!(_httpContextAccessor.HttpContext is { User.Identity.IsAuthenticated: true } context))
+        if (_httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
         {
             throw new InvalidOperationException("Cannot get ID for user when they are not authenticated");
         }

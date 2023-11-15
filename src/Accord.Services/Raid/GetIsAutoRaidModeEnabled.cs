@@ -14,7 +14,7 @@ public sealed record GetIsAutoRaidModeEnabledRequest : IRequest<bool>;
 public sealed record InvalidateGetIsAutoRaidModeEnabledRequest : IRequest;
 
 [AutoConstructor]
-public partial class GetIsAutoRaidModeEnabledHandler : RequestHandler<InvalidateGetIsAutoRaidModeEnabledRequest>, IRequestHandler<GetIsAutoRaidModeEnabledRequest, bool>
+public partial class GetIsAutoRaidModeEnabledHandler : IRequestHandler<InvalidateGetIsAutoRaidModeEnabledRequest>, IRequestHandler<GetIsAutoRaidModeEnabledRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -41,8 +41,9 @@ public partial class GetIsAutoRaidModeEnabledHandler : RequestHandler<Invalidate
         return bool.Parse(value);
     }
 
-    protected override void Handle(InvalidateGetIsAutoRaidModeEnabledRequest request)
+    public Task Handle(InvalidateGetIsAutoRaidModeEnabledRequest request, CancellationToken cancellationToken)
     {
         _appCache.Remove(BuildGetIsAutoRaidModeEnabledCacheKey());
+        return Task.CompletedTask;
     }
 }

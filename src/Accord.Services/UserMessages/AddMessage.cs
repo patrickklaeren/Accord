@@ -11,11 +11,11 @@ public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUser
     : IRequest, IEnsureUserExistsRequest;
 
 [AutoConstructor]
-public partial class AddMessageHandler : AsyncRequestHandler<AddMessageRequest>
+public partial class AddMessageHandler : IRequestHandler<AddMessageRequest>
 {
     private readonly AccordContext _db;
 
-    protected override async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
+    public async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
     {
         var message = new UserMessage
         {

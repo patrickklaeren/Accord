@@ -18,7 +18,7 @@ public sealed record AddReportRequest(ulong DiscordUserId,
     string InboxDiscordMessageProxyWebhookToken) : IRequest;
 
 [AutoConstructor]
-public partial class AddReportHandler : AsyncRequestHandler<AddReportRequest>
+public partial class AddReportHandler : IRequestHandler<AddReportRequest>
 {
     private readonly AccordContext _db;
 
@@ -38,7 +38,7 @@ public partial class AddReportHandler : AsyncRequestHandler<AddReportRequest>
         return new ExistingOutboxReportForUserDto(true, existingOutboxChannelId);
     }
 
-    protected override async Task Handle(AddReportRequest request, CancellationToken cancellationToken)
+    public async Task Handle(AddReportRequest request, CancellationToken cancellationToken)
     {
         var report = new UserReport
         {

@@ -16,13 +16,13 @@ using Remora.Discord.Rest.API;
 namespace Accord.Bot.RequestHandlers;
 
 [AutoConstructor]
-public partial class KickHandler : AsyncRequestHandler<KickRequest>
+public partial class KickHandler : IRequestHandler<KickRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(KickRequest request, CancellationToken cancellationToken)
+    public async Task Handle(KickRequest request, CancellationToken cancellationToken)
     {
         using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
         {

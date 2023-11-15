@@ -15,13 +15,13 @@ using Remora.Rest.Core;
 namespace Accord.Bot.RequestHandlers;
 
 [AutoConstructor]
-public partial class BanHandler : AsyncRequestHandler<BanRequest>
+public partial class BanHandler : IRequestHandler<BanRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
 
-    protected override async Task Handle(BanRequest request, CancellationToken cancellationToken)
+    public async Task Handle(BanRequest request, CancellationToken cancellationToken)
     {
         await _guildApi.CreateGuildBanAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), reason: request.Reason, ct: cancellationToken);
 

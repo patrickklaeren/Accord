@@ -13,7 +13,7 @@ public sealed record UserExistsRequest(ulong DiscordUserId) : IRequest<bool>;
 public sealed record InvalidateUserExistsRequest(ulong DiscordUserId) : IRequest;
 
 [AutoConstructor]
-public partial class DoesUserExistHandler : RequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
+public partial class DoesUserExistHandler : IRequestHandler<InvalidateUserExistsRequest>, IRequestHandler<UserExistsRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -26,13 +26,14 @@ public partial class DoesUserExistHandler : RequestHandler<InvalidateUserExistsR
                 DateTimeOffset.Now.AddDays(30));
     }
 
-    protected override void Handle(InvalidateUserExistsRequest request)
-    {
-        _appCache.Remove(GetCacheKey(request.DiscordUserId));
-    }
-
     private static string GetCacheKey(ulong discordUserId)
     {
         return $"{nameof(EnsureUserExistsHandler)}/{nameof(UserExistsRequest)}/{discordUserId}";
+    }
+
+    public Task Handle(InvalidateUserExistsRequest request, CancellationToken cancellationToken)
+    {
+        _appCache.Remove(GetCacheKey(request.DiscordUserId));
+        return Task.CompletedTask;
     }
 }

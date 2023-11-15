@@ -23,7 +23,7 @@ public sealed record InvalidateGetRemindersRequest(ulong DiscordUserId) : IReque
 
 [AutoConstructor]
 public partial class GetRemindersHandler : 
-    RequestHandler<InvalidateGetRemindersRequest>, 
+    IRequestHandler<InvalidateGetRemindersRequest>, 
     IRequestHandler<GetReminderRequest, ServiceResponse<UserReminder>>, 
     IRequestHandler<UserHasReminderRequest, ServiceResponse<bool>>, 
     IRequestHandler<GetRemindersRequest, ServiceResponse<List<UserReminder>>>, 
@@ -80,12 +80,7 @@ public partial class GetRemindersHandler :
             
         return ServiceResponse.Ok(result.Any(x => x.Id == request.ReminderId));
     }
-    protected override void Handle(InvalidateGetRemindersRequest request)
-    {
-        _appCache.Remove(BuildGetRemindersWithId(request.DiscordUserId));
-        _appCache.Remove(BuildGetReminders());
-    }
-
+    
     private async Task<List<UserReminder>> GetReminders() => 
         await _db.UserReminders.ToListAsync();
 
@@ -97,4 +92,11 @@ public partial class GetRemindersHandler :
 
     private static string BuildGetRemindersWithId(ulong discordUserId) => 
         $"{nameof(GetRemindersHandler)}/{nameof(GetRemindersByUserId)}/{discordUserId}";
+
+    public Task Handle(InvalidateGetRemindersRequest request, CancellationToken cancellationToken)
+    {
+        _appCache.Remove(BuildGetRemindersWithId(request.DiscordUserId));
+        _appCache.Remove(BuildGetReminders());
+        return Task.CompletedTask;
+    }
 }

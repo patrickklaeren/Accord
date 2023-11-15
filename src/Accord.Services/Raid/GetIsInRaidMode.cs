@@ -14,7 +14,7 @@ public sealed record GetIsInRaidModeRequest : IRequest<bool>;
 public sealed record InvalidateGetIsInRaidModeRequest : IRequest;
 
 [AutoConstructor]
-public partial class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
+public partial class GetIsInRaidModeHandler : IRequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -41,8 +41,9 @@ public partial class GetIsInRaidModeHandler : RequestHandler<InvalidateGetIsInRa
         return bool.Parse(value);
     }
 
-    protected override void Handle(InvalidateGetIsInRaidModeRequest request)
+    public Task Handle(InvalidateGetIsInRaidModeRequest request, CancellationToken cancellationToken)
     {
         _appCache.Remove(BuildGetIsInRaidModeCacheKey());
+        return Task.CompletedTask;
     }
 }

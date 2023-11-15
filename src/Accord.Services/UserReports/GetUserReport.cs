@@ -18,7 +18,7 @@ public sealed record InvalidateGetUserReportRequest(ulong DiscordUserId, ulong D
 
 [AutoConstructor]
 public partial class GetUserReportHandler :
-    RequestHandler<InvalidateGetUserReportRequest>,
+    IRequestHandler<InvalidateGetUserReportRequest>,
     IRequestHandler<GetUserReportByChannelRequest, UserReport?>,
     IRequestHandler<GetUserReportRequest, UserReport?>
 {
@@ -75,13 +75,6 @@ public partial class GetUserReportHandler :
         return userReport;
     }
 
-    protected override void Handle(InvalidateGetUserReportRequest request)
-    {
-        _appCache.Remove(BuildGetUserReport(request.DiscordUserId));
-        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordInboxChannelId));
-        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordOutboxChannelId));
-    }
-
     private Task<UserReport?> GetUserReportByChannel(ulong discordChannelId, CancellationToken cancellationToken = default) =>
         _accordContext.UserReports
             .Where(x => x.InboxDiscordChannelId == discordChannelId || x.OutboxDiscordChannelId == discordChannelId)
@@ -97,4 +90,12 @@ public partial class GetUserReportHandler :
 
     private static string BuildGetUserReport(ulong discordUserId) =>
         $"{nameof(GetUserReportHandler)}/{nameof(GetUserReport)}/{discordUserId}";
+
+    public Task Handle(InvalidateGetUserReportRequest request, CancellationToken cancellationToken)
+    {
+        _appCache.Remove(BuildGetUserReport(request.DiscordUserId));
+        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordInboxChannelId));
+        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordOutboxChannelId));
+        return Task.CompletedTask;
+    }
 }

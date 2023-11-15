@@ -17,12 +17,12 @@ namespace Accord.Services.Participation;
 public sealed record CalculateParticipationRequest : IRequest;
 
 [AutoConstructor]
-public partial class CalculateParticipation : AsyncRequestHandler<CalculateParticipationRequest>
+public partial class CalculateParticipation : IRequestHandler<CalculateParticipationRequest>
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IMediator _mediator;
 
-    protected override Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken) => Calculate();
+    public Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken) => Calculate();
 
     private async Task Calculate()
     {

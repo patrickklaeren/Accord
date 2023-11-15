@@ -11,13 +11,13 @@ namespace Accord.Bot.RequestHandlers;
 public record DeactivateForumPostRequest(IChannel Channel) : IRequest;
 
 [AutoConstructor]
-public partial class DeactivateForumPostHandler : AsyncRequestHandler<DeactivateForumPostRequest>
+public partial class DeactivateForumPostHandler : IRequestHandler<DeactivateForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
 
     private const string PREFIX = "❔";
 
-    protected override async Task Handle(DeactivateForumPostRequest request, CancellationToken cancellationToken)
+    public async Task Handle(DeactivateForumPostRequest request, CancellationToken cancellationToken)
     {
         if (request.Channel.Name.HasValue
             && !request.Channel.Name.Value!.EndsWith(PREFIX))

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.UserReports;
-using Accord.Bot.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
@@ -9,6 +8,7 @@ using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Interactivity.Extensions;
 
 namespace Accord.Bot.Infrastructure;
 
@@ -36,8 +36,11 @@ public static class BotServiceCollectionExtensions
                 o.Intents |= GatewayIntents.GuildMessages;
             })
             .AddDiscordCommands(true)
-            .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
-            .AddParser<TimeSpanParser>();
+            .AddPostExecutionEvent<AfterCommandPostExecutionEvent>();
+
+        services
+            .AddInteractivity()
+            .AddInteractionGroup<ReminderCommandGroupInteractions>();
 
         services
             .AddCommandTree()

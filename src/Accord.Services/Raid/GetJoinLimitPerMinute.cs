@@ -14,7 +14,7 @@ public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>;
 public sealed record InvalidateGetJoinLimitPerMinuteRequest : IRequest;
 
 [AutoConstructor]
-public partial class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
+public partial class GetJoinLimitPerMinuteHandler : IRequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -41,8 +41,9 @@ public partial class GetJoinLimitPerMinuteHandler : RequestHandler<InvalidateGet
         return int.Parse(value);
     }
 
-    protected override void Handle(InvalidateGetJoinLimitPerMinuteRequest request)
+    public Task Handle(InvalidateGetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
     {
         _appCache.Remove(BuildGetLimitPerOneMinuteCacheKey());
+        return Task.CompletedTask;
     }
 }

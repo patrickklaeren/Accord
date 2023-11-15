@@ -31,7 +31,7 @@ public static class CommandContextExtensions
     {
         return context switch
         {
-            IInteractionCommandContext ix => new CommandContextProxy(ix.Interaction.Member.Value.User.Value.ID, ix.Interaction.GuildID.Value, ix.Interaction.ChannelID.Value),
+            IInteractionCommandContext ix => new CommandContextProxy(ix.Interaction.Member.Value.User.Value.ID, ix.Interaction.GuildID.Value, ix.Interaction.Channel.Value.ID.Value),
             ITextCommandContext tx => new CommandContextProxy(tx.Message.Author.Value.ID, tx.GuildID.Value, tx.Message.ChannelID.Value),
             _ => throw new NotSupportedException()
         };

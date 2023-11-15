@@ -16,7 +16,7 @@ public sealed record GetChannelsWithFlagRequest(ChannelFlagType Flag) : IRequest
 public sealed record InvalidateGetChannelsWithFlagRequest(ChannelFlagType Flag) : IRequest;
 
 [AutoConstructor]
-public partial class GetChannelsWithFlagHandler : RequestHandler<InvalidateGetChannelsWithFlagRequest>, IRequestHandler<GetChannelsWithFlagRequest, List<ulong>>
+public partial class GetChannelsWithFlagHandler : IRequestHandler<InvalidateGetChannelsWithFlagRequest>, IRequestHandler<GetChannelsWithFlagRequest, List<ulong>>
 {
     private readonly AccordContext _db;
     private readonly IAppCache _appCache;
@@ -28,9 +28,10 @@ public partial class GetChannelsWithFlagHandler : RequestHandler<InvalidateGetCh
             DateTimeOffset.Now.AddDays(30));
     }
 
-    protected override void Handle(InvalidateGetChannelsWithFlagRequest request)
+    public Task Handle(InvalidateGetChannelsWithFlagRequest request, CancellationToken cancellationToken)
     {
         _appCache.Remove(BuildGetChannelsWithFlagKey(request.Flag));
+        return Task.CompletedTask;
     }
 
     private async Task<List<ulong>> GetChannelsWithFlag(ChannelFlagType type)

@@ -14,14 +14,14 @@ using Remora.Rest.Core;
 namespace Accord.Bot.RequestHandlers;
 
 [AutoConstructor]
-public partial class JoinedVoiceHandler : AsyncRequestHandler<JoinedVoiceRequest>
+public partial class JoinedVoiceHandler : IRequestHandler<JoinedVoiceRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IMediator _mediator;
     private readonly ThumbnailHelper _thumbnailHelper;
 
-    protected override async Task Handle(JoinedVoiceRequest request, CancellationToken cancellationToken)
+    public async Task Handle(JoinedVoiceRequest request, CancellationToken cancellationToken)
     {
         var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.VoiceLogs), cancellationToken);
 
