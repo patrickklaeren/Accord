@@ -5,6 +5,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim-amd64 AS build
 COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
 WORKDIR /src
 COPY ["src/Accord.Web/Accord.Web.csproj", "src/Accord.Web/"]
 COPY ["src/Accord.Bot/Accord.Bot.csproj", "src/Accord.Bot/"]
