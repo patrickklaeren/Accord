@@ -6,7 +6,7 @@
 <PageTitle>@PageTitleFactory.Title("Permissions for Roles")</PageTitle>
 
 <MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
-    <MudTable Items="@Elements" Dense="true" Hover="true" Filter="new Func<DiscordGuildRoleDto,bool>(FilterRoles)" @bind-SelectedItem="selectedItem1">
+    <MudTable Items="@Elements" Dense="true" Hover="true" Filter="new Func<DiscordGuildRoleDto,bool>(FilterRoles)">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Guild Roles</MudText>
             <MudSpacer />
@@ -28,9 +28,6 @@
 
 @code {
     private string roleSearch = "";
-    private DiscordGuildRoleDto selectedItem1 = null;
-    private HashSet<DiscordGuildRoleDto> selectedItems = new HashSet<DiscordGuildRoleDto>();
-
     private IEnumerable<DiscordGuildRoleDto> Elements = new List<DiscordGuildRoleDto>();
 
     protected override async Task OnInitializedAsync()
