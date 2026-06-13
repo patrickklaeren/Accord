@@ -86,7 +86,7 @@ public partial class AddUserHiddenChannelHandler :
                     UserId = request.DiscordUserId,
                     ParentDiscordChannelId = request.DiscordChannelId,
                     DiscordChannelId = channel,
-                    CreatedAt = DateTimeOffset.Now
+                    CreatedAt = DateTimeOffset.UtcNow
                 });
             }
             else

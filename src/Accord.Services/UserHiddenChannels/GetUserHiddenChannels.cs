@@ -27,7 +27,7 @@ public partial class GetUserHiddenChannelsHandler :
         await _appCache.GetOrAddAsync(
             BuildGetUserHiddenChannelsById(request.DiscordUserId),
             () => GetUserHiddenChannelsById(request.DiscordUserId),
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
 
     private async Task<List<UserHiddenChannel>> GetUserHiddenChannelsById(ulong userId) =>

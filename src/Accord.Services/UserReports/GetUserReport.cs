@@ -30,7 +30,7 @@ public partial class GetUserReportHandler :
         var userReport = await _appCache.GetOrAddAsync(
             BuildGetUserReportByChannel(request.DiscordChannelId),
             () => GetUserReportByChannel(request.DiscordChannelId, cancellationToken),
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
 
         if (userReport != null)
@@ -38,12 +38,12 @@ public partial class GetUserReportHandler :
             _appCache.GetOrAdd(
                 BuildGetUserReport(userReport.OpenedByUserId),
                 () => userReport,
-                DateTimeOffset.Now.AddDays(30)
+                DateTimeOffset.UtcNow.AddDays(30)
             );
             _appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.OutboxDiscordChannelId),
                 () => userReport,
-                DateTimeOffset.Now.AddDays(30)
+                DateTimeOffset.UtcNow.AddDays(30)
             );
         }
 
@@ -55,7 +55,7 @@ public partial class GetUserReportHandler :
         var userReport = await _appCache.GetOrAddAsync(
             BuildGetUserReport(request.DiscordUserId),
             () => GetUserReport(request.DiscordUserId, cancellationToken),
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
 
         if (userReport != null)
@@ -63,12 +63,12 @@ public partial class GetUserReportHandler :
             _appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.InboxDiscordChannelId),
                 () => userReport,
-                DateTimeOffset.Now.AddDays(30)
+                DateTimeOffset.UtcNow.AddDays(30)
             );
             _appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.OutboxDiscordChannelId),
                 () => userReport,
-                DateTimeOffset.Now.AddDays(30)
+                DateTimeOffset.UtcNow.AddDays(30)
             );
         }
 

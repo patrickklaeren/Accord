@@ -21,7 +21,7 @@ public partial class HasTimeOutChangedHandler : IRequestHandler<HasTimeOutChange
         var hasTimeOutRecorded = await _appCache
             .GetOrAddAsync(BuildCacheKey(request.DiscordUserId),
                 () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId && x.TimedOutUntil == request.Candidate, cancellationToken),
-                DateTimeOffset.Now.AddMinutes(5));
+                DateTimeOffset.UtcNow.AddMinutes(5));
 
         return !hasTimeOutRecorded;
     }

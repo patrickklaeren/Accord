@@ -34,15 +34,15 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
 
         var user = await _appCache.GetOrAddAsync(BuildGetUserCacheKey(request.DiscordUserId), 
             () => GetUser(request.DiscordUserId), 
-            DateTimeOffset.Now.AddMinutes(5));
+            DateTimeOffset.UtcNow.AddMinutes(5));
 
         var messagesSent = await _appCache.GetOrAddAsync(BuildGetMessagesCacheKey(request.DiscordUserId),
             () => GetMessages(request.DiscordUserId),
-            DateTimeOffset.Now.AddMinutes(5));
+            DateTimeOffset.UtcNow.AddMinutes(5));
 
         var voice = await _appCache.GetOrAddAsync(BuildGetVoiceMinutesCacheKey(request.DiscordUserId),
             () => GetVoiceMinutes(request.DiscordUserId),
-            DateTimeOffset.Now.AddMinutes(5));
+            DateTimeOffset.UtcNow.AddMinutes(5));
 
         return ServiceResponse.Ok(new GetUserDto(user, messagesSent, voice));
     }
@@ -69,7 +69,7 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
 
     private async Task<List<UserMessagesInChannelDto>> GetMessages(ulong discordUserId)
     {
-        var cutOff = DateTimeOffset.Now.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
+        var cutOff = DateTimeOffset.UtcNow.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
 
         return await _db.UserMessages
             .Where(x => x.UserId == discordUserId)
@@ -86,7 +86,7 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
 
     private async Task<List<UserVoiceMinutesInChannelDto>> GetVoiceMinutes(ulong discordUserId)
     {
-        var cutOff = DateTimeOffset.Now.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
+        var cutOff = DateTimeOffset.UtcNow.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
 
         return await _db.VoiceConnections
             .Where(x => x.UserId == discordUserId)

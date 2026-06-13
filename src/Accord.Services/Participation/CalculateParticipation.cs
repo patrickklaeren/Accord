@@ -28,7 +28,7 @@ public partial class CalculateParticipation : IRequestHandler<CalculateParticipa
     {
         const double MINIMUM_MINUTES_IN_VOICE = 5;
 
-        var calculateFromDate = DateTime.Today.AddDays(-30);
+        var calculateFromDate = DateTimeOffset.UtcNow.AddDays(-30);
 
         using (var userResetScope = _serviceScopeFactory.CreateScope())
         await using (var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>())

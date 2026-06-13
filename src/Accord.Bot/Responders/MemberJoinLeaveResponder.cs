@@ -90,7 +90,7 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
         var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} left",
             Description: builder.ToString(),
             Thumbnail: image,
-            Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+            Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 
         foreach (var channel in channels)
         {

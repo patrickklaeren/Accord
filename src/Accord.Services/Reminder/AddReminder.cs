@@ -23,7 +23,7 @@ public partial class AddReminderHandler : IRequestHandler<AddReminderRequest, Se
         if (!userExists)
             return ServiceResponse.Fail<GetUserDto>("User does not exist");
 
-        var dateTime = DateTimeOffset.Now;
+        var dateTime = DateTimeOffset.UtcNow;
             
         var reminder = new UserReminder
         {

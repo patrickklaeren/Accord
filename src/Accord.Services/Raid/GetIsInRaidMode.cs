@@ -23,7 +23,7 @@ public partial class GetIsInRaidModeHandler : IRequestHandler<InvalidateGetIsInR
     {
         return await _appCache.GetOrAddAsync(BuildGetIsInRaidModeCacheKey(),
             GetIsInRaidMode,
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string BuildGetIsInRaidModeCacheKey()

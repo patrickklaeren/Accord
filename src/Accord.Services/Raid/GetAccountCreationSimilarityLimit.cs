@@ -23,7 +23,7 @@ public partial class GetAccountCreationSimilarityLimitHandler : IRequestHandler<
     {
         return await _appCache.GetOrAddAsync(BuildGetLimitCacheKey(),
             GetLimit,
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string BuildGetLimitCacheKey()

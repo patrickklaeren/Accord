@@ -35,7 +35,7 @@ public partial class KickHandler : IRequestHandler<KickRequest>
         {
             var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
                 Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
-                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+                Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channelsToPostTo)
             {

@@ -29,11 +29,11 @@ public partial class VoiceStateResponder : IResponder<IVoiceStateUpdate>
                 gatewayEvent.UserID.Value,
                 gatewayEvent.ChannelID.Value.Value,
                 gatewayEvent.SessionID,
-                DateTimeOffset.Now)
+                DateTimeOffset.UtcNow)
             : new FinishVoiceSessionRequest(gatewayEvent.GuildID.Value.Value, 
                 gatewayEvent.UserID.Value,
                 gatewayEvent.SessionID,
-                DateTimeOffset.Now);
+                DateTimeOffset.UtcNow);
 
         await _eventQueue.Queue(type);
 

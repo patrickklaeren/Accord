@@ -22,7 +22,7 @@ public partial class RaidAlertHandler : IRequestHandler<RaidAlertRequest>
         var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);
 
         var embed = new Embed(Title: "🚨 Raid detected",
-            Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+            Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 
         foreach (var channel in channelsToPostTo)
         {

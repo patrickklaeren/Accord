@@ -49,7 +49,7 @@ public partial class AddReportHandler : IRequestHandler<AddReportRequest>
             InboxDiscordChannelId = request.InboxDiscordChannelId,
             InboxDiscordMessageProxyWebhookId = request.InboxDiscordMessageProxyWebhookId,
             InboxDiscordMessageProxyWebhookToken = request.InboxDiscordMessageProxyWebhookToken,
-            OpenedDateTime = DateTimeOffset.Now,
+            OpenedDateTime = DateTimeOffset.UtcNow,
         };
 
         _db.Add(report);

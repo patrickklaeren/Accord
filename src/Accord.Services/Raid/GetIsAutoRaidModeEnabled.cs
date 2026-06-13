@@ -23,7 +23,7 @@ public partial class GetIsAutoRaidModeEnabledHandler : IRequestHandler<Invalidat
     {
         return await _appCache.GetOrAddAsync(BuildGetIsAutoRaidModeEnabledCacheKey(),
             GetIsAutoRaidModeEnabled,
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string BuildGetIsAutoRaidModeEnabledCacheKey()

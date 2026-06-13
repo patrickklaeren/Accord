@@ -25,7 +25,7 @@ public partial class GetChannelsWithFlagHandler : IRequestHandler<InvalidateGetC
     {
         return await _appCache.GetOrAddAsync(BuildGetChannelsWithFlagKey(request.Flag),
             () => GetChannelsWithFlag(request.Flag),
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     public Task Handle(InvalidateGetChannelsWithFlagRequest request, CancellationToken cancellationToken)

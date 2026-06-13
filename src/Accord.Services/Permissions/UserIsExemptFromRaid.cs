@@ -24,7 +24,7 @@ public partial class UserIsExemptFromRaid : NotificationHandler<PermissionsUpdat
     {
         var allowedUsers = await _appCache.GetOrAddAsync(AllowlistedUsersCacheKey,
             () => GetAllowlistedUsers(),
-            DateTimeOffset.Now.AddHours(1));
+            DateTimeOffset.UtcNow.AddHours(1));
 
         return allowedUsers.Contains(request.UserId);
     }

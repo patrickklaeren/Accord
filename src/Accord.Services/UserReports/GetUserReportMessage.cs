@@ -26,7 +26,7 @@ public partial class GetUserReportMessageHandler :
         await _appCache.GetOrAdd(
             BuildGetUserReportMessage(request.DiscordMessageId),
             () => GetUserReportMessage(request.DiscordMessageId, cancellationToken),
-            DateTimeOffset.Now.AddMinutes(10)
+            DateTimeOffset.UtcNow.AddMinutes(10)
         );
 
     private Task<UserReportMessage?> GetUserReportMessage(ulong discordMessageId, CancellationToken ctx = default) =>

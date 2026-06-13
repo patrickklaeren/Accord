@@ -43,7 +43,7 @@ public partial class CleanUpHelpForumHostedService : BackgroundService
         IMediator mediator, IDiscordRestGuildAPI guildApi, IDiscordRestChannelAPI channelApi, 
         CancellationToken stoppingToken)
     {
-        var processingAt = DateTimeOffset.Now;
+        var processingAt = DateTimeOffset.UtcNow;
         const int NUMBER_OF_HOURS_TO_GO_BACK = 24;
         var cutOff = processingAt.AddHours(-NUMBER_OF_HOURS_TO_GO_BACK);
 

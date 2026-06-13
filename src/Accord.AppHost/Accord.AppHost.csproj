@@ -1,17 +1,18 @@
 <Project Sdk="Aspire.AppHost.Sdk/13.4.3">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>c485d4ee-5d66-4543-8a06-977f2843399c</UserSecretsId>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Accord.Web\Accord.Web.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Accord.Web\Accord.Web.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Docker" />
-    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.Docker"/>
+        <PackageReference Include="Aspire.Hosting.PostgreSQL"/>
+    </ItemGroup>
 
 </Project>

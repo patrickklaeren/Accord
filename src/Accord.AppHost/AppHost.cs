@@ -18,33 +18,26 @@ var sentryEnvironment = builder.AddParameter(
 
 var discordBotToken = builder.AddParameter(
     name: "discord-bot-token",
-    secret: true,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: true)
+    .WithDescription("Token for the Discord bot to run under, obtained from the [Discord Developer Portal](https://discord.com/developers/applications/)");
 
 var discordClientId = builder.AddParameter(
     name: "discord-client-id",
-    secret: false,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: false)
+    .WithDescription("Discord Client ID used for Discord authentication for the frontend, obtained from the [Discord Developer Portal](https://discord.com/developers/applications/)");
 
 var discordClientSecret = builder.AddParameter(
     name: "discord-client-secret",
-    secret: true,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: true)
+    .WithDescription("Discord Client Secret used for Discord authentication for the frontend, obtained from the [Discord Developer Portal](https://discord.com/developers/applications/)");
 
 var discordGuildId = builder.AddParameter(
     name: "discord-guild-id",
-    secret: false,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: false);
 
 var discordHelpForumChannelId = builder.AddParameter(
     name: "discord-help-forum-channel-id",
-    secret: false,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: false);
 
 var discordCdnBaseUrl = builder.AddParameter(
     name: "discord-cdn-base-url",

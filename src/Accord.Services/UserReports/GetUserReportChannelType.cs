@@ -21,7 +21,7 @@ public partial class GetUserReportChannelTypeHandler : IRequestHandler<GetUserRe
     {
         return await _appCache.GetOrAddAsync(BuildIsUserReportChannelCacheKey(channelTypeRequest.DiscordChannelId), 
             () => IsUserReportChannel(channelTypeRequest.DiscordChannelId),
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string BuildIsUserReportChannelCacheKey(ulong discordChannelId)

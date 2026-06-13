@@ -23,7 +23,7 @@ public partial class DoesUserExistHandler : IRequestHandler<InvalidateUserExists
         return await _appCache
             .GetOrAddAsync(GetCacheKey(request.DiscordUserId),
                 () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId, cancellationToken),
-                DateTimeOffset.Now.AddDays(30));
+                DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string GetCacheKey(ulong discordUserId)

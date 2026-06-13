@@ -37,7 +37,7 @@ public partial class GetRemindersHandler :
         var result = await _appCache.GetOrAddAsync(
             BuildGetRemindersWithId(request.DiscordUserId), 
             () => GetRemindersByUserId(request.DiscordUserId), 
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
             
         return ServiceResponse.Ok(result);
@@ -48,7 +48,7 @@ public partial class GetRemindersHandler :
         var result = await _appCache.GetOrAddAsync(
             BuildGetReminders(), 
             () => GetReminders(), 
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
             
         return ServiceResponse.Ok(result);
@@ -59,7 +59,7 @@ public partial class GetRemindersHandler :
         var result = await _appCache.GetOrAddAsync(
             BuildGetRemindersWithId(request.DiscordUserId), 
             () => GetRemindersByUserId(request.DiscordUserId), 
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
         try
         {
@@ -75,7 +75,7 @@ public partial class GetRemindersHandler :
         var result = await _appCache.GetOrAddAsync(
             BuildGetRemindersWithId(request.DiscordUserId), 
             () => GetRemindersByUserId(request.DiscordUserId), 
-            DateTimeOffset.Now.AddDays(30)
+            DateTimeOffset.UtcNow.AddDays(30)
         );
             
         return ServiceResponse.Ok(result.Any(x => x.Id == request.ReminderId));

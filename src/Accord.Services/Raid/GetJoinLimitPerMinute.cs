@@ -23,7 +23,7 @@ public partial class GetJoinLimitPerMinuteHandler : IRequestHandler<InvalidateGe
     {
         return await _appCache.GetOrAddAsync(BuildGetLimitPerOneMinuteCacheKey(),
             GetLimitPerOneMinute,
-            DateTimeOffset.Now.AddDays(30));
+            DateTimeOffset.UtcNow.AddDays(30));
     }
 
     private static string BuildGetLimitPerOneMinuteCacheKey()

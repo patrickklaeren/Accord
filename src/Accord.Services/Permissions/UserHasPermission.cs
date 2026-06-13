@@ -24,7 +24,7 @@ public partial class UserHasPermission : NotificationHandler<PermissionsUpdateNo
     {
         var permissions = await _appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
             () => GetPermissionsForUser(request.User),
-            DateTimeOffset.Now.AddMinutes(5));
+            DateTimeOffset.UtcNow.AddMinutes(5));
 
         return permissions.Any(ownedPermission => ownedPermission == request.Permission);
     }

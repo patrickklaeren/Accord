@@ -25,7 +25,7 @@ public partial class EnsureUserExistsHandler : IRequestHandler<EnsureUserExistsR
         var user = new User
         {
             Id = request.DiscordUserId,
-            FirstSeenDateTime = DateTimeOffset.Now,
+            FirstSeenDateTime = DateTimeOffset.UtcNow,
         };
 
         _db.Add(user);

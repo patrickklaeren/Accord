@@ -31,7 +31,7 @@ public partial class BanHandler : IRequestHandler<BanRequest>
         {
             var embed = new Embed(Title: $"🔨 Banned {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
                 Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) banned for reason {request.Reason}",
-                Footer: new EmbedFooter($"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}"));
+                Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channelsToPostTo)
             {
