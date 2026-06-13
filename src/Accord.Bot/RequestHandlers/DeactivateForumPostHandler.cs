@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
-using Serilog;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace Accord.Bot.RequestHandlers;
@@ -14,6 +14,7 @@ public record DeactivateForumPostRequest(IChannel Channel) : IRequest;
 public partial class DeactivateForumPostHandler : IRequestHandler<DeactivateForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly ILogger<DeactivateForumPostHandler> _logger;
 
     private const string PREFIX = "❔";
 
@@ -29,7 +30,7 @@ public partial class DeactivateForumPostHandler : IRequestHandler<DeactivateForu
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed changing title of forum post");
+                _logger.LogError(e, "Failed changing title of forum post");
             }
         }
 
@@ -39,7 +40,7 @@ public partial class DeactivateForumPostHandler : IRequestHandler<DeactivateForu
         }
         catch (Exception e)
         {
-            Log.Error(e, "Failed archiving forum post");
+            _logger.LogError(e, "Failed archiving forum post");
         }
     }
 }

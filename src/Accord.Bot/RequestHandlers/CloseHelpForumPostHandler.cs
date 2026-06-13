@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
-using Serilog;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace Accord.Bot.RequestHandlers;
@@ -15,6 +14,7 @@ public record CloseHelpForumPostRequest(IChannel Channel) : IRequest;
 public partial class CloseHelpForumPostHandler : IRequestHandler<CloseHelpForumPostRequest>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly ILogger<CloseHelpForumPostHandler> _logger;
 
     private const string PREFIX = "✅";
 
@@ -30,7 +30,7 @@ public partial class CloseHelpForumPostHandler : IRequestHandler<CloseHelpForumP
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed changing title of forum post");
+                _logger.LogError(e, "Failed changing title of forum post");
             }
         }
 
@@ -45,7 +45,7 @@ public partial class CloseHelpForumPostHandler : IRequestHandler<CloseHelpForumP
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed changing reactions of forum post");
+                _logger.LogError(e, "Failed changing reactions of forum post");
             }
         }
 
@@ -55,7 +55,7 @@ public partial class CloseHelpForumPostHandler : IRequestHandler<CloseHelpForumP
         }
         catch (Exception e)
         {
-            Log.Error(e, "Failed archiving forum post");
+            _logger.LogError(e, "Failed archiving forum post");
         }
     }
 }

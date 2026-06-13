@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Bot.Infrastructure;
 using Accord.Bot.RequestHandlers;
 using Accord.Services;
 using Accord.Services.Helpers;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
-using Serilog;
 
 namespace Accord.Bot.HostedServices;
 
@@ -20,8 +17,8 @@ namespace Accord.Bot.HostedServices;
 public partial class CleanUpHelpForumHostedService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-
     private readonly DiscordConfiguration _discordConfiguration;
+    private readonly ILogger<CleanUpHelpForumHostedService> _logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -97,7 +94,7 @@ public partial class CleanUpHelpForumHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed cleaning up thread {ThreadId}", thread.ID);
+                _logger.LogError(ex, "Failed cleaning up thread {ThreadId}", thread.ID);
             }
         }
     }

@@ -5,7 +5,6 @@ using Accord.Services.UserMessages;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
-using Serilog;
 
 namespace Accord.Bot.Responders;
 
@@ -13,7 +12,6 @@ public class UnknownHandler : IResponder<IUnknownEvent>
 {
     public Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        Log.Warning("Unknown event");
         return Task.FromResult(Result.FromSuccess());
     }
 }

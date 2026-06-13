@@ -10,7 +10,6 @@
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Remora.Discord" />
-    <PackageReference Include="Serilog" />
     <PackageReference Include="TimeSpanParserUtil" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/Accord.AppHost/Accord.AppHost.csproj"
+  }
+}

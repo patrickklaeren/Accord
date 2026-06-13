@@ -12,9 +12,7 @@
     <PackageReference Include="LazyCache.AspNetCore" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="MudBlazor" />
-    <PackageReference Include="Sentry.Serilog" />
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Sentry.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Accord.Bot\Accord.Bot.csproj" />

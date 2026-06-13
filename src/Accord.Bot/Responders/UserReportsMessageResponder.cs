@@ -89,23 +89,23 @@ public class UserReportsMessageResponder
 
     public async Task<Result> RespondAsync(IMessageUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        if (gatewayEvent.Author.Value.IsBot.HasValue || gatewayEvent.Author.Value.IsSystem.HasValue)
+        if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
             return Result.FromSuccess();
 
-        var reportChannelType = await _mediator.Send(new GetUserReportChannelTypeRequest(gatewayEvent.ChannelID.Value.Value), ct);
+        var reportChannelType = await _mediator.Send(new GetUserReportChannelTypeRequest(gatewayEvent.ChannelID.Value), ct);
 
         if (reportChannelType == UserReportChannelType.None)
             return Result.FromSuccess();
 
-        string content = (reportChannelType == UserReportChannelType.Inbox && gatewayEvent.Content.Value.StartsWith(">")
-            ? gatewayEvent.Content.Value.UnquoteAgentReportText()
-            : gatewayEvent.Content.Value).TrimStart();
+        string content = (reportChannelType == UserReportChannelType.Inbox && gatewayEvent.Content.StartsWith(">")
+            ? gatewayEvent.Content.UnquoteAgentReportText()
+            : gatewayEvent.Content).TrimStart();
 
-        var attachments = (gatewayEvent.Attachments.HasValue ? gatewayEvent.Attachments.Value : new List<IAttachment>())
+        var attachments = gatewayEvent.Attachments
             .Select(x => new DiscordAttachmentDto(x.Url, x.Filename, x.ContentType.HasValue ? x.ContentType.Value : null))
             .ToList();
 
-        await _eventQueue.Queue(new EditUserReportMessageRequest(gatewayEvent.ID.Value.Value, gatewayEvent.ChannelID.Value.Value, reportChannelType, content,
+        await _eventQueue.Queue(new EditUserReportMessageRequest(gatewayEvent.ID.Value, gatewayEvent.ChannelID.Value, reportChannelType, content,
             attachments));
 
         return Result.FromSuccess();

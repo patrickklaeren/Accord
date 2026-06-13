@@ -6,32 +6,28 @@ using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using AspNet.Security.OAuth.Discord;
-using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using Sentry;
-using Serilog;
-using Serilog.Events;
-
-Log.Information("Starting up...");
 
 var builder = WebApplication
     .CreateBuilder(args);
 
-builder.Logging.AddSerilog(CreateLogger());
+builder.WebHost.UseSentry(x => x.SetBeforeSend(BeforeSend));
 
 var discordConfiguration = new DiscordConfiguration();
 builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
 
 builder
     .Services
-    .AddDatabase(builder.Configuration.GetConnectionString("Database")!)
+    .AddDatabase(builder.Configuration.GetConnectionString("accord")!)
     .AddLazyCache()
     .AddHttpContextAccessor()
     .AddHttpClient()
@@ -65,8 +61,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 
-if (!bool.TryParse(builder.Configuration["Discord:DisableBot"], out var disableDiscordBot) 
-    || !disableDiscordBot)
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 {
     builder.Services
         .AddHostedService<BotHostedService>()
@@ -77,8 +72,6 @@ if (!bool.TryParse(builder.Configuration["Discord:DisableBot"], out var disableD
 builder.Services.AddHostedService<EventQueueProcessor>();
 
 var app = builder.Build();
-
-Log.Information("Host built...");
 
 if (!app.Environment.IsDevelopment())
 {
@@ -100,45 +93,13 @@ app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthen
 
 using (var scope = app.Services.CreateScope())
 {
-    Log.Information("Scope created...");
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Scope created...");
     await AccordContextExtensions.Migrate(scope.ServiceProvider.GetRequiredService<AccordContext>());
-    Log.Information("Migrated!");
+    logger.LogInformation("Migrated!");
 }
-
-Log.Information("Ready to run");
 
 await app.RunAsync();
-
-ILogger CreateLogger()
-{
-    var loggerConfiguration = new LoggerConfiguration();
-    
-    loggerConfiguration.MinimumLevel.Debug()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-        .Enrich.FromLogContext();
-
-    if (builder.Environment.IsDevelopment())
-    {
-        loggerConfiguration.WriteTo.Console();
-    }
-
-    var sentrySection = builder.Configuration.GetSection("Sentry");
-    var isSentryDisabled = bool.TryParse(sentrySection["Disable"], out var disable) && disable;
-
-    if (!string.IsNullOrWhiteSpace(sentrySection["Dsn"]) && !isSentryDisabled)
-    {
-        loggerConfiguration.WriteTo.Sentry(o =>
-        {
-            o.MinimumBreadcrumbLevel = LogEventLevel.Information;
-            o.MinimumEventLevel = LogEventLevel.Warning;
-            o.Dsn = sentrySection["Dsn"];
-            o.Environment = sentrySection["Environment"];
-            o.SetBeforeSend(BeforeSend);
-        });
-    }
-
-    return loggerConfiguration.CreateLogger();
-}
 
 SentryEvent? BeforeSend(SentryEvent arg)
 {
