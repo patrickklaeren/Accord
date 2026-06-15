@@ -5,11 +5,11 @@ namespace Accord.Bot.Extensions;
 
 public static class StringExtensions
 {
-    private static readonly string[] SpecialCharacters = { "\\", "`", "|" };
+    private static readonly string[] SpecialCharacters = ["\\", "`", "|"];
 
     extension(string text)
     {
-        public string DiscordSanitize()
+        public string SanitiseDiscordContent()
         {
             foreach (var character in SpecialCharacters)
             {
@@ -21,13 +21,14 @@ public static class StringExtensions
         public string UnquoteAgentReportText()
         {
             var lines = text.Split(Environment.NewLine);
-            var sb = new StringBuilder();
+            
+            var builder = new StringBuilder();
             foreach (var line in lines)
             {
-                sb.AppendLine(line[0] == '>' ? line[1..].Trim() : line.Trim());
+                builder.AppendLine(line[0] == '>' ? line[1..].Trim() : line.Trim());
             }
 
-            return sb.ToString();
+            return builder.ToString();
         }
     }
 }

@@ -40,7 +40,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
     [SuppressInteractionResponse(true)]
     public async Task<IResult> AddReminder(TimeSpan timeSpan, string message)
     {
-        var sanitizedMessage = message.DiscordSanitize();
+        var sanitizedMessage = message.SanitiseDiscordContent();
 
         _commandContext.TryGetUserID(out var userId);
         _commandContext.TryGetChannelID(out var channelId);
