@@ -7,6 +7,7 @@
     <PackageReference Include="AutoRegisterInject" />
     <PackageReference Include="HtmlAgilityPack" />
     <PackageReference Include="LazyCache" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />

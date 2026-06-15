@@ -34,7 +34,7 @@ public partial class AddUserHandler : IRequestHandler<AddUserRequest>
             Id = request.DiscordUserId,
             FirstSeenDateTime = request.JoinedDateTime,
             JoinedGuildDateTime = request.JoinedDateTime,
-            UsernameWithDiscriminator = $"{request.DiscordUsername}#{request.DiscordDiscriminator}",
+            Username = request.DiscordUsername,
             Nickname = request.DiscordNickname,
         };
 

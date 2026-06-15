@@ -8,10 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Users;
 
-public sealed record UpdateUserRequest(ulong DiscordGuildId,
+public sealed record UpdateUserRequest(
     ulong DiscordUserId,
     string DiscordUsername,
-    string DiscordDiscriminator,
     string? DiscordNickname,
     DateTimeOffset? TimedOutUntil,
     string? DiscordAvatarUrl,
@@ -31,9 +30,7 @@ public partial class UpdateUserHandler : IRequestHandler<UpdateUserRequest>
         if (user is null)
             return;
 
-        var usernameWithDiscriminator = $"{request.DiscordUsername}#{request.DiscordDiscriminator}";
-
-        if (user.UsernameWithDiscriminator != usernameWithDiscriminator
+        if (user.Username != request.DiscordUsername
             || user.Nickname != request.DiscordNickname
             || user.TimedOutUntil != request.TimedOutUntil)
         {
@@ -42,9 +39,10 @@ public partial class UpdateUserHandler : IRequestHandler<UpdateUserRequest>
         }
 
         user.JoinedGuildDateTime = request.JoinedDateTime;
-        user.UsernameWithDiscriminator = usernameWithDiscriminator;
+        user.Username = request.DiscordUsername;
         user.Nickname = request.DiscordNickname;
         user.TimedOutUntil = request.TimedOutUntil;
+        user.LastSeenDateTime = DateTimeOffset.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
     }

@@ -26,18 +26,16 @@ public partial class GetUserNameDiffHandler : IRequestHandler<GetUserNameDiffReq
             .Select(x => new
             {
                 x.Id,
-                x.UsernameWithDiscriminator,
+                UsernameWithDiscriminator = x.Username,
                 x.Nickname
             }).SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         if (user is null)
             return new UserNameDiffResponse(false, diffMessages);
 
-        var handle = DiscordHandleHelper.BuildHandle(request.DiscordUsername, request.DiscordDiscriminator);
-
-        if (!string.IsNullOrWhiteSpace(user.UsernameWithDiscriminator) && user.UsernameWithDiscriminator != handle)
+        if (!string.IsNullOrWhiteSpace(user.UsernameWithDiscriminator) && user.UsernameWithDiscriminator != request.DiscordUsername)
         {
-            diffMessages.Add($"Changed handle from {user.UsernameWithDiscriminator} to {handle}");
+            diffMessages.Add($"Changed handle from {user.UsernameWithDiscriminator} to {request.DiscordUsername}");
         }
 
         if (user.Nickname != request.DiscordNickname)

@@ -44,7 +44,7 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
             user.Avatar?.HasGif == true);
 
         await _eventQueue.Queue(new AddUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, null, gatewayEvent.JoinedAt));
-        await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), null, avatarUrl, gatewayEvent.JoinedAt)));
+        await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, avatarUrl, gatewayEvent.JoinedAt)));
 
         var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
@@ -56,10 +56,10 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
                 .AppendLine("**User Information**")
                 .AppendLine($"ID: {user.ID.Value}")
                 .AppendLine($"Profile: {user.ID.ToUserMention()}")
-                .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}")
+                .AppendLine($"Handle: {user.Username}")
                 .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(user.ID.Value):yyy-MM-dd HH:mm:ss}");
 
-            var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined",
+            var embed = new Embed(Title: $"{user.Username} joined",
                 Description: builder.ToString(),
                 Thumbnail: image,
                 Footer: new EmbedFooter($"{gatewayEvent.JoinedAt:yyyy-MM-dd HH:mm:ss}"));
@@ -85,9 +85,9 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
             .AppendLine("**User Information**")
             .AppendLine($"ID: {user.ID.Value}")
             .AppendLine($"Profile: {user.ID.ToUserMention()}")
-            .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)}");
+            .AppendLine($"Handle: {user.Username}");
 
-        var embed = new Embed(Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} left",
+        var embed = new Embed(Title: $"{user.Username} left",
             Description: builder.ToString(),
             Thumbnail: image,
             Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));

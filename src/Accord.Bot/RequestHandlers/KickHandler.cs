@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
-using Accord.Services.Helpers;
 using Accord.Services.Moderation;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
@@ -26,15 +25,15 @@ public partial class KickHandler : IRequestHandler<KickRequest>
     {
         using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
         {
-            await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.User.Id), ct: cancellationToken);
+            await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.DiscordUserId), ct: cancellationToken);
         }
 
         var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
 
         if (channelsToPostTo.Any())
         {
-            var embed = new Embed(Title: $"👢 Kicked {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
-                Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) kicked for reason {request.Reason}",
+            var embed = new Embed(Title: $"👢 Kicked {request.DiscordUsername}",
+                Description: $"{DiscordFormatter.UserIdToMention(request.DiscordUserId)} ({request.DiscordUserId}) kicked for reason {request.Reason}",
                 Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 
             foreach (var channel in channelsToPostTo)

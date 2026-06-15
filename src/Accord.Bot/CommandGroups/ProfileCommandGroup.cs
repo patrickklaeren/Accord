@@ -68,9 +68,9 @@ public partial class ProfileCommandGroup: AccordCommandGroup
 
         var builder = new StringBuilder();
 
-        var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)
-            ? userDto.UsernameWithDiscriminator
-            : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator);
+        var userHandle = !string.IsNullOrWhiteSpace(userDto.Username)
+            ? userDto.Username
+            : guildUser.User.Value.Username;
 
         var userCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userId);
 

@@ -40,7 +40,7 @@ public partial class LeftVoiceHandler : IRequestHandler<LeftVoiceRequest>
 
         var span = (request.DisconnectedDateTime - request.ConnectedDateTime).Humanize();
 
-        var embed = new Embed(Title: $"📢 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} left voice",
+        var embed = new Embed(Title: $"📢 {user.Username} left voice",
             Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) left {DiscordFormatter.ChannelIdToMention(request.DiscordChannelId)} after {span}",
             Footer: new EmbedFooter($"Session ID: {request.DiscordSessionId}"),
             Thumbnail: avatar);

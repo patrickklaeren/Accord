@@ -13,7 +13,7 @@ namespace Accord.Services.Users;
 public sealed record GetUserRequest(ulong DiscordUserId) : IRequest<ServiceResponse<GetUserDto>>;
 public sealed record GetUserDto(UserDto User, List<UserMessagesInChannelDto> Messages, List<UserVoiceMinutesInChannelDto> VoiceMinutes);
 
-public sealed record UserDto(ulong Id, string? UsernameWithDiscriminator, string? Nickname, DateTimeOffset? JoinedGuildDateTime, DateTimeOffset FirstSeenDateTime, int ParticipationRank, int ParticipationPoints, double ParticipationPercentile);
+public sealed record UserDto(ulong Id, string? Username, string? Nickname, DateTimeOffset? JoinedGuildDateTime, DateTimeOffset FirstSeenDateTime, int ParticipationRank, int ParticipationPoints, double ParticipationPercentile);
 public sealed record UserMessagesInChannelDto(ulong DiscordChannelId, int NumberOfMessages);
 public sealed record UserVoiceMinutesInChannelDto(ulong DiscordChannelId, double NumberOfMinutes);
 
@@ -56,9 +56,14 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
     {
         return await _db.Users
             .Where(x => x.Id == discordUserId)
-            .Select(x => new UserDto(x.Id, x.UsernameWithDiscriminator, x.Nickname, 
-                x.JoinedGuildDateTime, x.FirstSeenDateTime, x.ParticipationRank, 
-                x.ParticipationPoints, x.ParticipationPercentile))
+            .Select(x => new UserDto(x.Id,
+                x.Username,
+                x.Nickname,
+                x.JoinedGuildDateTime,
+                x.FirstSeenDateTime,
+                x.ParticipationRank,
+                x.ParticipationPoints,
+                x.ParticipationPercentile))
             .SingleAsync();
     }
 

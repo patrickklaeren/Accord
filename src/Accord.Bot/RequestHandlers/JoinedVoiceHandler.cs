@@ -37,7 +37,7 @@ public partial class JoinedVoiceHandler : IRequestHandler<JoinedVoiceRequest>
 
         var avatar = _thumbnailHelper.GetAvatar(user);
 
-        var embed = new Embed(Title: $"📢 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} joined voice",
+        var embed = new Embed(Title: $"📢 {user.Username} joined voice",
             Description: $"{user.ID.ToUserMention()} ({user.ID.Value}) joined {DiscordFormatter.ChannelIdToMention(request.DiscordChannelId)}",
             Footer: new EmbedFooter($"Session ID: {request.DiscordSessionId}"),
             Thumbnail: avatar);

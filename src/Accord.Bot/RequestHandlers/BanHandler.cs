@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services.ChannelFlags;
-using Accord.Services.Helpers;
 using Accord.Services.Moderation;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
@@ -29,7 +28,7 @@ public partial class BanHandler : IRequestHandler<BanRequest>
 
         if (channelsToPostTo.Any())
         {
-            var embed = new Embed(Title: $"🔨 Banned {DiscordHandleHelper.BuildHandle(request.User.Username, request.User.Discriminator)}",
+            var embed = new Embed(Title: $"🔨 Banned {request.User.Username ?? request.User.Id.ToString()}",
                 Description: $"{DiscordFormatter.UserIdToMention(request.User.Id)} ({request.User.Id}) banned for reason {request.Reason}",
                 Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
 

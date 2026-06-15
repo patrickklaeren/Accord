@@ -2,4 +2,4 @@
 
 namespace Accord.Services.Moderation;
 
-public sealed record KickRequest(ulong DiscordGuildId, GuildUserDto User, string Reason) : IRequest;
+public sealed record KickRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordUsername, string Reason) : IRequest;

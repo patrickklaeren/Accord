@@ -73,7 +73,7 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
         {
             embeds.Add(new Embed
             {
-                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
+                Author = new EmbedAuthor(user.Username, IconUrl: avatarUrl!),
                 Image = image!,
                 Fields = otherAttachments,
                 Footer = new EmbedFooter(request.SentDateTime.ToString("yyyy-MM-dd HH:mm:ss")),
@@ -87,7 +87,7 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
         {
             embeds.Add(new Embed
             {
-                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator), IconUrl: avatarUrl!),
+                Author = new EmbedAuthor(user.Username, IconUrl: avatarUrl!),
                 Description = "User sent a message that couldn't be relayed. Probably a sticker"
             });
         }
@@ -107,7 +107,7 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
                 originalAuthorUser.Avatar?.HasGif == true);
             embeds.Add(new Embed
             {
-                Author = new EmbedAuthor(DiscordHandleHelper.BuildHandle(originalAuthor.Entity.User.Value.Username, originalAuthor.Entity.User.Value.Discriminator),
+                Author = new EmbedAuthor(originalAuthor.Entity.User.Value.Username,
                     IconUrl: originalAuthorAvatarUrl!),
                 Title = !string.IsNullOrEmpty(originalMessage.Content) ? "Replying to the following message" : "Replied to a sticker which cannot be relayed",
                 Description = originalMessage.Content

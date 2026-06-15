@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
 using Accord.Services.UserMessages;
@@ -27,6 +29,16 @@ public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
     {
         if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
             return Result.FromSuccess();
+
+        var fileUrls = gatewayEvent.Attachments
+            .Where(x => x.ContentType.HasValue && x.ContentType.Value.StartsWith("image/", StringComparison.InvariantCultureIgnoreCase))
+            .Select(d => d.Url)
+            .ToList();
+
+        if (fileUrls.Any())
+        {
+            await _eventQueue.Queue(new IsCryptoSpamMessageRequest(gatewayEvent.GuildID.Value.Value, gatewayEvent.Author.ID.Value, fileUrls));
+        }
 
         await _eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
             gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value,

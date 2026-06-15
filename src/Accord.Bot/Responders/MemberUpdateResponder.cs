@@ -58,11 +58,8 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             user.Avatar?.HasGif == true);
 
         await _mediator.Send(
-            new UpdateUserRequest(
-                gatewayEvent.GuildID.Value,
-                user.ID.Value,
+            new UpdateUserRequest(user.ID.Value,
                 user.Username,
-                user.Discriminator.ToPaddedDiscriminator(),
                 gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null,
                 gatewayEvent.CommunicationDisabledUntil.HasValue ? gatewayEvent.CommunicationDisabledUntil.Value : null,
                 avatarUrl,
@@ -82,7 +79,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         var image = _thumbnailHelper.GetAvatar(user);
 
         var embed = new Embed(
-            Title: $"{DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} updated",
+            Title: $"{user.Username} updated",
             Description:
             $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}{payload}",
             Thumbnail: image);
@@ -135,7 +132,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         var timedOutUntilDiscordFormatted = DiscordFormatter.TimeToMarkdown(timedOutUntil);
 
         var embed = new Embed(
-            Title: $"🤐 {DiscordHandleHelper.BuildHandle(user.Username, user.Discriminator)} {durationMessage}",
+            Title: $"🤐 {user.Username} {durationMessage}",
             Description:
             $"{user.ID.ToUserMention()} ({user.ID.Value}){Environment.NewLine}{Environment.NewLine}Timed out until {timedOutUntilDiscordFormatted} by {actor} for {reason}",
             Thumbnail: image);

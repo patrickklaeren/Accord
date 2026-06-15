@@ -51,7 +51,7 @@ builder
 
 var postgres = builder
     .AddPostgres("postgres", password: postgresPassword)
-    .WithImageTag("16.5")
+    .WithImageTag("18.4")
     .WithDataVolume("accord-postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithPgAdmin()

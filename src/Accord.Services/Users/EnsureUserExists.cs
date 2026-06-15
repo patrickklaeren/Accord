@@ -22,10 +22,13 @@ public partial class EnsureUserExistsHandler : IRequestHandler<EnsureUserExistsR
         if (userExists)
             return;
 
+        var now = DateTimeOffset.UtcNow;
+
         var user = new User
         {
             Id = request.DiscordUserId,
-            FirstSeenDateTime = DateTimeOffset.UtcNow,
+            FirstSeenDateTime = now,
+            LastSeenDateTime = now,
         };
 
         _db.Add(user);

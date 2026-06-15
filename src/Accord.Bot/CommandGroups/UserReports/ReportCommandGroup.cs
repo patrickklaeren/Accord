@@ -145,7 +145,7 @@ public partial class ReportCommandGroup: AccordCommandGroup
             .AppendLine("**User Information**")
             .AppendLine($"ID: {proxy.UserId.Value}")
             .AppendLine($"Profile: {proxy.UserId.ToUserMention()}")
-            .AppendLine($"Handle: {DiscordHandleHelper.BuildHandle(guildMember.Entity.User.Value.Username, guildMember.Entity.User.Value.Discriminator)}")
+            .AppendLine($"Handle: {guildMember.Entity.User.Value.Username}")
             .AppendLine($"Created: {DiscordSnowflakeHelper.ToDateTimeOffset(proxy.UserId.Value):yyy-MM-dd HH:mm:ss}")
             .AppendLine()
             .AppendLine("**Report Statistics**")
@@ -154,7 +154,7 @@ public partial class ReportCommandGroup: AccordCommandGroup
         var infoEmbed = new Embed()
         {
             Author = new EmbedAuthor(
-                DiscordHandleHelper.BuildHandle(guildMember.Entity.User.Value.Username, guildMember.Entity.User.Value.Discriminator),
+                guildMember.Entity.User.Value.Username,
                 IconUrl: _avatarHelper.GetAvatarUrl(guildMember.Entity.User.Value.ID.Value, 
                     guildMember.Entity.User.Value.Discriminator, 
                     guildMember.Entity.User.Value.Avatar?.Value, 

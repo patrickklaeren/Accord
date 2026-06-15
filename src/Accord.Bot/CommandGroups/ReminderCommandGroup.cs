@@ -160,9 +160,9 @@ public partial class ReminderCommandGroup : AccordCommandGroup
             guildUser.User.Value.Avatar?.Value,
             guildUser.User.Value.Avatar?.HasGif == true);
 
-        var userHandle = !string.IsNullOrWhiteSpace(userDto.UsernameWithDiscriminator)
-            ? userDto.UsernameWithDiscriminator
-            : DiscordHandleHelper.BuildHandle(guildUser.User.Value.Username, guildUser.User.Value.Discriminator);
+        var userHandle = !string.IsNullOrWhiteSpace(userDto.Username)
+            ? userDto.Username
+            : guildUser.User.Value.Username;
 
         var totalReminders = response.Value!.Count;
 
