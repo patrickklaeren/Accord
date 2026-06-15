@@ -3,7 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim-amd64 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 WORKDIR /src
