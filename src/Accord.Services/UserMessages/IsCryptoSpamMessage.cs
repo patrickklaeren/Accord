@@ -2,13 +2,13 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Services.Moderation;
-using Accord.Services.Users;
 using MediatR;
 
 namespace Accord.Services.UserMessages;
 
 public sealed record IsCryptoSpamMessageRequest(ulong DiscordGuildId, ulong DiscordUserId, ICollection<string> FileUrls) : IRequest, IEnsureUserExistsRequest;
+
+public sealed record CryptoScamAlertRequest(ulong DiscordUserId, string FileUrl) : IRequest;
 
 public class IsCryptoSpamMessageHandler(IMediator mediator, HttpClient httpClient) : IRequestHandler<IsCryptoSpamMessageRequest>
 {
@@ -31,29 +31,14 @@ public class IsCryptoSpamMessageHandler(IMediator mediator, HttpClient httpClien
             {
                 var distance = ImageSimilarityService.Distance(hashOfImage, knownHash);
 
-                const int SIMILAR_FACTOR = 20;
+                const int SIMILAR_FACTOR = 15;
                 
                 if (distance > SIMILAR_FACTOR)
                 {
                     continue;
                 }
 
-                // probably same image
-                var user = await mediator.Send(new GetUserRequest(request.DiscordUserId), cancellationToken);
-
-                if (user.Failure)
-                {
-                    // Bail fast we don't have a user
-                    // Fallback and delete the message
-                }
-
-                var userToKick = user.Value!.User;
-
-                await mediator.Send(new KickRequest(request.DiscordGuildId,
-                        request.DiscordUserId,
-                        userToKick.Username ?? userToKick.Id.ToString(), 
-                        "Crypto scam detected"),
-                    cancellationToken);
+                await mediator.Send(new CryptoScamAlertRequest(request.DiscordUserId, fileUrl), cancellationToken);
             }
         }
     }
