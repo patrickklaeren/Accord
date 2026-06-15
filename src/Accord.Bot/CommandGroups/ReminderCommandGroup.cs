@@ -53,7 +53,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
         ));
 
         await response.GetAction(
-            async () => await _feedbackService.SendContextualAsync($"You will be reminded about it in {timeSpan.Humanize()}"),
+            async () => await _feedbackService.SendContextualAsync($"You will be reminded in {timeSpan.Humanize()}"),
             async () => await _feedbackService.SendContextualAsync(response.ErrorMessage)
         );
 

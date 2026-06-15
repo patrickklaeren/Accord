@@ -69,11 +69,6 @@ public partial class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionReq
                 runOption.Value = actualValue.ToString();
                 success = true;
                 break;
-                
-            case RunOptionType.UserHiddenChannelsCascadeHideEnabled when bool.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                success = true;
-                break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(request.Type), $"{request.Type} has not been configured to be updated, add the type to {nameof(UpdateRunOptionHandler)}", null);

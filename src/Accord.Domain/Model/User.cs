@@ -24,4 +24,6 @@ public class User
     public DateTimeOffset? TimedOutUntil { get; set; }
 
     public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
+    public ICollection<UserHistory> Histories { get; set; } = new HashSet<UserHistory>();
+    public ICollection<UserHistory> HistoriesAddedByUser { get; set; } = new HashSet<UserHistory>();
 }

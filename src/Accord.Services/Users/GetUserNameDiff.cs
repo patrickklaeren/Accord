@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Users;
 
-public sealed record GetUserNameDiffRequest(ulong DiscordUserId, string DiscordUsername, string DiscordDiscriminator, string? DiscordNickname) : IRequest<UserNameDiffResponse>;
+public sealed record GetUserNameDiffRequest(ulong DiscordUserId, string DiscordUsername, string? DiscordNickname) : IRequest<UserNameDiffResponse>;
 public sealed record UserNameDiffResponse(bool HasDiff, List<string> Messages);
 
 [AutoConstructor]

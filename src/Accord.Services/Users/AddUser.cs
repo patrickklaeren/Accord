@@ -11,7 +11,6 @@ namespace Accord.Services.Users;
 public sealed record AddUserRequest(ulong DiscordGuildId,
     ulong DiscordUserId,
     string DiscordUsername,
-    string DiscordDiscriminator,
     string? DiscordAvatarUrl,
     string? DiscordNickname,
     DateTimeOffset JoinedDateTime) : IRequest;

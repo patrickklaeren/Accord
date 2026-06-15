@@ -91,7 +91,7 @@ public partial class ReportCommandGroup: AccordCommandGroup
             new DiscordPermissionSet(BigInteger.Zero));
 
         var outboxChannel = await _guildApi.CreateGuildChannelAsync(proxy.GuildId,
-            $"{guildMember.Entity.User.Value.Username}-{guildMember.Entity.User.Value.Discriminator.ToPaddedDiscriminator()}",
+            guildMember.Entity.User.Value.Username,
             ChannelType.GuildText,
             parentID: new Snowflake(outboxCategoryId!.Value),
             permissionOverwrites: new[] {selfBotPermissionOverwrite, everyonePermissionOverwrite, reporterPermissionOverwrite});
@@ -112,7 +112,7 @@ public partial class ReportCommandGroup: AccordCommandGroup
             return await RevertReportCreation(outboxChannel);
 
         var inboxChannel = await _guildApi.CreateGuildChannelAsync(proxy.GuildId,
-            $"{guildMember.Entity.User.Value.Username}-{guildMember.Entity.User.Value.Discriminator.ToPaddedDiscriminator()}-inbox",
+            $"{guildMember.Entity.User.Value.Username}-inbox",
             ChannelType.GuildText,
             parentID: new Snowflake(inboxCategoryId!.Value));
 

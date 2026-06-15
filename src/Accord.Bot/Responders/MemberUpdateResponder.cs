@@ -38,7 +38,6 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             new GetUserNameDiffRequest(
                 user.ID.Value,
                 user.Username,
-                user.Discriminator.ToPaddedDiscriminator(),
                 gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null),
             cancellationToken);
 

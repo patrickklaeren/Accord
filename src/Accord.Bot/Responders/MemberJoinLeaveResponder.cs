@@ -43,7 +43,7 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
             user.Avatar?.Value, 
             user.Avatar?.HasGif == true);
 
-        await _eventQueue.Queue(new AddUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, user.Discriminator.ToPaddedDiscriminator(), avatarUrl, null, gatewayEvent.JoinedAt));
+        await _eventQueue.Queue(new AddUserRequest(gatewayEvent.GuildID.Value, user.ID.Value, user.Username, avatarUrl, null, gatewayEvent.JoinedAt));
         await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, avatarUrl, gatewayEvent.JoinedAt)));
 
         var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);

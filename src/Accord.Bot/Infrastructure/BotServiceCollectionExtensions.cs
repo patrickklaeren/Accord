@@ -8,7 +8,6 @@ using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
-using Remora.Discord.Interactivity.Extensions;
 
 namespace Accord.Bot.Infrastructure;
 
@@ -44,14 +43,12 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ParticipationCommandGroup>()
             .WithCommandGroup<GitHubChallengesCommandGroup>()
             .WithCommandGroup<ChannelFlagCommandGroup>()
-            .WithCommandGroup<UserChannelHidingCommandGroup>()
             .WithCommandGroup<PermissionCommandGroup>()
             .WithCommandGroup<RunOptionCommandGroup>()
             .WithCommandGroup<ReminderCommandGroup>()
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()
-            .WithCommandGroup<LgtmCommandGroup>()
             .WithCommandGroup<HelpForumCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
