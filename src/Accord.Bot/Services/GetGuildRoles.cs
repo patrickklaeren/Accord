@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Accord.Bot.Services;
 
-public sealed record GetGuildRolesRequest() : IRequest<ServiceResponse<IEnumerable<DiscordGuildRoleDto>>>;
+public sealed record GetGuildRolesRequest : IRequest<ServiceResponse<IEnumerable<DiscordGuildRoleDto>>>;
 public record DiscordGuildRoleDto(ulong DiscordRoleId, string Name);
 
 [AutoConstructor]

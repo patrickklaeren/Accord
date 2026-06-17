@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using Accord.Bot.CommandGroups;
+using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.CommandGroups.UserReports;
+using Accord.Bot.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
@@ -8,8 +10,9 @@ using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Pagination.Extensions;
 
-namespace Accord.Bot.Infrastructure;
+namespace Accord.Bot;
 
 public static class BotServiceCollectionExtensions
 {
@@ -39,6 +42,7 @@ public static class BotServiceCollectionExtensions
             .AddParser<TimeSpanParser>();
 
         services
+            .AddPagination()
             .AddCommandTree()
             .WithCommandGroup<ParticipationCommandGroup>()
             .WithCommandGroup<GitHubChallengesCommandGroup>()
@@ -49,7 +53,9 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<UserReportCommandGroup>()
             .WithCommandGroup<ReportCommandGroup>()
-            .WithCommandGroup<HelpForumCommandGroup>();
+            .WithCommandGroup<HelpForumCommandGroup>()
+            .WithCommandGroup<HistoryCommandGroup>()
+            .WithCommandGroup<NoteCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()

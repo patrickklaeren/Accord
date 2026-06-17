@@ -8,16 +8,14 @@ using MediatR;
 namespace Accord.Bot.Services;
 
 public sealed record GetGuildMemberRequest(ulong DiscordUserId) : IRequest<ServiceResponse<DiscordGuildMemberDto>>;
-public record DiscordGuildMemberDto(string Username, string? Nickname, string? GuildAvatarHash, ulong[] RoleIds);
+public sealed record DiscordGuildMemberDto(string Username, string? Nickname, string? GuildAvatarHash, ulong[] RoleIds);
 
-[AutoConstructor]
-public partial class GetGuildMemberHandler : IRequestHandler<GetGuildMemberRequest, ServiceResponse<DiscordGuildMemberDto>>
+public class GetGuildMemberHandler(DiscordCache discordCache) 
+    : IRequestHandler<GetGuildMemberRequest, ServiceResponse<DiscordGuildMemberDto>>
 {
-    private readonly DiscordCache _discordCache;
-
     public async Task<ServiceResponse<DiscordGuildMemberDto>> Handle(GetGuildMemberRequest request, CancellationToken cancellationToken)
     {
-        var discordMember = await _discordCache.GetGuildMember(request.DiscordUserId);
+        var discordMember = await discordCache.GetGuildMember(request.DiscordUserId);
 
         if (!discordMember.IsSuccess)
         {

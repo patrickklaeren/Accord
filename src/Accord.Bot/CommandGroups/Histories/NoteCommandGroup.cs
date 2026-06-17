@@ -2,25 +2,22 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
 using Accord.Services.UserHistories;
-using Humanizer;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups;
+namespace Accord.Bot.CommandGroups.Histories;
 
-public class UserHistoryCommandGroup(ICommandContext commandContext, 
+public class NoteCommandGroup(ICommandContext commandContext,
     IMediator mediator, 
     FeedbackService feedbackService) 
     : AccordCommandGroup
 {
     [Command("note"), Description("Add a note to a user")]
-    [SuppressInteractionResponse(true)]
     public async Task<IResult> AddNote(IGuildMember member, string content)
     {
         commandContext.TryGetUserID(out var userId);
@@ -34,7 +31,7 @@ public class UserHistoryCommandGroup(ICommandContext commandContext,
         ));
 
         await response.GetAction(
-            async () => await feedbackService.SendContextualAsync($"Note added to {member.User.Value.Username}'s history"),
+            async () => await feedbackService.SendContextualAsync($"Note #{response.Value:0000} added to {member.User.Value.Username}'s history"),
             async () => await feedbackService.SendContextualAsync(response.ErrorMessage)
         );
 

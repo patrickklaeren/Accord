@@ -26,7 +26,8 @@ public enum PermissionType
     ManageUserReports = 1,
     ManagePatterns = 2,
     ListRiskyUsers = 3,
-    BypassRaidCheck = 4
+    BypassRaidCheck = 4,
+    ManageNotes = 4,
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>

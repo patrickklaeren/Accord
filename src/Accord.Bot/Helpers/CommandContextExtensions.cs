@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using Accord.Services.Permissions;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Rest.Core;
@@ -22,9 +23,10 @@ public static class CommandContextExtensions
             throw new InvalidOperationException("Cannot get user when they do not exist in guild");
         }
 
+        var isAdministrator = member.Entity.Permissions.Value.HasPermission(DiscordPermission.Administrator);
         var roles = member.Entity.Roles.Select(x => x.Value);
 
-        return new PermissionUser(proxy.UserId.Value, roles);
+        return new PermissionUser(proxy.UserId.Value, roles, isAdministrator);
     }
     
     public static CommandContextProxy GetCommandProxy(this ICommandContext context)

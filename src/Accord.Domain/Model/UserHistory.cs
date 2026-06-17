@@ -22,8 +22,11 @@ public class UserHistory
 
 public enum UserHistoryType
 {
-    Generic = 0,
-    Ban = 1,
-    Kick = 2,
-    Mute = 3,
+    Note = 0,
+    Warning = 1,
+    Mute = 2,
+    Unmute = 3,
+    Kick = 4,
+    Ban = 5,
+    Unban = 6,
 }

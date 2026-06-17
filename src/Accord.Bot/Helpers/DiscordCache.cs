@@ -12,53 +12,45 @@ using Remora.Results;
 
 namespace Accord.Bot.Helpers;
 
-[AutoConstructor, RegisterSingleton]
-public partial class DiscordCache
+[RegisterSingleton]
+public class DiscordCache(IDiscordRestGuildAPI guildApi, 
+    IAppCache appCache, 
+    DiscordConfiguration discordConfiguration)
 {
-    private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly IAppCache _appCache;
     private readonly MemoryCacheEntryOptions _neverExpireCacheEntryOptions = new()
     {
         Priority = CacheItemPriority.NeverRemove
     };
 
-    private readonly DiscordConfiguration _discordConfiguration;
+    public Snowflake GetSelfSnowflake() => appCache.Get<Snowflake>($"{nameof(DiscordCache)}/SelfSnowflake");
+    public void SetSelfSnowflake(Snowflake snowflake) => appCache.Add($"{nameof(DiscordCache)}/SelfSnowflake", snowflake);
 
-    public Snowflake GetSelfSnowflake() => _appCache.Get<Snowflake>($"{nameof(DiscordCache)}/SelfSnowflake");
-    public void SetSelfSnowflake(Snowflake snowflake) => _appCache.Add($"{nameof(DiscordCache)}/SelfSnowflake", snowflake);
-
-    public IGuildMember GetGuildSelfMember() => _appCache.Get<IGuildMember>($"{nameof(DiscordCache)}/SelfMember");
-    public void SetGuildSelfMember(IGuildMember guildMember) => _appCache.Add($"{nameof(DiscordCache)}/SelfMember", guildMember, _neverExpireCacheEntryOptions);
+    public IGuildMember GetGuildSelfMember() => appCache.Get<IGuildMember>($"{nameof(DiscordCache)}/SelfMember");
+    public void SetGuildSelfMember(IGuildMember guildMember) => appCache.Add($"{nameof(DiscordCache)}/SelfMember", guildMember, _neverExpireCacheEntryOptions);
 
     private string GetGuildRolesCacheKey() => nameof(DiscordCache) + "/Roles";
 
     public async Task<IReadOnlyList<IRole>> GetGuildRoles()
     {
-        return await _appCache.GetOrAddAsync(GetGuildRolesCacheKey(), GetGuildRolesData, _neverExpireCacheEntryOptions);
+        return await appCache.GetOrAddAsync(GetGuildRolesCacheKey(), GetGuildRolesData, _neverExpireCacheEntryOptions);
 
         async Task<IReadOnlyList<IRole>> GetGuildRolesData()
         {
-            var guild = await _guildApi.GetGuildAsync(new Snowflake(_discordConfiguration.GuildId), true);
-
-            if (!guild.IsSuccess)
-            {
-                new List<IRole>();
-            }
-
-            return guild.Entity.Roles;
+            var guild = await guildApi.GetGuildAsync(new Snowflake(discordConfiguration.GuildId), true);
+            return !guild.IsSuccess ? [] : guild.Entity.Roles;
         }
     }
 
-    public void InvalidateGuildRoles() => _appCache.Remove(GetGuildRolesCacheKey());
+    public void InvalidateGuildRoles() => appCache.Remove(GetGuildRolesCacheKey());
     private string GetGuildChannelsCacheKey() => nameof(DiscordCache) + "/Channels";
 
     public async Task<IReadOnlyList<IChannel>> GetGuildChannels()
     {
-        return await _appCache.GetOrAddAsync(GetGuildChannelsCacheKey(), GetGuildChannelsData, _neverExpireCacheEntryOptions);
+        return await appCache.GetOrAddAsync(GetGuildChannelsCacheKey(), GetGuildChannelsData, _neverExpireCacheEntryOptions);
 
         async Task<IReadOnlyList<IChannel>> GetGuildChannelsData()
         {
-            var channels = await _guildApi.GetGuildChannelsAsync(new Snowflake(_discordConfiguration.GuildId));
+            var channels = await guildApi.GetGuildChannelsAsync(new Snowflake(discordConfiguration.GuildId));
 
             if (!channels.IsSuccess)
             {
@@ -69,16 +61,16 @@ public partial class DiscordCache
         }
     }
 
-    public void InvalidateGuildChannels() => _appCache.Remove(GetGuildChannelsCacheKey());
+    public void InvalidateGuildChannels() => appCache.Remove(GetGuildChannelsCacheKey());
 
-    public IRole GetEveryoneRole() => _appCache.Get<IRole>($"{nameof(DiscordCache)}/EveryoneRole");
-    public void SetEveryoneRole(IRole role) => _appCache.Add($"{nameof(DiscordCache)}/EveryoneRole", role, _neverExpireCacheEntryOptions);
+    public IRole GetEveryoneRole() => appCache.Get<IRole>($"{nameof(DiscordCache)}/EveryoneRole");
+    public void SetEveryoneRole(IRole role) => appCache.Add($"{nameof(DiscordCache)}/EveryoneRole", role, _neverExpireCacheEntryOptions);
 
     public async Task<Result<IGuildMember>> GetGuildMember(ulong discordUserId) 
     {
-        return await _appCache.GetOrAddAsync(
-            $"{nameof(GetGuildMember)}/{_discordConfiguration.GuildId}/{discordUserId}",
-            () => _guildApi.GetGuildMemberAsync(new Snowflake(_discordConfiguration.GuildId), new Snowflake(discordUserId)),
+        return await appCache.GetOrAddAsync(
+            $"{nameof(GetGuildMember)}/{discordConfiguration.GuildId}/{discordUserId}",
+            () => guildApi.GetGuildMemberAsync(new Snowflake(discordConfiguration.GuildId), new Snowflake(discordUserId)),
             TimeSpan.FromMinutes(5));
     }
 }

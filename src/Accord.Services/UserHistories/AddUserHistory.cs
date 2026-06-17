@@ -9,21 +9,21 @@ using MediatR;
 namespace Accord.Services.UserHistories;
 
 public sealed record AddUserHistoryRequest(ulong DiscordUserId, ulong AddedByUserId, string Content) 
-    : IRequest<ServiceResponse>;
+    : IRequest<ServiceResponse<int>>;
 
 public class AddUserHistoryHandler(AccordContext db, IMediator mediator) 
-    : IRequestHandler<AddUserHistoryRequest, ServiceResponse>
+    : IRequestHandler<AddUserHistoryRequest, ServiceResponse<int>>
 {
-    public async Task<ServiceResponse> Handle(AddUserHistoryRequest request, CancellationToken cancellationToken)
+    public async Task<ServiceResponse<int>> Handle(AddUserHistoryRequest request, CancellationToken cancellationToken)
     {
         var userExists = await mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
 
         if (!userExists)
-            return ServiceResponse.Fail("User does not exist");
+            return ServiceResponse.Fail<int>("User does not exist");
 
         var history = new UserHistory
         {
-            Type = UserHistoryType.Generic,
+            Type = UserHistoryType.Note,
             Content = request.Content,
             UserId = request.DiscordUserId,
             AddedByUserId = request.AddedByUserId,
@@ -34,6 +34,6 @@ public class AddUserHistoryHandler(AccordContext db, IMediator mediator)
 
         await db.SaveChangesAsync(cancellationToken);
 
-        return ServiceResponse.Ok();
+        return ServiceResponse.Ok(history.Id);
     }
 }
