@@ -22,9 +22,12 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, IEventQueue eventQueue, DiscordAvatarHelper discordAvatarHelper, ThumbnailHelper thumbnailHelper) : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
+public class MemberJoinLeaveResponder(IMediator mediator, 
+    IDiscordRestChannelAPI channelApi, 
+    IEventQueue eventQueue,
+    DiscordAvatarHelper discordAvatarHelper, 
+    ThumbnailHelper thumbnailHelper) : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
 {
-
     public async Task<Result> RespondAsync(IGuildMemberAdd gatewayEvent, CancellationToken ct = new CancellationToken())
     {
         if (!gatewayEvent.User.HasValue)

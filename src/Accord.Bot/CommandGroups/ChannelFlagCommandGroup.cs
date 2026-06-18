@@ -16,7 +16,10 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups;
 
 [Group("channel-flag")]
-public class ChannelFlagCommandGroup(ICommandContext commandContext, IMediator mediator, IDiscordRestGuildAPI guildApi, FeedbackService feedbackService) : AccordCommandGroup
+public class ChannelFlagCommandGroup(ICommandContext commandContext, 
+    IMediator mediator, 
+    PermissionUserFactory permissionUserFactory, 
+    FeedbackService feedbackService) : AccordCommandGroup
 {
     [Command("add"), Description("Add flag to the current channel")]
     public async Task<IResult> AddFlag(string type, IChannel? channel = null)
@@ -29,7 +32,7 @@ public class ChannelFlagCommandGroup(ICommandContext commandContext, IMediator m
         }
 
         var proxy = commandContext.GetCommandProxy();
-        var user = await commandContext.ToPermissionUser(guildApi);
+        var user = await commandContext.ToPermissionUser(permissionUserFactory);
 
         var channelId = channel?.ID.Value ?? proxy.ChannelId.Value;
 
@@ -52,7 +55,7 @@ public class ChannelFlagCommandGroup(ICommandContext commandContext, IMediator m
             return await feedbackService.SendContextualAsync("Type of flag is not found");
         }
 
-        var user = await commandContext.ToPermissionUser(guildApi);
+        var user = await commandContext.ToPermissionUser(permissionUserFactory);
 
         var proxy = commandContext.GetCommandProxy();
         var channelId = channel?.ID.Value ?? proxy.ChannelId.Value;

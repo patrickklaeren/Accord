@@ -1,34 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
-using LazyCache;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Permissions;
 
 [RegisterScoped]
-public class UserPermissionService(AccordContext db, IAppCache appCache)
+public class UserPermissionService(AccordContext db)
 {
     public async Task<bool> HasPermission(PermissionUser user,  PermissionType permission)
     {
-        var permissions = await appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(user.DiscordUserId),
-            () => GetPermissionsForUser(user),
-            DateTimeOffset.UtcNow.AddMinutes(5));
-
+        var permissions = await GetPermissionsForUser(user);
         return permissions.Any(ownedPermission => ownedPermission == permission);
     }
 
-    private void InvalidateCache(ulong discordUserId)
+    public async Task AddPermissionToUser(ulong discordUserId, PermissionType permission, CancellationToken cancellationToken)
     {
-        appCache.Remove(BuildGetPermissionsForUserCacheKey(discordUserId));
+        if (await db.UserPermissions.AnyAsync(x => x.UserId == discordUserId
+                                                   && x.Type == permission, cancellationToken: cancellationToken))
+        {
+            return;
+        }
+
+        var permissionEntity = new UserPermission
+        {
+            UserId = discordUserId,
+            Type = permission,
+        };
+
+        db.Add(permissionEntity);
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
-    private static string BuildGetPermissionsForUserCacheKey(ulong discordUserId)
+    public async Task AddPermissionToRole(ulong discordRoleId, PermissionType permission, CancellationToken cancellationToken)
     {
-        return $"{nameof(UserHasPermission)}/{nameof(GetPermissionsForUser)}/{discordUserId}";
+        if (await db.RolePermissions.AnyAsync(x => x.RoleId == discordRoleId
+                                                   && x.Type == permission, cancellationToken: cancellationToken))
+        {
+            return;
+        }
+
+        var permissionEntity = new RolePermission
+        {
+            RoleId = discordRoleId,
+            Type = permission,
+        };
+
+        db.Add(permissionEntity);
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<List<PermissionType>> GetPermissionsForUser(PermissionUser user)

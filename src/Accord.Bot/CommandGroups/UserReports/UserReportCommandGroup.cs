@@ -21,12 +21,17 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups.UserReports;
 
 [Group("userreport")]
-public class UserReportCommandGroup(ICommandContext commandContext, IMediator mediator, IDiscordRestGuildAPI guildApi, FeedbackService feedbackService, DiscordCache discordCache) : AccordCommandGroup
+public class UserReportCommandGroup(ICommandContext commandContext, 
+    IMediator mediator, 
+    IDiscordRestGuildAPI guildApi,
+    PermissionUserFactory permissionUserFactory, 
+    FeedbackService feedbackService, 
+    DiscordCache discordCache) : AccordCommandGroup
 {
     [Command("setup"), Description("Sets up user reports for Guild usage")]
     public async Task<IResult> Setup()
     {
-        var user = await commandContext.ToPermissionUser(guildApi);
+        var user = await commandContext.ToPermissionUser(permissionUserFactory);
 
         var response = await mediator.Send(new UserHasPermissionRequest(user, PermissionType.ManageUserReports));
 

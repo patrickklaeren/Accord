@@ -22,7 +22,7 @@ namespace Accord.Bot.CommandGroups.Histories;
 
 [Group("history")]
 public class HistoryCommandGroup(ICommandContext commandContext, 
-    IDiscordRestGuildAPI guildApi,
+    PermissionUserFactory permissionUserFactory,
     IMediator mediator, 
     FeedbackService feedbackService,
     ThumbnailHelper thumbnailHelper) 
@@ -31,7 +31,7 @@ public class HistoryCommandGroup(ICommandContext commandContext,
     [Command("delete"), Description("Delete a note from history")]
     public async Task<IResult> Delete(int noteId)
     {
-        var user = await commandContext.ToPermissionUser(guildApi);
+        var user = await commandContext.ToPermissionUser(permissionUserFactory);
 
         var response = await mediator.Send(new DeleteUserHistoryRequest(noteId, user));
 

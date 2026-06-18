@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Accord.Bot.Infrastructure;
 using Accord.Services.Permissions;
-using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Rest.Core;
 
@@ -12,49 +8,23 @@ namespace Accord.Bot.Helpers;
 
 public static class CommandContextExtensions
 {
-    public static async Task<PermissionUser> ToPermissionUser(this ICommandContext context, IDiscordRestGuildAPI guildApi)
+    extension(ICommandContext context)
     {
-        var proxy = context.GetCommandProxy();
-
-        var guild = await guildApi.GetGuildAsync(proxy.GuildId);
-
-        if (!guild.IsSuccess)
+        public async Task<PermissionUser> ToPermissionUser(PermissionUserFactory permissionUserFactory)
         {
-            throw new InvalidOperationException("Cannot get guild");
+            var proxy = context.GetCommandProxy();
+            return await permissionUserFactory.FromId(proxy.UserId.Value);
         }
 
-        var member = await guildApi.GetGuildMemberAsync(proxy.GuildId, proxy.UserId);
-
-        if (member.Entity is null)
+        public CommandContextProxy GetCommandProxy()
         {
-            throw new InvalidOperationException("Cannot get user when they do not exist in guild");
+            return context switch
+            {
+                IInteractionCommandContext ix => new CommandContextProxy(ix.Interaction.Member.Value.User.Value.ID, ix.Interaction.GuildID.Value, ix.Interaction.Channel.Value.ID.Value),
+                ITextCommandContext tx => new CommandContextProxy(tx.Message.Author.Value.ID, tx.GuildID.Value, tx.Message.ChannelID.Value),
+                _ => throw new NotSupportedException()
+            };
         }
-
-        var isAdministrator = guild.Entity.OwnerID == proxy.UserId;
-
-        if (!isAdministrator)
-        {
-            var memberRoleIds = member.Entity.Roles.Select(x => x.Value).ToHashSet();
-            var guildRoles = await guildApi.GetGuildRolesAsync(proxy.GuildId);
-
-            isAdministrator = guildRoles.Entity
-                .Where(r => memberRoleIds.Contains(r.ID.Value))
-                .Any(r => r.Permissions.HasPermission(DiscordPermission.Administrator));
-        }
-
-        var roles = member.Entity.Roles.Select(x => x.Value);
-
-        return new PermissionUser(proxy.UserId.Value, roles, isAdministrator);
-    }
-    
-    public static CommandContextProxy GetCommandProxy(this ICommandContext context)
-    {
-        return context switch
-        {
-            IInteractionCommandContext ix => new CommandContextProxy(ix.Interaction.Member.Value.User.Value.ID, ix.Interaction.GuildID.Value, ix.Interaction.Channel.Value.ID.Value),
-            ITextCommandContext tx => new CommandContextProxy(tx.Message.Author.Value.ID, tx.GuildID.Value, tx.Message.ChannelID.Value),
-            _ => throw new NotSupportedException()
-        };
     }
 
     public record CommandContextProxy(Snowflake UserId, Snowflake GuildId, Snowflake ChannelId);

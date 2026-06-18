@@ -16,7 +16,9 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class ModerationActionResponder(IMediator mediator) : IResponder<IGuildAuditLogEntryCreate>
+public class ModerationActionResponder(IMediator mediator, 
+    PermissionUserFactory permissionUserFactory) 
+    : IResponder<IGuildAuditLogEntryCreate>
 {
     public async Task<Result> RespondAsync(IGuildAuditLogEntryCreate gatewayEvent, CancellationToken cancellationToken = new())
     {
@@ -28,7 +30,7 @@ public class ModerationActionResponder(IMediator mediator) : IResponder<IGuildAu
             return Result.FromSuccess();
         }
 
-        var actingUserId = actingUserSnowflake.Value;
+        var actingUser = await permissionUserFactory.FromId(actingUserSnowflake.Value);
 
         var type = gatewayEvent.ActionType switch
         {
@@ -44,7 +46,7 @@ public class ModerationActionResponder(IMediator mediator) : IResponder<IGuildAu
 
         await mediator.Send(new AddUserHistoryRequest(
             targetUserId,
-            actingUserId,
+            actingUser,
             reason,
             type
         ), cancellationToken);

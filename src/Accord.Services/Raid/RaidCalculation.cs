@@ -19,16 +19,8 @@ public sealed record RaidAlertRequest : IRequest;
 
 public class RaidCalculationHandler(RaidCalculator raidCalculator, IMediator mediator, AccordContext db) : IRequestHandler<RaidCalculationRequest>
 {
-
     public async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {
-        var bypassRaidCheck = await mediator.Send(new UserIsExemptFromRaidRequest(request.User.Id), cancellationToken);
-
-        if (bypassRaidCheck)
-        {
-            return;
-        }
-
         var sequentialLimit = await mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
         var accountCreationLimit = await mediator.Send(new GetAccountCreationSimilarityLimitRequest(), cancellationToken);
 

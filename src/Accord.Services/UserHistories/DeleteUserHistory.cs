@@ -34,7 +34,7 @@ public class DeleteUserHistoryHandler(AccordContext db, IMediator mediator)
         if (history.AddedByUserId != request.DeletedByUser.DiscordUserId 
             && !request.DeletedByUser.IsAdministrator)
         {
-            var hasPermission = await mediator.Send(new UserHasPermissionRequest(request.DeletedByUser, PermissionType.ManageNotes),
+            var hasPermission = await mediator.Send(new UserHasPermissionRequest(request.DeletedByUser, PermissionType.ManageHistories),
                 cancellationToken);
 
             if (!hasPermission)

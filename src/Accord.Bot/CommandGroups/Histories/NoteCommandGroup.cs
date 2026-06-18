@@ -19,6 +19,7 @@ namespace Accord.Bot.CommandGroups.Histories;
 
 public class NoteCommandGroup(ICommandContext commandContext,
     IDiscordRestChannelAPI channelApi,
+    PermissionUserFactory permissionUserFactory,
     IMediator mediator, 
     FeedbackService feedbackService) 
     : AccordCommandGroup
@@ -28,11 +29,12 @@ public class NoteCommandGroup(ICommandContext commandContext,
     {
         commandContext.TryGetUserID(out var userId);
 
+        var actingUser = await commandContext.ToPermissionUser(permissionUserFactory);
         var sanitized = content.SanitiseDiscordContent();
 
         var response = await mediator.Send(new AddUserHistoryRequest(
             member.User.Value!.ID.Value,
-            userId.Value,
+            actingUser,
             sanitized,
             UserHistoryType.Note
         ));
@@ -52,12 +54,13 @@ public class NoteCommandGroup(ICommandContext commandContext,
     {
         commandContext.TryGetUserID(out var userId);
         commandContext.TryGetChannelID(out var channelId);
-
+        
+        var actingUser = await commandContext.ToPermissionUser(permissionUserFactory);
         var sanitized = content.SanitiseDiscordContent();
 
         var response = await mediator.Send(new AddUserHistoryRequest(
             member.User.Value!.ID.Value,
-            userId.Value,
+            actingUser,
             sanitized,
             UserHistoryType.Warning
         ));

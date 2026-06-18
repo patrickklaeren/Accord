@@ -4,4 +4,5 @@ namespace Accord.Services.Permissions;
 
 public record PermissionUser(ulong DiscordUserId,
     IEnumerable<ulong> OwnedDiscordRoleIds,
-    bool IsAdministrator);
+    bool IsAdministrator,
+    bool IsBotSelf);
