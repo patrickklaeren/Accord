@@ -17,7 +17,9 @@ public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto U
 
 public sealed record RaidAlertRequest : IRequest;
 
-public class RaidCalculationHandler(RaidCalculator raidCalculator, IMediator mediator, AccordContext db) : IRequestHandler<RaidCalculationRequest>
+public class RaidCalculationHandler(RaidCalculator raidCalculator, 
+    IMediator mediator, 
+    AccordContext db) : IRequestHandler<RaidCalculationRequest>
 {
     public async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {

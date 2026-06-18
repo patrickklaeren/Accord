@@ -49,7 +49,7 @@ public class ProfileCommandGroup(IMediator mediator, ICommandContext commandCont
         }
 
         var guildUser = guildUserEntity.Entity;
-        var (userDto, userMessagesInChannelDtos, userVoiceMinutesInChannelDtos) = response.Value!;
+        var (user, userHistory, userMessages, userVoiceActivity) = response.Value!;
 
         var avatarUrl = discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
             guildUser.User.Value.Discriminator,
@@ -60,45 +60,45 @@ public class ProfileCommandGroup(IMediator mediator, ICommandContext commandCont
 
         var builder = new StringBuilder();
 
-        var userHandle = !string.IsNullOrWhiteSpace(userDto.Username)
-            ? userDto.Username
+        var userHandle = !string.IsNullOrWhiteSpace(user.Username)
+            ? user.Username
             : guildUser.User.Value.Username;
 
         var userCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userId);
 
         builder
             .AppendLine("**User Information**")
-            .AppendLine($"ID: {userDto.Id}")
-            .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(userDto.Id)}")
+            .AppendLine($"ID: {user.Id}")
+            .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(user.Id)}")
             .AppendLine($"Handle: {userHandle}");
 
-        if (!string.IsNullOrWhiteSpace(userDto.Nickname))
+        if (!string.IsNullOrWhiteSpace(user.Nickname))
         {
-            builder.AppendLine($"Nickname: {userDto.Nickname}");
+            builder.AppendLine($"Nickname: {user.Nickname}");
         }
 
         builder.AppendLine($"Created: {userCreated.ToTimeMarkdown()}");
 
-        if (userDto.JoinedGuildDateTime is not null)
+        if (user.JoinedGuildDateTime is not null)
         {
-            builder.AppendLine($"Joined: {userDto.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
+            builder.AppendLine($"Joined: {user.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
         }
 
-        builder.AppendLine($"First tracked: {userDto.FirstSeenDateTime.ToTimeMarkdown()}");
+        builder.AppendLine($"First tracked: {user.FirstSeenDateTime.ToTimeMarkdown()}");
 
         builder
             .AppendLine()
             .AppendLine("**Guild Participation**")
-            .AppendLine($"Rank: {userDto.ParticipationRank}")
-            .AppendLine($"Points: {userDto.ParticipationPoints}")
-            .AppendLine($"Percentile: {Math.Round(userDto.ParticipationPercentile, 0)}")
+            .AppendLine($"Rank: {user.ParticipationRank}")
+            .AppendLine($"Points: {user.ParticipationPoints}")
+            .AppendLine($"Percentile: {Math.Round(user.ParticipationPercentile, 0)}")
             .AppendLine()
             .AppendLine("**Message Participation**")
-            .AppendLine($"Last 30 days: {userMessagesInChannelDtos.Sum(x => x.NumberOfMessages)} messages");
+            .AppendLine($"Last 30 days: {userMessages.Sum(x => x.NumberOfMessages)} messages");
 
-        if (userMessagesInChannelDtos.Any())
+        if (userMessages.Any())
         {
-            var (discordChannelId, numberOfMessages) = userMessagesInChannelDtos
+            var (discordChannelId, numberOfMessages) = userMessages
                 .OrderByDescending(x => x.NumberOfMessages)
                 .First();
 
@@ -109,14 +109,14 @@ public class ProfileCommandGroup(IMediator mediator, ICommandContext commandCont
             .AppendLine()
             .AppendLine("**Voice Participation**");
 
-        if (userVoiceMinutesInChannelDtos.Any())
+        if (userVoiceActivity.Any())
         {
-            var (discordChannelId, numberOfMinutes) = userVoiceMinutesInChannelDtos
+            var (discordChannelId, numberOfMinutes) = userVoiceActivity
                 .OrderByDescending(x => x.NumberOfMinutes)
                 .First();
 
             builder
-                .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceMinutesInChannelDtos.Sum(x => x.NumberOfMinutes)).Humanize()}")
+                .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceActivity.Sum(x => x.NumberOfMinutes)).Humanize()}")
                 .AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
         }
         else
@@ -124,6 +124,12 @@ public class ProfileCommandGroup(IMediator mediator, ICommandContext commandCont
             builder
                 .AppendLine("No time spent in voice channels");
         }
+
+        builder
+            .AppendLine()
+            .AppendLine("**History**")
+            .AppendLine($"{userHistory.Total} history records")
+            .AppendLine($"{userHistory.Bans} bans, {userHistory.Kicks} kicks, {userHistory.Mutes} mutes, {userHistory.Warnings} warnings, {userHistory.Notes} notes");
 
         var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),
             Thumbnail: avatarImage,

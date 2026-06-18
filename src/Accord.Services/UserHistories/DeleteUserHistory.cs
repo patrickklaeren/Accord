@@ -12,7 +12,7 @@ namespace Accord.Services.UserHistories;
 public sealed record DeleteUserHistoryRequest(int UserHistoryId, PermissionUser DeletedByUser) 
     : IRequest<ServiceResponse>;
 
-public class DeleteUserHistoryHandler(AccordContext db, IMediator mediator) 
+public class DeleteUserHistoryHandler(AccordContext db, UserPermissionService userPermissionService) 
     : IRequestHandler<DeleteUserHistoryRequest, ServiceResponse>
 {
     public async Task<ServiceResponse> Handle(DeleteUserHistoryRequest request, CancellationToken cancellationToken)
@@ -34,8 +34,8 @@ public class DeleteUserHistoryHandler(AccordContext db, IMediator mediator)
         if (history.AddedByUserId != request.DeletedByUser.DiscordUserId 
             && !request.DeletedByUser.IsAdministrator)
         {
-            var hasPermission = await mediator.Send(new UserHasPermissionRequest(request.DeletedByUser, PermissionType.ManageHistories),
-                cancellationToken);
+            var hasPermission = await userPermissionService.HasPermission(request.DeletedByUser,
+                PermissionType.ManageHistories);
 
             if (!hasPermission)
             {

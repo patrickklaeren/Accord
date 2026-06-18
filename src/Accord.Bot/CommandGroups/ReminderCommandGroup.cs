@@ -126,7 +126,7 @@ public class ReminderCommandGroup(ICommandContext commandContext, IMediator medi
         }
 
         var guildUser = guildUserEntity.Entity;
-        var (userDto, _, _) = userResponse.Value!;
+        var (userDto, _, _, _) = userResponse.Value!;
 
         var avatarUrl = discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
             guildUser.User.Value.Discriminator,

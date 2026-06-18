@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Domain.Model;
 using LazyCache;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.Users;
 
 public sealed record GetUserRequest(ulong DiscordUserId) : IRequest<ServiceResponse<GetUserDto>>;
-public sealed record GetUserDto(UserDto User, List<UserMessagesInChannelDto> Messages, List<UserVoiceMinutesInChannelDto> VoiceMinutes);
+public sealed record GetUserDto(UserDto User, UserHistorySummaryDto HistorySummary, List<UserMessagesInChannelDto> Messages, List<UserVoiceMinutesInChannelDto> VoiceMinutes);
 
 public sealed record UserMessagesInChannelDto(ulong DiscordChannelId, int NumberOfMessages);
 public sealed record UserVoiceMinutesInChannelDto(ulong DiscordChannelId, double NumberOfMinutes);
+
+public sealed record UserHistorySummaryDto(int Notes, int Warnings, int Mutes, int Kicks, int Bans)
+{
+    public int Total => Notes + Warnings + Mutes + Kicks + Bans;
+};
 
 public class GetUserHandler(AccordContext db, UserService userService, IAppCache appCache) : IRequestHandler<GetUserRequest, ServiceResponse<GetUserDto>>
 {
@@ -29,6 +35,10 @@ public class GetUserHandler(AccordContext db, UserService userService, IAppCache
 
         var user = await userService.GetUser(request.DiscordUserId, cancellationToken);
 
+        var historySummary = await appCache.GetOrAddAsync(BuildGetHistorySummaryCacheKey(request.DiscordUserId),
+            () => GetHistorySummary(request.DiscordUserId),
+            DateTimeOffset.UtcNow.AddMinutes(5));
+
         var messagesSent = await appCache.GetOrAddAsync(BuildGetMessagesCacheKey(request.DiscordUserId),
             () => GetMessages(request.DiscordUserId),
             DateTimeOffset.UtcNow.AddMinutes(5));
@@ -37,7 +47,33 @@ public class GetUserHandler(AccordContext db, UserService userService, IAppCache
             () => GetVoiceMinutes(request.DiscordUserId),
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        return ServiceResponse.Ok(new GetUserDto(user, messagesSent, voice));
+        return ServiceResponse.Ok(new GetUserDto(user, historySummary, messagesSent, voice));
+    }
+
+    private static string BuildGetHistorySummaryCacheKey(ulong discordUserId)
+    {
+        return $"{nameof(GetUserHandler)}/{nameof(GetHistorySummary)}/{discordUserId}";
+    }
+
+    private async Task<UserHistorySummaryDto> GetHistorySummary(ulong discordUserId)
+    {
+        var histories = await db.UserHistories
+            .Where(x => x.UserId == discordUserId)
+            .Where(x => x.Type == UserHistoryType.Ban 
+                        || x.Type == UserHistoryType.Kick 
+                        || x.Type == UserHistoryType.Mute 
+                        || x.Type == UserHistoryType.Warning 
+                        || x.Type == UserHistoryType.Note)
+            .Select(x => x.Type)
+            .ToListAsync();
+        
+        return new UserHistorySummaryDto(
+            histories.Count(d => d == UserHistoryType.Note),
+            histories.Count(d => d == UserHistoryType.Warning),
+            histories.Count(d => d == UserHistoryType.Mute),
+            histories.Count(d => d == UserHistoryType.Kick),
+            histories.Count(d => d == UserHistoryType.Ban)
+        );
     }
 
     private static string BuildGetMessagesCacheKey(ulong discordUserId)
