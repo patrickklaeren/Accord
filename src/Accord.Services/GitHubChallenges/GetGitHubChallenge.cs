@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,10 +9,8 @@ namespace Accord.Services.GitHubChallenges;
 
 public sealed record GetGitHubChallengeRequest(string ChallengeReadMeUrl) : IRequest<ServiceResponse<GitHubChallengeDto>>;
 
-[AutoConstructor]
-public partial class GetGitHubChallengeHandler : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
+public class GetGitHubChallengeHandler(HttpClient httpClient) : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
 {
-    private readonly HttpClient _httpClient;
 
     public async Task<ServiceResponse<GitHubChallengeDto>> Handle(GetGitHubChallengeRequest request, CancellationToken cancellationToken)
     {
@@ -21,7 +19,7 @@ public partial class GetGitHubChallengeHandler : IRequestHandler<GetGitHubChalle
             return ServiceResponse.Fail<GitHubChallengeDto>("Invalid URL");
         }
 
-        var response = await _httpClient.GetAsync("https://raw.githubusercontent.com/discord-csharp/challenges/main/src/Wire%20Ends/README.md", cancellationToken);
+        var response = await httpClient.GetAsync("https://raw.githubusercontent.com/discord-csharp/challenges/main/src/Wire%20Ends/README.md", cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {

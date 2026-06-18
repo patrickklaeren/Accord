@@ -14,23 +14,20 @@ public sealed record GetUserReportMessageRequest(ulong DiscordMessageId) : IRequ
 
 public sealed record InvalidateGetUserReportMessageRequest(ulong DiscordMessageId) : IRequest;
 
-[AutoConstructor]
-public partial class GetUserReportMessageHandler :
+public class GetUserReportMessageHandler(AccordContext accordContext, IAppCache appCache) :
     IRequestHandler<InvalidateGetUserReportMessageRequest>,
     IRequestHandler<GetUserReportMessageRequest, UserReportMessage?>
 {
-    private readonly AccordContext _accordContext;
-    private readonly IAppCache _appCache;
 
     public async Task<UserReportMessage?> Handle(GetUserReportMessageRequest request, CancellationToken cancellationToken) =>
-        await _appCache.GetOrAdd(
+        await appCache.GetOrAdd(
             BuildGetUserReportMessage(request.DiscordMessageId),
             () => GetUserReportMessage(request.DiscordMessageId, cancellationToken),
             DateTimeOffset.UtcNow.AddMinutes(10)
         );
 
     private Task<UserReportMessage?> GetUserReportMessage(ulong discordMessageId, CancellationToken ctx = default) =>
-        _accordContext.UserReportMessages
+        accordContext.UserReportMessages
             .Where(x => x.Id == discordMessageId || x.DiscordProxyMessageId == discordMessageId)
             .SingleOrDefaultAsync(ctx)!;
 
@@ -39,7 +36,7 @@ public partial class GetUserReportMessageHandler :
 
     public Task Handle(InvalidateGetUserReportMessageRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetUserReportMessage(request.DiscordMessageId));
+        appCache.Remove(BuildGetUserReportMessage(request.DiscordMessageId));
         return Task.CompletedTask;
     }
 }

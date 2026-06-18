@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
@@ -10,10 +10,8 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class VoiceStateResponder : IResponder<IVoiceStateUpdate>
+public class VoiceStateResponder(IEventQueue eventQueue) : IResponder<IVoiceStateUpdate>
 {
-    private readonly IEventQueue _eventQueue;
 
     public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
@@ -25,17 +23,17 @@ public partial class VoiceStateResponder : IResponder<IVoiceStateUpdate>
             return Result.FromSuccess();
 
         IRequest type = gatewayEvent.ChannelID.HasValue
-            ? new StartVoiceSessionRequest(gatewayEvent.GuildID.Value.Value, 
+            ? new StartVoiceSessionRequest(gatewayEvent.GuildID.Value.Value,
                 gatewayEvent.UserID.Value,
                 gatewayEvent.ChannelID.Value.Value,
                 gatewayEvent.SessionID,
                 DateTimeOffset.UtcNow)
-            : new FinishVoiceSessionRequest(gatewayEvent.GuildID.Value.Value, 
+            : new FinishVoiceSessionRequest(gatewayEvent.GuildID.Value.Value,
                 gatewayEvent.UserID.Value,
                 gatewayEvent.SessionID,
                 DateTimeOffset.UtcNow);
 
-        await _eventQueue.Queue(type);
+        await eventQueue.Queue(type);
 
         return Result.FromSuccess();
     }

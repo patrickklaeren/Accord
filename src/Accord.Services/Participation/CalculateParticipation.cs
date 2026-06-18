@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,11 +16,8 @@ namespace Accord.Services.Participation;
 
 public sealed record CalculateParticipationRequest : IRequest;
 
-[AutoConstructor]
-public partial class CalculateParticipation : IRequestHandler<CalculateParticipationRequest>
+public class CalculateParticipation(IServiceScopeFactory serviceScopeFactory, IMediator mediator) : IRequestHandler<CalculateParticipationRequest>
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IMediator _mediator;
 
     public Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken) => Calculate();
 
@@ -30,7 +27,7 @@ public partial class CalculateParticipation : IRequestHandler<CalculateParticipa
 
         var calculateFromDate = DateTimeOffset.UtcNow.AddDays(-30);
 
-        using (var userResetScope = _serviceScopeFactory.CreateScope())
+        using (var userResetScope = serviceScopeFactory.CreateScope())
         await using (var userResetContext = userResetScope.ServiceProvider.GetRequiredService<AccordContext>())
         {
             await userResetContext.Users
@@ -41,9 +38,9 @@ public partial class CalculateParticipation : IRequestHandler<CalculateParticipa
                     .SetProperty(d => d.ParticipationRank, 0));
         }
 
-        var channelsExcludedFromXp = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
+        var channelsExcludedFromXp = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.IgnoredFromXp));
 
-        using var queryScope = _serviceScopeFactory.CreateScope();
+        using var queryScope = serviceScopeFactory.CreateScope();
         await using var queryContext = queryScope.ServiceProvider.GetRequiredService<AccordContext>();
 
         var groupedMessages = await queryContext
@@ -151,7 +148,7 @@ public partial class CalculateParticipation : IRequestHandler<CalculateParticipa
 
         foreach (var batch in batches)
         {
-            using var userUpdateScope = _serviceScopeFactory.CreateScope();
+            using var userUpdateScope = serviceScopeFactory.CreateScope();
             await using var userUpdateContext = userUpdateScope.ServiceProvider.GetRequiredService<AccordContext>();
 
             foreach (var user in batch)

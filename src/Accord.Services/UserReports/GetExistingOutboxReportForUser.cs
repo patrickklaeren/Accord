@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -10,14 +10,12 @@ namespace Accord.Services.UserReports;
 public sealed record GetExistingOutboxReportForUserRequest(ulong DiscordUserId) : IRequest<ExistingOutboxReportForUserDto>;
 public sealed record ExistingOutboxReportForUserDto(bool HasExistingReport, ulong? OutboxDiscordChannelId);
 
-[AutoConstructor]
-public partial class GetExistingOutboxReportForUserHandler : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
+public class GetExistingOutboxReportForUserHandler(AccordContext db) : IRequestHandler<GetExistingOutboxReportForUserRequest, ExistingOutboxReportForUserDto>
 {
-    private readonly AccordContext _db;
 
     public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
     {
-        var existingOutboxChannelId = await _db.UserReports
+        var existingOutboxChannelId = await db.UserReports
             .Where(x => x.OpenedByUserId == request.DiscordUserId)
             .Where(x => x.ClosedDateTime == null)
             .Select(x => (ulong?)x.OutboxDiscordChannelId)

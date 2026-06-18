@@ -34,11 +34,8 @@ public sealed record RelayUserReportMessageRequest(ulong DiscordGuildId,
     public ulong DiscordUserId => AuthorDiscordUserId;
 }
 
-[AutoConstructor]
-public partial class AddUserReportMessageHandler : IRequestHandler<AddUserReportMessageRequest>
+public class AddUserReportMessageHandler(AccordContext db, IMediator mediator) : IRequestHandler<AddUserReportMessageRequest>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task Handle(AddUserReportMessageRequest request, CancellationToken cancellationToken)
     {
@@ -47,7 +44,7 @@ public partial class AddUserReportMessageHandler : IRequestHandler<AddUserReport
             return;
         }
 
-        var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
+        var userReportData = await mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
@@ -83,11 +80,11 @@ public partial class AddUserReportMessageHandler : IRequestHandler<AddUserReport
             Content = request.DiscordMessageContent,
         };
 
-        _db.Add(userReport);
-        await _db.SaveChangesAsync(cancellationToken);
+        db.Add(userReport);
+        await db.SaveChangesAsync(cancellationToken);
 
         //todo: add userReport messageId to the request
-        await _mediator.Send(new RelayUserReportMessageRequest(
+        await mediator.Send(new RelayUserReportMessageRequest(
             request.DiscordGuildId,
             channelId,
             request.DiscordMessageId,

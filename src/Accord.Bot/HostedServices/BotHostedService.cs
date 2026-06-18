@@ -1,18 +1,16 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
 namespace Accord.Bot.HostedServices;
 
-[AutoConstructor]
-public partial class BotHostedService : IHostedService
+public class BotHostedService(BotClient botClient) : IHostedService
 {
-    private readonly BotClient _botClient;
     private Task? _runTask;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _runTask = _botClient.Run(cancellationToken);
+        _runTask = botClient.Run(cancellationToken);
         return Task.CompletedTask;
     }
 

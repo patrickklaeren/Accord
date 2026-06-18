@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,15 +9,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.VoiceSessions;
 
-public sealed record StartVoiceSessionRequest(ulong DiscordGuildId, ulong DiscordUserId, 
+public sealed record StartVoiceSessionRequest(ulong DiscordGuildId, ulong DiscordUserId,
     ulong DiscordChannelId, string DiscordSessionId, DateTimeOffset ConnectedDateTime) : IRequest, IEnsureUserExistsRequest;
-public sealed record FinishVoiceSessionRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordSessionId, 
+public sealed record FinishVoiceSessionRequest(ulong DiscordGuildId, ulong DiscordUserId, string DiscordSessionId,
     DateTimeOffset DisconnectedDateTime) : IRequest, IEnsureUserExistsRequest;
 
-public sealed record JoinedVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId, 
+public sealed record JoinedVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
     ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, string DiscordSessionId) : IRequest, IEnsureUserExistsRequest;
-public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId, 
-    ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, DateTimeOffset DisconnectedDateTime, 
+public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
+    ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, DateTimeOffset DisconnectedDateTime,
     string DiscordSessionId) : IRequest, IEnsureUserExistsRequest;
 
 // Discord Session ID is a session ID for the voice state itself
@@ -27,15 +27,12 @@ public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
 // subsequent voice connections. This sucks.
 // https://discord.com/developers/docs/resources/voice#voice-state-object
 
-[AutoConstructor]
-public partial class StartVoiceSessionHandler : IRequestHandler<StartVoiceSessionRequest>
+public class StartVoiceSessionHandler(AccordContext db, IMediator mediator) : IRequestHandler<StartVoiceSessionRequest>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task Handle(StartVoiceSessionRequest request, CancellationToken cancellationToken)
     {
-        if (await _db.VoiceConnections.AnyAsync(a => a.DiscordSessionId == request.DiscordSessionId && a.EndDateTime == null, cancellationToken))
+        if (await db.VoiceConnections.AnyAsync(a => a.DiscordSessionId == request.DiscordSessionId && a.EndDateTime == null, cancellationToken))
         {
             return;
         }
@@ -48,23 +45,20 @@ public partial class StartVoiceSessionHandler : IRequestHandler<StartVoiceSessio
             DiscordSessionId = request.DiscordSessionId,
         };
 
-        _db.Add(session);
+        db.Add(session);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
-        await _mediator.Send(new JoinedVoiceRequest(request.DiscordGuildId, request.DiscordUserId, request.DiscordChannelId, request.ConnectedDateTime, request.DiscordSessionId), cancellationToken);
+        await mediator.Send(new JoinedVoiceRequest(request.DiscordGuildId, request.DiscordUserId, request.DiscordChannelId, request.ConnectedDateTime, request.DiscordSessionId), cancellationToken);
     }
 }
 
-[AutoConstructor]
-public partial class FinishVoiceSessionHandler : IRequestHandler<FinishVoiceSessionRequest>
+public class FinishVoiceSessionHandler(AccordContext db, IMediator mediator) : IRequestHandler<FinishVoiceSessionRequest>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task Handle(FinishVoiceSessionRequest request, CancellationToken cancellationToken)
     {
-        var session = await _db.VoiceConnections
+        var session = await db.VoiceConnections
             .Where(x => x.DiscordSessionId == request.DiscordSessionId)
             .Where(x => x.EndDateTime == null)
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
@@ -77,9 +71,9 @@ public partial class FinishVoiceSessionHandler : IRequestHandler<FinishVoiceSess
         session.EndDateTime = request.DisconnectedDateTime;
         session.MinutesInVoiceChannel = Math.Round((request.DisconnectedDateTime - session.StartDateTime).TotalMinutes, 2);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
-        await _mediator.Send(new LeftVoiceRequest(request.DiscordGuildId, session.UserId, session.DiscordChannelId, session.StartDateTime, 
+        await mediator.Send(new LeftVoiceRequest(request.DiscordGuildId, session.UserId, session.DiscordChannelId, session.StartDateTime,
             session.EndDateTime.Value, request.DiscordSessionId), cancellationToken);
     }
 }

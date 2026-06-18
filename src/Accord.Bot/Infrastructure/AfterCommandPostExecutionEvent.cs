@@ -8,10 +8,8 @@ using Remora.Results;
 
 namespace Accord.Bot.Infrastructure;
 
-[AutoConstructor]
-public partial class AfterCommandPostExecutionEvent : IPostExecutionEvent
+public class AfterCommandPostExecutionEvent(FeedbackService feedbackService) : IPostExecutionEvent
 {
-    private readonly FeedbackService _feedbackService;
 
     private const string DEFAULT_ERROR_MESSAGE = "Something went wrong, there is no message for this, help me out by submitting a useful message via my repo!";
     private const string NO_MATCHING_COMMAND_FOUND = "No matching command could be found.";
@@ -24,7 +22,7 @@ public partial class AfterCommandPostExecutionEvent : IPostExecutionEvent
 
             if (responseMessage != NO_MATCHING_COMMAND_FOUND)
             {
-                await _feedbackService.SendContextualAsync(responseMessage, ct: ct);
+                await feedbackService.SendContextualAsync(responseMessage, ct: ct);
             }
         }
 

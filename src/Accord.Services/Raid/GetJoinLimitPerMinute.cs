@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +10,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid;
 
-public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>; 
+public sealed record GetJoinLimitPerMinuteRequest : IRequest<int>;
 public sealed record InvalidateGetJoinLimitPerMinuteRequest : IRequest;
 
-[AutoConstructor]
-public partial class GetJoinLimitPerMinuteHandler : IRequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
+public class GetJoinLimitPerMinuteHandler(AccordContext db, IAppCache appCache) : IRequestHandler<InvalidateGetJoinLimitPerMinuteRequest>, IRequestHandler<GetJoinLimitPerMinuteRequest, int>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<int> Handle(GetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
     {
-        return await _appCache.GetOrAddAsync(BuildGetLimitPerOneMinuteCacheKey(),
+        return await appCache.GetOrAddAsync(BuildGetLimitPerOneMinuteCacheKey(),
             GetLimitPerOneMinute,
             DateTimeOffset.UtcNow.AddDays(30));
     }
@@ -33,7 +30,7 @@ public partial class GetJoinLimitPerMinuteHandler : IRequestHandler<InvalidateGe
 
     private async Task<int> GetLimitPerOneMinute()
     {
-        var value = await _db.RunOptions
+        var value = await db.RunOptions
             .Where(x => x.Type == RunOptionType.SequentialJoinsToTriggerRaidMode)
             .Select(x => x.Value)
             .SingleAsync();
@@ -43,7 +40,7 @@ public partial class GetJoinLimitPerMinuteHandler : IRequestHandler<InvalidateGe
 
     public Task Handle(InvalidateGetJoinLimitPerMinuteRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetLimitPerOneMinuteCacheKey());
+        appCache.Remove(BuildGetLimitPerOneMinuteCacheKey());
         return Task.CompletedTask;
     }
 }

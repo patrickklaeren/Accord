@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.RequestHandlers;
@@ -13,24 +13,20 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.HostedServices;
 
-[AutoConstructor]
-public partial class CleanUpHelpForumHostedService : BackgroundService
+public class CleanUpHelpForumHostedService(IServiceScopeFactory serviceScopeFactory, DiscordConfiguration discordConfiguration, ILogger<CleanUpHelpForumHostedService> logger) : BackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly DiscordConfiguration _discordConfiguration;
-    private readonly ILogger<CleanUpHelpForumHostedService> _logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var services = scope.ServiceProvider;
 
         var guildApi = services.GetRequiredService<IDiscordRestGuildAPI>();
         var channelApi = services.GetRequiredService<IDiscordRestChannelAPI>();
         var mediator = services.GetRequiredService<IMediator>();
 
-        var guildSnowflake = new Snowflake(_discordConfiguration.GuildId);
-        var helpForumSnowflake = new Snowflake(_discordConfiguration.HelpForumChannelId);
+        var guildSnowflake = new Snowflake(discordConfiguration.GuildId);
+        var helpForumSnowflake = new Snowflake(discordConfiguration.HelpForumChannelId);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -39,8 +35,8 @@ public partial class CleanUpHelpForumHostedService : BackgroundService
         }
     }
 
-    private async Task CleanUpHelpForum(Snowflake guildId, Snowflake helpForumId, 
-        IMediator mediator, IDiscordRestGuildAPI guildApi, IDiscordRestChannelAPI channelApi, 
+    private async Task CleanUpHelpForum(Snowflake guildId, Snowflake helpForumId,
+        IMediator mediator, IDiscordRestGuildAPI guildApi, IDiscordRestChannelAPI channelApi,
         CancellationToken stoppingToken)
     {
         var processingAt = DateTimeOffset.UtcNow;
@@ -94,7 +90,7 @@ public partial class CleanUpHelpForumHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed cleaning up thread {ThreadId}", thread.ID);
+                logger.LogError(ex, "Failed cleaning up thread {ThreadId}", thread.ID);
             }
         }
     }

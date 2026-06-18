@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -10,14 +10,12 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportsInboxCategoryIdRequest : IRequest<ulong?>;
 
-[AutoConstructor]
-public partial class GetUserReportsInboxCategoryIdHandler : IRequestHandler<GetUserReportsInboxCategoryIdRequest, ulong?>
+public class GetUserReportsInboxCategoryIdHandler(AccordContext db) : IRequestHandler<GetUserReportsInboxCategoryIdRequest, ulong?>
 {
-    private readonly AccordContext _db;
 
     public async Task<ulong?> Handle(GetUserReportsInboxCategoryIdRequest request, CancellationToken cancellationToken)
     {
-        var runOption = await _db.RunOptions
+        var runOption = await db.RunOptions
             .Where(x => x.Type == RunOptionType.UserReportsInboxCategoryId)
             .Select(x => x.Value)
             .SingleAsync(cancellationToken: cancellationToken);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,11 +23,8 @@ public sealed record EditUserReportDiscordMessageRequest(
         List<DiscordAttachmentDto> Attachments)
     : IRequest;
 
-[AutoConstructor]
-public partial class EditUserReportMessageHandler : IRequestHandler<EditUserReportMessageRequest>
+public class EditUserReportMessageHandler(AccordContext db, IMediator mediator) : IRequestHandler<EditUserReportMessageRequest>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task Handle(EditUserReportMessageRequest request, CancellationToken cancellationToken)
     {
@@ -36,7 +33,7 @@ public partial class EditUserReportMessageHandler : IRequestHandler<EditUserRepo
             return;
         }
 
-        var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
+        var userReportData = await mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
@@ -58,7 +55,7 @@ public partial class EditUserReportMessageHandler : IRequestHandler<EditUserRepo
         else
             throw new NotSupportedException($"Discord Channel Type {request.DiscordChannelType} is not supported");
 
-        var userMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);
+        var userMessage = await mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);
 
         if (userMessage == null)
         {
@@ -67,13 +64,13 @@ public partial class EditUserReportMessageHandler : IRequestHandler<EditUserRepo
 
         userMessage.Content = request.Content;
 
-        _db.Update(userMessage);
-        await _db.SaveChangesAsync(cancellationToken);
+        db.Update(userMessage);
+        await db.SaveChangesAsync(cancellationToken);
 
         //todo log update on an audit log? maybe trigger?
-        await _mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
+        await mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
 
-        await _mediator.Send(
+        await mediator.Send(
             new EditUserReportDiscordMessageRequest(
                 webhookId,
                 webhookToken,

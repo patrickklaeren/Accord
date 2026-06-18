@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,15 +13,12 @@ namespace Accord.Services.Raid;
 public sealed record GetIsInRaidModeRequest : IRequest<bool>;
 public sealed record InvalidateGetIsInRaidModeRequest : IRequest;
 
-[AutoConstructor]
-public partial class GetIsInRaidModeHandler : IRequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
+public class GetIsInRaidModeHandler(AccordContext db, IAppCache appCache) : IRequestHandler<InvalidateGetIsInRaidModeRequest>, IRequestHandler<GetIsInRaidModeRequest, bool>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<bool> Handle(GetIsInRaidModeRequest request, CancellationToken cancellationToken)
     {
-        return await _appCache.GetOrAddAsync(BuildGetIsInRaidModeCacheKey(),
+        return await appCache.GetOrAddAsync(BuildGetIsInRaidModeCacheKey(),
             GetIsInRaidMode,
             DateTimeOffset.UtcNow.AddDays(30));
     }
@@ -33,7 +30,7 @@ public partial class GetIsInRaidModeHandler : IRequestHandler<InvalidateGetIsInR
 
     private async Task<bool> GetIsInRaidMode()
     {
-        var value = await _db.RunOptions
+        var value = await db.RunOptions
             .Where(x => x.Type == RunOptionType.RaidModeEnabled)
             .Select(x => x.Value)
             .SingleAsync();
@@ -43,7 +40,7 @@ public partial class GetIsInRaidModeHandler : IRequestHandler<InvalidateGetIsInR
 
     public Task Handle(InvalidateGetIsInRaidModeRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetIsInRaidModeCacheKey());
+        appCache.Remove(BuildGetIsInRaidModeCacheKey());
         return Task.CompletedTask;
     }
 }

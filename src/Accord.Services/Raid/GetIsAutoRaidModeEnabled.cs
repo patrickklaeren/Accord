@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +10,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid;
 
-public sealed record GetIsAutoRaidModeEnabledRequest : IRequest<bool>; 
+public sealed record GetIsAutoRaidModeEnabledRequest : IRequest<bool>;
 public sealed record InvalidateGetIsAutoRaidModeEnabledRequest : IRequest;
 
-[AutoConstructor]
-public partial class GetIsAutoRaidModeEnabledHandler : IRequestHandler<InvalidateGetIsAutoRaidModeEnabledRequest>, IRequestHandler<GetIsAutoRaidModeEnabledRequest, bool>
+public class GetIsAutoRaidModeEnabledHandler(AccordContext db, IAppCache appCache) : IRequestHandler<InvalidateGetIsAutoRaidModeEnabledRequest>, IRequestHandler<GetIsAutoRaidModeEnabledRequest, bool>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<bool> Handle(GetIsAutoRaidModeEnabledRequest request, CancellationToken cancellationToken)
     {
-        return await _appCache.GetOrAddAsync(BuildGetIsAutoRaidModeEnabledCacheKey(),
+        return await appCache.GetOrAddAsync(BuildGetIsAutoRaidModeEnabledCacheKey(),
             GetIsAutoRaidModeEnabled,
             DateTimeOffset.UtcNow.AddDays(30));
     }
@@ -33,7 +30,7 @@ public partial class GetIsAutoRaidModeEnabledHandler : IRequestHandler<Invalidat
 
     private async Task<bool> GetIsAutoRaidModeEnabled()
     {
-        var value = await _db.RunOptions
+        var value = await db.RunOptions
             .Where(x => x.Type == RunOptionType.AutoRaidModeEnabled)
             .Select(x => x.Value)
             .SingleAsync();
@@ -43,7 +40,7 @@ public partial class GetIsAutoRaidModeEnabledHandler : IRequestHandler<Invalidat
 
     public Task Handle(InvalidateGetIsAutoRaidModeEnabledRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetIsAutoRaidModeEnabledCacheKey());
+        appCache.Remove(BuildGetIsAutoRaidModeEnabledCacheKey());
         return Task.CompletedTask;
     }
 }

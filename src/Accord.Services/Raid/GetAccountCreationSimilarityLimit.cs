@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +10,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Raid;
 
-public sealed record GetAccountCreationSimilarityLimitRequest : IRequest<int>; 
+public sealed record GetAccountCreationSimilarityLimitRequest : IRequest<int>;
 public sealed record InvalidateGetAccountCreationSimilarityLimitRequest : IRequest;
 
-[AutoConstructor]
-public partial class GetAccountCreationSimilarityLimitHandler : IRequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
+public class GetAccountCreationSimilarityLimitHandler(AccordContext db, IAppCache appCache) : IRequestHandler<InvalidateGetAccountCreationSimilarityLimitRequest>, IRequestHandler<GetAccountCreationSimilarityLimitRequest, int>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<int> Handle(GetAccountCreationSimilarityLimitRequest request, CancellationToken cancellationToken)
     {
-        return await _appCache.GetOrAddAsync(BuildGetLimitCacheKey(),
+        return await appCache.GetOrAddAsync(BuildGetLimitCacheKey(),
             GetLimit,
             DateTimeOffset.UtcNow.AddDays(30));
     }
@@ -33,7 +30,7 @@ public partial class GetAccountCreationSimilarityLimitHandler : IRequestHandler<
 
     private async Task<int> GetLimit()
     {
-        var value = await _db.RunOptions
+        var value = await db.RunOptions
             .Where(x => x.Type == RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode)
             .Select(x => x.Value)
             .SingleAsync();
@@ -43,7 +40,7 @@ public partial class GetAccountCreationSimilarityLimitHandler : IRequestHandler<
 
     public Task Handle(InvalidateGetAccountCreationSimilarityLimitRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetLimitCacheKey());
+        appCache.Remove(BuildGetLimitCacheKey());
         return Task.CompletedTask;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,22 +15,20 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("github"), AutoConstructor]
-public partial class GitHubChallengesCommandGroup : AccordCommandGroup
+[Group("github")]
+public class GitHubChallengesCommandGroup(FeedbackService feedbackService, IMediator mediator) : AccordCommandGroup
 {
-    private readonly FeedbackService _feedbackService;
-    private readonly IMediator _mediator;
 
-    [RequireDiscordPermission(DiscordPermission.Administrator), 
-        Command("post-challenge"), 
+    [RequireDiscordPermission(DiscordPermission.Administrator),
+        Command("post-challenge"),
         Description("Posts challenge to the current channel, parsed via its readme from the GitHub repository")]
     public async Task<IResult> PostChallenge(string readmeUrl)
     {
-        var challengeResponse = await _mediator.Send(new GetGitHubChallengeRequest(readmeUrl));
+        var challengeResponse = await mediator.Send(new GetGitHubChallengeRequest(readmeUrl));
 
         if (challengeResponse.Failure)
         {
-            return await _feedbackService.SendContextualAsync(challengeResponse.ErrorMessage);
+            return await feedbackService.SendContextualAsync(challengeResponse.ErrorMessage);
         }
 
         var challenge = challengeResponse.Value!;
@@ -55,6 +53,6 @@ public partial class GitHubChallengesCommandGroup : AccordCommandGroup
             Url: challenge.Link,
             Fields: fields.ToArray());
 
-        return await _feedbackService.SendContextualEmbedAsync(embed);
+        return await feedbackService.SendContextualEmbedAsync(embed);
     }
 }

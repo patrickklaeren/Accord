@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,14 +17,12 @@ public sealed record AddReportRequest(ulong DiscordUserId,
     ulong InboxDiscordMessageProxyWebhookId,
     string InboxDiscordMessageProxyWebhookToken) : IRequest;
 
-[AutoConstructor]
-public partial class AddReportHandler : IRequestHandler<AddReportRequest>
+public class AddReportHandler(AccordContext db) : IRequestHandler<AddReportRequest>
 {
-    private readonly AccordContext _db;
 
     public async Task<ExistingOutboxReportForUserDto> Handle(GetExistingOutboxReportForUserRequest request, CancellationToken cancellationToken)
     {
-        var existingOutboxChannelId = await _db.UserReports
+        var existingOutboxChannelId = await db.UserReports
             .Where(x => x.OpenedByUserId == request.DiscordUserId)
             .Where(x => x.ClosedDateTime == null)
             .Select(x => (ulong?)x.OutboxDiscordChannelId)
@@ -52,8 +50,8 @@ public partial class AddReportHandler : IRequestHandler<AddReportRequest>
             OpenedDateTime = DateTimeOffset.UtcNow,
         };
 
-        _db.Add(report);
+        db.Add(report);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
     }
 }

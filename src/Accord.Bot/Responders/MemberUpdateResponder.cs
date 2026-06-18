@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,20 +21,14 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
+public class MemberUpdateResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, IDiscordRestAuditLogAPI auditLogApi, DiscordAvatarHelper discordAvatarHelper, ThumbnailHelper thumbnailHelper) : IResponder<IGuildMemberUpdate>
 {
-    private readonly IMediator _mediator;
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IDiscordRestAuditLogAPI _auditLogApi;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly ThumbnailHelper _thumbnailHelper;
 
     public async Task<Result> RespondAsync(IGuildMemberUpdate gatewayEvent, CancellationToken cancellationToken = new())
     {
         var user = gatewayEvent.User;
 
-        var (hasDiff, messages) = await _mediator.Send(
+        var (hasDiff, messages) = await mediator.Send(
             new GetUserNameDiffRequest(
                 user.ID.Value,
                 user.Username,
@@ -51,12 +45,12 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             await HandleTimeOut(gatewayEvent, user, until, cancellationToken);
         }
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user.ID.Value, 
-            user.Discriminator, 
-            user.Avatar?.Value, 
+        var avatarUrl = discordAvatarHelper.GetAvatarUrl(user.ID.Value,
+            user.Discriminator,
+            user.Avatar?.Value,
             user.Avatar?.HasGif == true);
 
-        await _mediator.Send(
+        await mediator.Send(
             new UpdateUserRequest(user.ID.Value,
                 user.Username,
                 gatewayEvent.Nickname.HasValue ? gatewayEvent.Nickname.Value : null,
@@ -73,9 +67,9 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         var payload = string.Join(Environment.NewLine, messages);
 
         var channels =
-            await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserUpdateLogs), cancellationToken);
+            await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserUpdateLogs), cancellationToken);
 
-        var image = _thumbnailHelper.GetAvatar(user);
+        var image = thumbnailHelper.GetAvatar(user);
 
         var embed = new Embed(
             Title: $"{user.Username} updated",
@@ -85,7 +79,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
 
         foreach (var channel in channels)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
+            await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
                 ct: cancellationToken);
         }
     }
@@ -95,12 +89,12 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
         // Verify if the timeout value has changed vs what Accord knows to be true, if it has
         // changed then we know to send out a message to the alert channel. If it has not changed
         // then we won't bother
-        var timeoutHasChanged = await _mediator.Send(new HasTimeOutChangedRequest(user.ID.Value, timedOutUntil), cancellationToken);
+        var timeoutHasChanged = await mediator.Send(new HasTimeOutChangedRequest(user.ID.Value, timedOutUntil), cancellationToken);
 
         if (!timeoutHasChanged)
             return;
 
-        var logRequest = await _auditLogApi.GetGuildAuditLogAsync(gatewayEvent.GuildID, actionType: AuditLogEvent.MemberUpdate, ct: cancellationToken);
+        var logRequest = await auditLogApi.GetGuildAuditLogAsync(gatewayEvent.GuildID, actionType: AuditLogEvent.MemberUpdate, ct: cancellationToken);
 
         var durationMessage = "has been timed out";
         var actor = "a moderator";
@@ -126,7 +120,7 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             }
         }
 
-        var image = _thumbnailHelper.GetAvatar(user);
+        var image = thumbnailHelper.GetAvatar(user);
 
         var timedOutUntilDiscordFormatted = DiscordFormatter.TimeToMarkdown(timedOutUntil);
 
@@ -137,11 +131,11 @@ public partial class MemberUpdateResponder : IResponder<IGuildMemberUpdate>
             Thumbnail: image);
 
         var channels =
-            await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.TimeOutLogs), cancellationToken);
+            await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.TimeOutLogs), cancellationToken);
 
         foreach (var channel in channels)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
+            await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed },
                 ct: cancellationToken);
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -11,15 +11,12 @@ namespace Accord.Services.RunOptions;
 
 public sealed record UpdateRunOptionRequest(RunOptionType Type, string RawValue) : IRequest<ServiceResponse>;
 
-[AutoConstructor]
-public partial class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
+public class UpdateRunOptionHandler(AccordContext db, IMediator mediator) : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
     {
-        var runOption = await _db.RunOptions
+        var runOption = await db.RunOptions
             .SingleAsync(x => x.Type == request.Type, cancellationToken: cancellationToken);
 
         bool success;
@@ -28,25 +25,25 @@ public partial class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionReq
         {
             case RunOptionType.RaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                 runOption.Value = actualValue.ToString();
-                await _mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
+                await mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
                 success = true;
                 break;
 
             case RunOptionType.AutoRaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
                 runOption.Value = actualValue.ToString();
-                await _mediator.Send(new InvalidateGetIsAutoRaidModeEnabledRequest(), cancellationToken);
+                await mediator.Send(new InvalidateGetIsAutoRaidModeEnabledRequest(), cancellationToken);
                 success = true;
                 break;
 
             case RunOptionType.SequentialJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
                 runOption.Value = actualValue.ToString();
-                await _mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
+                await mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
                 success = true;
                 break;
 
             case RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
                 runOption.Value = actualValue.ToString();
-                await _mediator.Send(new InvalidateGetAccountCreationSimilarityLimitRequest(), cancellationToken);
+                await mediator.Send(new InvalidateGetAccountCreationSimilarityLimitRequest(), cancellationToken);
                 success = true;
                 break;
 
@@ -79,7 +76,7 @@ public partial class UpdateRunOptionHandler : IRequestHandler<UpdateRunOptionReq
             return ServiceResponse.Fail("Failed updating value");
         }
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return ServiceResponse.Ok();
     }

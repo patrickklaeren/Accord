@@ -7,18 +7,16 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-[AutoConstructor]
-public partial class EditUserReportDiscordMessageHandler : IRequestHandler<EditUserReportDiscordMessageRequest>
+public class EditUserReportDiscordMessageHandler(IDiscordRestWebhookAPI webhookApi) : IRequestHandler<EditUserReportDiscordMessageRequest>
 {
-    private readonly IDiscordRestWebhookAPI _webhookApi;
 
     public async Task Handle(EditUserReportDiscordMessageRequest request, CancellationToken cancellationToken)
     {
-        await _webhookApi.EditWebhookMessageAsync(
+        await webhookApi.EditWebhookMessageAsync(
             new Snowflake(request.DiscordProxyWebhookId),
             request.DiscordProxyWebhookToken,
             new Snowflake(request.DiscordProxiedMessageId),
-            request.Content, 
+            request.Content,
             ct: cancellationToken);
     }
 }

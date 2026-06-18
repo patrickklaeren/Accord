@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -10,17 +10,14 @@ namespace Accord.Services.Users;
 
 public sealed record HasTimeOutChangedRequest(ulong DiscordUserId, DateTimeOffset? Candidate) : IRequest<bool>;
 
-[AutoConstructor]
-public partial class HasTimeOutChangedHandler : IRequestHandler<HasTimeOutChangedRequest, bool>
+public class HasTimeOutChangedHandler(AccordContext db, IAppCache appCache) : IRequestHandler<HasTimeOutChangedRequest, bool>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<bool> Handle(HasTimeOutChangedRequest request, CancellationToken cancellationToken)
     {
-        var hasTimeOutRecorded = await _appCache
+        var hasTimeOutRecorded = await appCache
             .GetOrAddAsync(BuildCacheKey(request.DiscordUserId),
-                () => _db.Users.AnyAsync(x => x.Id == request.DiscordUserId && x.TimedOutUntil == request.Candidate, cancellationToken),
+                () => db.Users.AnyAsync(x => x.Id == request.DiscordUserId && x.TimedOutUntil == request.Candidate, cancellationToken),
                 DateTimeOffset.UtcNow.AddMinutes(5));
 
         return !hasTimeOutRecorded;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -19,15 +19,12 @@ public sealed record DeleteUserReportMessageRequest(
         UserReportChannelType DiscordChannelType)
     : IRequest;
 
-[AutoConstructor]
-public partial class DeleteUserReportMessageHandler : IRequestHandler<DeleteUserReportMessageRequest>
+public class DeleteUserReportMessageHandler(AccordContext db, IMediator mediator) : IRequestHandler<DeleteUserReportMessageRequest>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task Handle(DeleteUserReportMessageRequest request, CancellationToken cancellationToken)
     {
-        var userReportData = await _mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
+        var userReportData = await mediator.Send(new GetUserReportByChannelRequest(request.DiscordChannelId), cancellationToken);
 
         if (userReportData == null)
         {
@@ -49,20 +46,20 @@ public partial class DeleteUserReportMessageHandler : IRequestHandler<DeleteUser
         else
             throw new NotSupportedException($"Discord Channel Type {request.DiscordChannelType} is not supported");
 
-        var userMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);
+        var userMessage = await mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageId), cancellationToken);
 
         if (userMessage == null)
         {
             return;
         }
 
-        _db.Remove(userMessage);
-        await _db.SaveChangesAsync(cancellationToken);
+        db.Remove(userMessage);
+        await db.SaveChangesAsync(cancellationToken);
 
-        await _mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
+        await mediator.Send(new InvalidateGetUserReportMessageRequest(userMessage.Id), cancellationToken);
         //todo log update on an audit log? maybe trigger?
 
-        await _mediator.Send(
+        await mediator.Send(
             new DeleteUserReportDiscordMessageRequest(
                 webhookId,
                 webhookToken,

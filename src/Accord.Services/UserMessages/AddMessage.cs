@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -7,13 +7,11 @@ using MediatR;
 
 namespace Accord.Services.UserMessages;
 
-public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime) 
+public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime)
     : IRequest, IEnsureUserExistsRequest;
 
-[AutoConstructor]
-public partial class AddMessageHandler : IRequestHandler<AddMessageRequest>
+public class AddMessageHandler(AccordContext db) : IRequestHandler<AddMessageRequest>
 {
-    private readonly AccordContext _db;
 
     public async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
     {
@@ -25,8 +23,8 @@ public partial class AddMessageHandler : IRequestHandler<AddMessageRequest>
             SentDateTime = request.SentDateTime,
         };
 
-        _db.Add(message);
+        db.Add(message);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,19 +1,18 @@
-﻿namespace Accord.Services.Helpers;
+namespace Accord.Services.Helpers;
 
-[AutoConstructor, RegisterSingleton]
-public partial class DiscordAvatarHelper
+[RegisterSingleton]
+public class DiscordAvatarHelper(DiscordConfiguration discordConfiguration)
 {
-    private readonly DiscordConfiguration _discordConfiguration;
 
-    public string GetAvatarUrl(ulong discordUserId, 
-        ushort discordDiscriminator, 
+    public string GetAvatarUrl(ulong discordUserId,
+        ushort discordDiscriminator,
         string? avatarHash,
         bool showAsGif = false)
     {
         if (string.IsNullOrWhiteSpace(avatarHash))
         {
             var resultModulus = discordDiscriminator % 5;
-            return $"{_discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
+            return $"{discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
         }
 
         var extension = "png";
@@ -23,6 +22,6 @@ public partial class DiscordAvatarHelper
             extension = "gif";
         }
 
-        return $"{_discordConfiguration.CdnBaseUrl}/avatars/{discordUserId}/{avatarHash}.{extension}";
+        return $"{discordConfiguration.CdnBaseUrl}/avatars/{discordUserId}/{avatarHash}.{extension}";
     }
 }

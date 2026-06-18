@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,21 +14,17 @@ using Remora.Discord.Rest.API;
 
 namespace Accord.Bot.RequestHandlers;
 
-[AutoConstructor]
-public partial class KickHandler : IRequestHandler<KickRequest>
+public class KickHandler(IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi, IMediator mediator) : IRequestHandler<KickRequest>
 {
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly IMediator _mediator;
 
     public async Task Handle(KickRequest request, CancellationToken cancellationToken)
     {
-        using (_ = ((DiscordRestGuildAPI)_guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
+        using (_ = ((DiscordRestGuildAPI)guildApi).WithCustomization(r => r.AddHeader("X-Audit-Log-Reason", request.Reason)))
         {
-            await _guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.DiscordUserId), ct: cancellationToken);
+            await guildApi.RemoveGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.DiscordUserId), ct: cancellationToken);
         }
 
-        var channelsToPostTo = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
 
         if (channelsToPostTo.Any())
         {
@@ -38,7 +34,7 @@ public partial class KickHandler : IRequestHandler<KickRequest>
 
             foreach (var channel in channelsToPostTo)
             {
-                await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
+                await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
             }
         }
     }

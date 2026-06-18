@@ -4,10 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" />
-    <PackageReference Include="AutoConstructor">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="AutoRegisterInject" />
     <PackageReference Include="LazyCache.AspNetCore" />
     <PackageReference Include="MediatR" />

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -16,16 +16,13 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[AutoConstructor]
-public partial class ParticipationCommandGroup : AccordCommandGroup
+public class ParticipationCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
-    private readonly IMediator _mediator;
-    private readonly FeedbackService _feedbackService;
 
     [Command("leaderboard"), Description("Get a leaderboard of XP")]
     public async Task<IResult> GetLeaderboard()
     {
-        var leaderboard = await _mediator.Send(new GetLeaderboardRequest());
+        var leaderboard = await mediator.Send(new GetLeaderboardRequest());
 
         var stringBuilder = new StringBuilder();
 
@@ -36,13 +33,13 @@ public partial class ParticipationCommandGroup : AccordCommandGroup
 
         var embed = new Embed(Title: "Leaderboard", Description: leaderboardPayload, Footer: new EmbedFooter("See individual statistics via the /profile command"));
 
-        return await _feedbackService.SendContextualEmbedAsync(embed);
+        return await feedbackService.SendContextualEmbedAsync(embed);
     }
 
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("calculate-xp"), Description("Calculate XP, long running"), Ephemeral]
     public async Task<IResult> CalculateXp()
     {
-        await _mediator.Send(new CalculateParticipationRequest());
-        return await _feedbackService.SendContextualAsync("Calculated!");
+        await mediator.Send(new CalculateParticipationRequest());
+        return await feedbackService.SendContextualAsync("Calculated!");
     }
 }

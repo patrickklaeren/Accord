@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Infrastructure;
 using Accord.Services;
@@ -13,19 +13,15 @@ using Remora.Results;
 
 namespace Accord.Bot;
 
-[AutoConstructor, RegisterTransient]
-public partial class BotClient
+[RegisterTransient]
+public class BotClient(ILogger<BotClient> logger, DiscordGatewayClient discordGatewayClient, SlashService slashService, DiscordConfiguration discordConfiguration)
 {
-    private readonly ILogger<BotClient> _logger;
-    private readonly DiscordGatewayClient _discordGatewayClient;
-    private readonly SlashService _slashService;
-    private readonly DiscordConfiguration _discordConfiguration;
 
     public async Task Run(CancellationToken cancellationToken)
     {
         await InitialiseSlashCommands(cancellationToken);
 
-        var runResult = await _discordGatewayClient.RunAsync(cancellationToken);
+        var runResult = await discordGatewayClient.RunAsync(cancellationToken);
 
         if (!runResult.IsSuccess)
         {
@@ -33,18 +29,18 @@ public partial class BotClient
             {
                 case ExceptionError exe:
                     {
-                        _logger.LogError(exe.Exception, "Exception during gateway connection: {ExceptionMessage}", exe.Message);
+                        logger.LogError(exe.Exception, "Exception during gateway connection: {ExceptionMessage}", exe.Message);
                         break;
                     }
                 case GatewayWebSocketError:
                 case GatewayDiscordError:
                     {
-                        _logger.LogError("Gateway error: {Message}", runResult.Error.Message);
+                        logger.LogError("Gateway error: {Message}", runResult.Error.Message);
                         break;
                     }
                 default:
                     {
-                        _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
+                        logger.LogError("Unknown error: {Message}", runResult.Error.Message);
                         break;
                     }
             }
@@ -53,14 +49,14 @@ public partial class BotClient
 
     private async Task InitialiseSlashCommands(CancellationToken cancellationToken)
     {
-        if (_discordConfiguration.GuildId == default)
+        if (discordConfiguration.GuildId == default)
             return;
 
-        var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_discordConfiguration.GuildId), ct: cancellationToken);
+        var updateSlash = await slashService.UpdateSlashCommandsAsync(new Snowflake(discordConfiguration.GuildId), ct: cancellationToken);
 
         if (!updateSlash.IsSuccess)
         {
-            _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
+            logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
         }
     }
 }

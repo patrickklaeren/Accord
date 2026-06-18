@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -17,18 +17,13 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class ReadyResponder : IResponder<IReady>
+public class ReadyResponder(DiscordGatewayClient discordGatewayClient, DiscordCache discordCache, IDiscordRestGuildAPI guildApi, DiscordConfiguration discordConfiguration) : IResponder<IReady>
 {
-    private readonly DiscordGatewayClient _discordGatewayClient;
-    private readonly DiscordCache _discordCache;
-    private readonly IDiscordRestGuildAPI _guildApi;
 
-    private readonly DiscordConfiguration _discordConfiguration;
 
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
-        _discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
+        discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
         await CacheGuild(gatewayEvent.User, ct);
 
         var updateCommand = new UpdatePresence(UserStatus.Online, false, null, new IActivity[]
@@ -36,28 +31,28 @@ public partial class ReadyResponder : IResponder<IReady>
             new Activity("for everything", ActivityType.Watching)
         });
 
-        _discordGatewayClient.SubmitCommand(updateCommand);
+        discordGatewayClient.SubmitCommand(updateCommand);
 
         return Result.FromSuccess();
     }
 
     private async Task CacheGuild(IUser user, CancellationToken ct = default)
     {
-        var guildSnowflake = new Snowflake(_discordConfiguration.GuildId);
+        var guildSnowflake = new Snowflake(discordConfiguration.GuildId);
 
-        var guildMember = await _guildApi.GetGuildMemberAsync(guildSnowflake, user.ID, ct);
+        var guildMember = await guildApi.GetGuildMemberAsync(guildSnowflake, user.ID, ct);
 
         if (guildMember.IsSuccess)
         {
-            _discordCache.SetGuildSelfMember(guildMember.Entity);
+            discordCache.SetGuildSelfMember(guildMember.Entity);
         }
 
-        var guild = await _guildApi.GetGuildAsync(guildSnowflake, true, ct: ct);
+        var guild = await guildApi.GetGuildAsync(guildSnowflake, true, ct: ct);
 
         if (guild.IsSuccess)
         {
             var everyoneRole = guild.Entity.Roles.Single(x => x.Name == "@everyone");
-            _discordCache.SetEveryoneRole(everyoneRole);
+            discordCache.SetEveryoneRole(everyoneRole);
         }
     }
 }

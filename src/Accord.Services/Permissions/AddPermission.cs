@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
@@ -10,15 +10,12 @@ namespace Accord.Services.Permissions;
 public sealed record AddPermissionForRoleRequest(ulong DiscordRoleId, PermissionType Permission) : IRequest<ServiceResponse>;
 public sealed record AddPermissionForUserRequest(ulong DiscordUserId, PermissionType Permission) : IRequest<ServiceResponse>;
 
-[AutoConstructor]
-public partial class AddPermissionHandler : IRequestHandler<AddPermissionForUserRequest, ServiceResponse>, IRequestHandler<AddPermissionForRoleRequest, ServiceResponse>
+public class AddPermissionHandler(AccordContext db, IMediator mediator) : IRequestHandler<AddPermissionForUserRequest, ServiceResponse>, IRequestHandler<AddPermissionForRoleRequest, ServiceResponse>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
 
     public async Task<ServiceResponse> Handle(AddPermissionForUserRequest request, CancellationToken cancellationToken)
     {
-        if (await _db.UserPermissions.AnyAsync(x => x.UserId == request.DiscordUserId
+        if (await db.UserPermissions.AnyAsync(x => x.UserId == request.DiscordUserId
                                                     && x.Type == request.Permission, cancellationToken: cancellationToken))
         {
             return ServiceResponse.Ok();
@@ -30,18 +27,18 @@ public partial class AddPermissionHandler : IRequestHandler<AddPermissionForUser
             Type = request.Permission,
         };
 
-        _db.Add(permissionEntity);
+        db.Add(permissionEntity);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
-        await _mediator.Publish(new PermissionsUpdateNotification(request.DiscordUserId), cancellationToken);
+        await mediator.Publish(new PermissionsUpdateNotification(request.DiscordUserId), cancellationToken);
 
         return ServiceResponse.Ok();
     }
 
     public async Task<ServiceResponse> Handle(AddPermissionForRoleRequest request, CancellationToken cancellationToken)
     {
-        if (await _db.RolePermissions.AnyAsync(x => x.RoleId == request.DiscordRoleId
+        if (await db.RolePermissions.AnyAsync(x => x.RoleId == request.DiscordRoleId
                                                     && x.Type == request.Permission, cancellationToken: cancellationToken))
         {
             return ServiceResponse.Ok();
@@ -53,9 +50,9 @@ public partial class AddPermissionHandler : IRequestHandler<AddPermissionForUser
             Type = request.Permission,
         };
 
-        _db.Add(permissionEntity);
+        db.Add(permissionEntity);
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
 
         return ServiceResponse.Ok();
     }

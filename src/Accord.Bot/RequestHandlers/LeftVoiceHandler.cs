@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -14,29 +14,24 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-[AutoConstructor]
-public partial class LeftVoiceHandler : IRequestHandler<LeftVoiceRequest>
+public class LeftVoiceHandler(IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi, IMediator mediator, ThumbnailHelper thumbnailHelper) : IRequestHandler<LeftVoiceRequest>
 {
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly IMediator _mediator;
-    private readonly ThumbnailHelper _thumbnailHelper;
 
     public async Task Handle(LeftVoiceRequest request, CancellationToken cancellationToken)
     {
-        var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.VoiceLogs), cancellationToken);
+        var channels = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.VoiceLogs), cancellationToken);
 
         if (!channels.Any())
             return;
 
-        var guildMember = await _guildApi.GetGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.DiscordUserId), cancellationToken);
+        var guildMember = await guildApi.GetGuildMemberAsync(new Snowflake(request.DiscordGuildId), new Snowflake(request.DiscordUserId), cancellationToken);
 
         if (!guildMember.IsSuccess || !guildMember.Entity.User.HasValue)
             return;
 
         var user = guildMember.Entity.User.Value!;
 
-        var avatar = _thumbnailHelper.GetAvatar(user);
+        var avatar = thumbnailHelper.GetAvatar(user);
 
         var span = (request.DisconnectedDateTime - request.ConnectedDateTime).Humanize();
 
@@ -47,7 +42,7 @@ public partial class LeftVoiceHandler : IRequestHandler<LeftVoiceRequest>
 
         foreach (var channel in channels)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
+            await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: cancellationToken);
         }
     }
 }

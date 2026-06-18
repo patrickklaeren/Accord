@@ -7,29 +7,27 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class RoleUpdateResponder :
+public class RoleUpdateResponder(DiscordCache discordCache) :
     IResponder<IGuildRoleUpdate>,
     IResponder<IGuildRoleDelete>,
     IResponder<IGuildRoleCreate>
 {
-    private readonly DiscordCache _discordCache;
 
     public Task<Result> RespondAsync(IGuildRoleUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildRoles();
+        discordCache.InvalidateGuildRoles();
         return Task.FromResult(Result.FromSuccess());
     }
 
     public Task<Result> RespondAsync(IGuildRoleDelete gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildRoles();
+        discordCache.InvalidateGuildRoles();
         return Task.FromResult(Result.FromSuccess());
     }
 
     public Task<Result> RespondAsync(IGuildRoleCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildRoles();
+        discordCache.InvalidateGuildRoles();
         return Task.FromResult(Result.FromSuccess());
     }
 }

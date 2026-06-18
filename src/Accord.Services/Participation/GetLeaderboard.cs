@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,14 +13,12 @@ public sealed record GetLeaderboardRequest : IRequest<Leaderboard>;
 public sealed record Leaderboard(List<MessageUser> MessageUsers);
 public record MessageUser(ulong DiscordUserId, float ParticipationPoints);
 
-[AutoConstructor]
-public partial class GetLeaderboardHandler : IRequestHandler<GetLeaderboardRequest, Leaderboard>
+public class GetLeaderboardHandler(AccordContext db) : IRequestHandler<GetLeaderboardRequest, Leaderboard>
 {
-    private readonly AccordContext _db;
 
     public async Task<Leaderboard> Handle(GetLeaderboardRequest request, CancellationToken cancellationToken)
     {
-        var users = await _db.Users
+        var users = await db.Users
             .OrderByDescending(x => x.ParticipationPoints)
             .ThenBy(x => x.LastSeenDateTime)
             .Take(10)

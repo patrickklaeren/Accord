@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,15 +11,12 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportChannelTypeRequest(ulong DiscordChannelId) : IRequest<UserReportChannelType>;
 
-[AutoConstructor]
-public partial class GetUserReportChannelTypeHandler : IRequestHandler<GetUserReportChannelTypeRequest, UserReportChannelType>
+public class GetUserReportChannelTypeHandler(AccordContext db, IAppCache appCache) : IRequestHandler<GetUserReportChannelTypeRequest, UserReportChannelType>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<UserReportChannelType> Handle(GetUserReportChannelTypeRequest channelTypeRequest, CancellationToken cancellationToken)
     {
-        return await _appCache.GetOrAddAsync(BuildIsUserReportChannelCacheKey(channelTypeRequest.DiscordChannelId), 
+        return await appCache.GetOrAddAsync(BuildIsUserReportChannelCacheKey(channelTypeRequest.DiscordChannelId),
             () => IsUserReportChannel(channelTypeRequest.DiscordChannelId),
             DateTimeOffset.UtcNow.AddDays(30));
     }
@@ -31,8 +28,8 @@ public partial class GetUserReportChannelTypeHandler : IRequestHandler<GetUserRe
 
     private async Task<UserReportChannelType> IsUserReportChannel(ulong discordChannelId)
     {
-        var userReport = await _db.UserReports
-            .Where(x => x.OutboxDiscordChannelId == discordChannelId 
+        var userReport = await db.UserReports
+            .Where(x => x.OutboxDiscordChannelId == discordChannelId
                         || x.InboxDiscordChannelId == discordChannelId)
             .Select(x => new
             {

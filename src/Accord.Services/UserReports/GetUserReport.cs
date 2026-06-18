@@ -16,18 +16,15 @@ public sealed record GetUserReportRequest(ulong DiscordUserId) : IRequest<UserRe
 
 public sealed record InvalidateGetUserReportRequest(ulong DiscordUserId, ulong DiscordInboxChannelId, ulong DiscordOutboxChannelId) : IRequest;
 
-[AutoConstructor]
-public partial class GetUserReportHandler :
+public class GetUserReportHandler(IAppCache appCache, AccordContext accordContext) :
     IRequestHandler<InvalidateGetUserReportRequest>,
     IRequestHandler<GetUserReportByChannelRequest, UserReport?>,
     IRequestHandler<GetUserReportRequest, UserReport?>
 {
-    private readonly IAppCache _appCache;
-    private readonly AccordContext _accordContext;
 
     public async Task<UserReport?> Handle(GetUserReportByChannelRequest request, CancellationToken cancellationToken)
     {
-        var userReport = await _appCache.GetOrAddAsync(
+        var userReport = await appCache.GetOrAddAsync(
             BuildGetUserReportByChannel(request.DiscordChannelId),
             () => GetUserReportByChannel(request.DiscordChannelId, cancellationToken),
             DateTimeOffset.UtcNow.AddDays(30)
@@ -35,12 +32,12 @@ public partial class GetUserReportHandler :
 
         if (userReport != null)
         {
-            _appCache.GetOrAdd(
+            appCache.GetOrAdd(
                 BuildGetUserReport(userReport.OpenedByUserId),
                 () => userReport,
                 DateTimeOffset.UtcNow.AddDays(30)
             );
-            _appCache.GetOrAdd(
+            appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.OutboxDiscordChannelId),
                 () => userReport,
                 DateTimeOffset.UtcNow.AddDays(30)
@@ -52,7 +49,7 @@ public partial class GetUserReportHandler :
 
     public async Task<UserReport?> Handle(GetUserReportRequest request, CancellationToken cancellationToken)
     {
-        var userReport = await _appCache.GetOrAddAsync(
+        var userReport = await appCache.GetOrAddAsync(
             BuildGetUserReport(request.DiscordUserId),
             () => GetUserReport(request.DiscordUserId, cancellationToken),
             DateTimeOffset.UtcNow.AddDays(30)
@@ -60,12 +57,12 @@ public partial class GetUserReportHandler :
 
         if (userReport != null)
         {
-            _appCache.GetOrAdd(
+            appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.InboxDiscordChannelId),
                 () => userReport,
                 DateTimeOffset.UtcNow.AddDays(30)
             );
-            _appCache.GetOrAdd(
+            appCache.GetOrAdd(
                 BuildGetUserReportByChannel(userReport.OutboxDiscordChannelId),
                 () => userReport,
                 DateTimeOffset.UtcNow.AddDays(30)
@@ -76,12 +73,12 @@ public partial class GetUserReportHandler :
     }
 
     private Task<UserReport?> GetUserReportByChannel(ulong discordChannelId, CancellationToken cancellationToken = default) =>
-        _accordContext.UserReports
+        accordContext.UserReports
             .Where(x => x.InboxDiscordChannelId == discordChannelId || x.OutboxDiscordChannelId == discordChannelId)
             .SingleOrDefaultAsync(cancellationToken)!;
 
     private Task<UserReport?> GetUserReport(ulong discordUserId, CancellationToken cancellationToken = default) =>
-        _accordContext.UserReports
+        accordContext.UserReports
             .Where(x => x.OpenedByUserId == discordUserId && x.ClosedByUserId == null)
             .SingleOrDefaultAsync(cancellationToken)!;
 
@@ -93,9 +90,9 @@ public partial class GetUserReportHandler :
 
     public Task Handle(InvalidateGetUserReportRequest request, CancellationToken cancellationToken)
     {
-        _appCache.Remove(BuildGetUserReport(request.DiscordUserId));
-        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordInboxChannelId));
-        _appCache.Remove(BuildGetUserReportByChannel(request.DiscordOutboxChannelId));
+        appCache.Remove(BuildGetUserReport(request.DiscordUserId));
+        appCache.Remove(BuildGetUserReportByChannel(request.DiscordInboxChannelId));
+        appCache.Remove(BuildGetUserReportByChannel(request.DiscordOutboxChannelId));
         return Task.CompletedTask;
     }
 }

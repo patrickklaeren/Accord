@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -20,51 +20,44 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[AutoConstructor]
-public partial class ProfileCommandGroup: AccordCommandGroup
+public class ProfileCommandGroup(IMediator mediator, ICommandContext commandContext, IDiscordRestGuildAPI guildApi, DiscordAvatarHelper discordAvatarHelper, FeedbackService feedbackService, ThumbnailHelper thumbnailHelper) : AccordCommandGroup
 {
-    private readonly IMediator _mediator;
-    private readonly ICommandContext _commandContext;
-    private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly FeedbackService _feedbackService;
-    private readonly ThumbnailHelper _thumbnailHelper;
 
     [Command("profile"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IGuildMember? member = null)
     {
         if (member is not null && !member.User.HasValue)
         {
-            return await _feedbackService.SendContextualAsync("Failed finding user");
+            return await feedbackService.SendContextualAsync("Failed finding user");
         }
 
-        var proxy = _commandContext.GetCommandProxy();
+        var proxy = commandContext.GetCommandProxy();
 
         var userId = member?.User.Value!.ID.Value ?? proxy.UserId.Value;
 
-        var response = await _mediator.Send(new GetUserRequest(userId));
+        var response = await mediator.Send(new GetUserRequest(userId));
 
         if (!response.Success)
         {
-            return await _feedbackService.SendContextualAsync(response.ErrorMessage);
+            return await feedbackService.SendContextualAsync(response.ErrorMessage);
         }
 
-        var guildUserEntity = await _guildApi.GetGuildMemberAsync(proxy.GuildId, new Snowflake(userId));
+        var guildUserEntity = await guildApi.GetGuildMemberAsync(proxy.GuildId, new Snowflake(userId));
 
         if (!guildUserEntity.IsSuccess || !guildUserEntity.Entity.User.HasValue)
         {
-            return await _feedbackService.SendContextualAsync("Couldn't find user in Guild");
+            return await feedbackService.SendContextualAsync("Couldn't find user in Guild");
         }
 
         var guildUser = guildUserEntity.Entity;
         var (userDto, userMessagesInChannelDtos, userVoiceMinutesInChannelDtos) = response.Value!;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value, 
-            guildUser.User.Value.Discriminator, 
-            guildUser.User.Value.Avatar?.Value, 
+        var avatarUrl = discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
+            guildUser.User.Value.Discriminator,
+            guildUser.User.Value.Avatar?.Value,
             guildUser.User.Value.Avatar?.HasGif == true);
-        
-        var avatarImage = _thumbnailHelper.GetAvatar(guildUser.User.Value);
+
+        var avatarImage = thumbnailHelper.GetAvatar(guildUser.User.Value);
 
         var builder = new StringBuilder();
 
@@ -137,6 +130,6 @@ public partial class ProfileCommandGroup: AccordCommandGroup
             Thumbnail: avatarImage,
             Description: builder.ToString());
 
-        return await _feedbackService.SendContextualEmbedAsync(embed);
+        return await feedbackService.SendContextualEmbedAsync(embed);
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -14,18 +14,16 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-[Group("permission"), AutoConstructor]
-public partial class PermissionCommandGroup: AccordCommandGroup
+[Group("permission")]
+public class PermissionCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
-    private readonly IMediator _mediator;
-    private readonly FeedbackService _feedbackService;
 
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user"), Ephemeral]
     public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)
     {
         if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
         {
-            return await _feedbackService.SendContextualAsync("Permission is not found");
+            return await feedbackService.SendContextualAsync("Permission is not found");
         }
 
         if (!member.User.HasValue)
@@ -33,8 +31,8 @@ public partial class PermissionCommandGroup: AccordCommandGroup
             return Result.FromSuccess();
         }
 
-        await _mediator.Send(new AddPermissionForUserRequest(member.User.Value.ID.Value, actualPermission));
-        return await _feedbackService.SendContextualAsync($"{actualPermission} permission added to {member.User.Value.ID.ToUserMention()}");
+        await mediator.Send(new AddPermissionForUserRequest(member.User.Value.ID.Value, actualPermission));
+        return await feedbackService.SendContextualAsync($"{actualPermission} permission added to {member.User.Value.ID.ToUserMention()}");
     }
 
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("addrole"), Description("Add permission to a role"), Ephemeral]
@@ -42,10 +40,10 @@ public partial class PermissionCommandGroup: AccordCommandGroup
     {
         if (!Enum.TryParse<PermissionType>(type, out var actualPermission) || !Enum.IsDefined(actualPermission))
         {
-            return await _feedbackService.SendContextualAsync("Permission is not found");
+            return await feedbackService.SendContextualAsync("Permission is not found");
         }
 
-        await _mediator.Send(new AddPermissionForRoleRequest(role.ID.Value, actualPermission));
-        return await _feedbackService.SendContextualAsync($"{actualPermission} permission added to `{role.Name}`");
+        await mediator.Send(new AddPermissionForRoleRequest(role.ID.Value, actualPermission));
+        return await feedbackService.SendContextualAsync($"{actualPermission} permission added to `{role.Name}`");
     }
 }

@@ -1,19 +1,17 @@
-﻿using System;
+using System;
 using System.Security.Claims;
 using Accord.Services.Helpers;
 using Microsoft.AspNetCore.Http;
 
 namespace Accord.Web.DiscordServices;
 
-[AutoConstructor, RegisterScoped]
-public partial class DiscordUserService
+[RegisterScoped]
+public class DiscordUserService(IHttpContextAccessor httpContextAccessor, DiscordAvatarHelper discordAvatarHelper)
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
 
     public string GetAvatarUrl()
     {
-        if (_httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
+        if (httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
         {
             throw new InvalidOperationException("Cannot get avatar for user when they are not authenticated");
         }
@@ -22,14 +20,14 @@ public partial class DiscordUserService
         var discriminator = context.User.FindFirstValue("urn:discord:user:discriminator")!;
         var avatarClaim = context.User.FindFirstValue("urn:discord:avatar:hash");
 
-        return _discordAvatarHelper.GetAvatarUrl(ulong.Parse(discordUserId),
+        return discordAvatarHelper.GetAvatarUrl(ulong.Parse(discordUserId),
             ushort.Parse(discriminator),
             avatarClaim);
     }
 
     public ulong GetDiscordId()
     {
-        if (_httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
+        if (httpContextAccessor.HttpContext is not { User.Identity.IsAuthenticated: true } context)
         {
             throw new InvalidOperationException("Cannot get ID for user when they are not authenticated");
         }

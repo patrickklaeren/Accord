@@ -7,29 +7,27 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class ChannelUpdateResponder :
+public class ChannelUpdateResponder(DiscordCache discordCache) :
     IResponder<IChannelCreate>,
     IResponder<IChannelUpdate>,
     IResponder<IChannelDelete>
 {
-    private readonly DiscordCache _discordCache;
 
     public Task<Result> RespondAsync(IChannelCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildChannels();
+        discordCache.InvalidateGuildChannels();
         return Task.FromResult(Result.FromSuccess());
     }
 
     public Task<Result> RespondAsync(IChannelUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildChannels();
+        discordCache.InvalidateGuildChannels();
         return Task.FromResult(Result.FromSuccess());
     }
 
     public Task<Result> RespondAsync(IChannelDelete gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildChannels();
+        discordCache.InvalidateGuildChannels();
         return Task.FromResult(Result.FromSuccess());
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,17 +18,12 @@ using Remora.Results;
 
 namespace Accord.Bot.RequestHandlers;
 
-[AutoConstructor]
-public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserReportMessageRequest>
+public class RelayUserReportMessageHandler(IDiscordRestWebhookAPI webhookApi, DiscordAvatarHelper discordAvatarHelper, DiscordCache discordCache, IMediator mediator) : IRequestHandler<RelayUserReportMessageRequest>
 {
-    private readonly IDiscordRestWebhookAPI _webhookApi;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly DiscordCache _discordCache;
-    private readonly IMediator _mediator;
 
     public async Task Handle(RelayUserReportMessageRequest request, CancellationToken cancellationToken)
     {
-        var member = await _discordCache.GetGuildMember(request.AuthorDiscordUserId);
+        var member = await discordCache.GetGuildMember(request.AuthorDiscordUserId);
 
         if (!member.IsSuccess || !member.Entity.User.HasValue)
             return;
@@ -54,11 +49,11 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
             fileData = new FileData($"{Guid.NewGuid()}{(String.IsNullOrEmpty(fileNameExtension) ? "" : $".{fileNameExtension}")}", stream);
         }
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value.ID.Value, 
-            member.Entity.User.Value.Discriminator, 
+        var avatarUrl = discordAvatarHelper.GetAvatarUrl(member.Entity.User.Value.ID.Value,
+            member.Entity.User.Value.Discriminator,
             user.Avatar?.Value,
             user.Avatar?.HasGif == true);
-        
+
         var username = member.Entity.Nickname.Value ?? user.Username;
 
         var otherAttachments = request.DiscordAttachments
@@ -94,15 +89,15 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
 
         if (request.DiscordMessageReferenceId != null)
         {
-            var originalMessage = await _mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageReferenceId.Value), cancellationToken);
+            var originalMessage = await mediator.Send(new GetUserReportMessageRequest(request.DiscordMessageReferenceId.Value), cancellationToken);
 
             if (originalMessage is null)
                 throw new InvalidOperationException("Cannot process without original message");
-                
-            var originalAuthor = await _discordCache.GetGuildMember(originalMessage.AuthorUserId);
+
+            var originalAuthor = await discordCache.GetGuildMember(originalMessage.AuthorUserId);
             var originalAuthorUser = originalAuthor.Entity!.User.Value;
-            var originalAuthorAvatarUrl = _discordAvatarHelper.GetAvatarUrl(originalAuthorUser.ID.Value, 
-                originalAuthorUser.Discriminator, 
+            var originalAuthorAvatarUrl = discordAvatarHelper.GetAvatarUrl(originalAuthorUser.ID.Value,
+                originalAuthorUser.Discriminator,
                 originalAuthorUser.Avatar?.Value,
                 originalAuthorUser.Avatar?.HasGif == true);
             embeds.Add(new Embed
@@ -122,7 +117,7 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
 
             var contentPart = request.Content?.Substring(i * 2000, Math.Min(2000, request.Content.Length - i * 2000));
 
-            proxiedMessage = await _webhookApi.ExecuteWebhookAsync(
+            proxiedMessage = await webhookApi.ExecuteWebhookAsync(
                 new Snowflake(request.DiscordProxyWebhookId),
                 request.DiscordProxyWebhookToken,
                 shouldWait: true,
@@ -133,7 +128,7 @@ public partial class RelayUserReportMessageHandler : IRequestHandler<RelayUserRe
                 username: username,
                 ct: cancellationToken);
 
-            var response = await _mediator.Send(new AttachProxiedMessageIdToMessageRequest(request.OriginalDiscordMessageId, proxiedMessage.Entity!.ID.Value),
+            var response = await mediator.Send(new AttachProxiedMessageIdToMessageRequest(request.OriginalDiscordMessageId, proxiedMessage.Entity!.ID.Value),
                 cancellationToken);
 
             serviceResponses.Add(response);

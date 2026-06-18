@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -10,14 +10,12 @@ namespace Accord.Services.UserReports;
 
 public sealed record GetUserReportsAgentRoleIdRequest : IRequest<ulong?>;
 
-[AutoConstructor]
-public partial class GetUserReportsAgentRoleIdHandler : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
+public class GetUserReportsAgentRoleIdHandler(AccordContext db) : IRequestHandler<GetUserReportsAgentRoleIdRequest, ulong?>
 {
-    private readonly AccordContext _db;
 
     public async Task<ulong?> Handle(GetUserReportsAgentRoleIdRequest request, CancellationToken cancellationToken)
     {
-        var runOption = await _db.RunOptions
+        var runOption = await db.RunOptions
             .Where(x => x.Type == RunOptionType.UserReportsAgentRoleId)
             .Select(x => x.Value)
             .SingleAsync(cancellationToken: cancellationToken);

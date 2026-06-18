@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,12 +18,10 @@ public class UnknownHandler : IResponder<IUnknownEvent>
     }
 }
 
-[AutoConstructor]
-public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>, 
-    IResponder<IMessageDelete>, 
+public class MessageCreateDeleteResponder(IEventQueue eventQueue) : IResponder<IMessageCreate>,
+    IResponder<IMessageDelete>,
     IResponder<IMessageDeleteBulk>
 {
-    private readonly IEventQueue _eventQueue;
 
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
@@ -37,10 +35,10 @@ public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
 
         if (fileUrls.Any())
         {
-            await _eventQueue.Queue(new IsCryptoSpamMessageRequest(gatewayEvent.GuildID.Value.Value, gatewayEvent.Author.ID.Value, fileUrls));
+            await eventQueue.Queue(new IsCryptoSpamMessageRequest(gatewayEvent.GuildID.Value.Value, gatewayEvent.Author.ID.Value, fileUrls));
         }
 
-        await _eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
+        await eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
             gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value,
             gatewayEvent.Timestamp));
 
@@ -49,7 +47,7 @@ public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
 
     public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        await _eventQueue.Queue(new DeleteMessageRequest(gatewayEvent.ID.Value));
+        await eventQueue.Queue(new DeleteMessageRequest(gatewayEvent.ID.Value));
         return Result.FromSuccess();
     }
 
@@ -57,7 +55,7 @@ public partial class MessageCreateDeleteResponder : IResponder<IMessageCreate>,
     {
         foreach (var id in gatewayEvent.IDs)
         {
-            await _eventQueue.Queue(new DeleteMessageRequest(id.Value));
+            await eventQueue.Queue(new DeleteMessageRequest(id.Value));
         }
 
         return Result.FromSuccess();

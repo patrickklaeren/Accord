@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,15 +14,12 @@ namespace Accord.Services.Permissions;
 public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
 public sealed record PermissionsUpdateNotification(ulong UserId) : INotification;
 
-[AutoConstructor]
-public partial class UserHasPermission : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
+public class UserHasPermission(AccordContext db, IAppCache appCache) : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
 {
-    private readonly AccordContext _db;
-    private readonly IAppCache _appCache;
 
     public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)
     {
-        var permissions = await _appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
+        var permissions = await appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
             () => GetPermissionsForUser(request.User),
             DateTimeOffset.UtcNow.AddMinutes(5));
 
@@ -31,7 +28,7 @@ public partial class UserHasPermission : NotificationHandler<PermissionsUpdateNo
 
     protected override void Handle(PermissionsUpdateNotification request)
     {
-        _appCache.Remove(BuildGetPermissionsForUserCacheKey(request.UserId));
+        appCache.Remove(BuildGetPermissionsForUserCacheKey(request.UserId));
     }
 
     private static string BuildGetPermissionsForUserCacheKey(ulong discordUserId)
@@ -41,7 +38,7 @@ public partial class UserHasPermission : NotificationHandler<PermissionsUpdateNo
 
     private async Task<List<PermissionType>> GetPermissionsForUser(PermissionUser user)
     {
-        return await _db.Permissions
+        return await db.Permissions
             .Where(x => x is UserPermission && ((UserPermission)x).UserId == user.DiscordUserId
                         || x is RolePermission && user.OwnedDiscordRoleIds.Contains(((RolePermission)x).RoleId))
             .Select(x => x.Type)

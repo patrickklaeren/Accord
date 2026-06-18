@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,14 +22,8 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
+public class MemberJoinLeaveResponder(IMediator mediator, IDiscordRestChannelAPI channelApi, IEventQueue eventQueue, DiscordAvatarHelper discordAvatarHelper, ThumbnailHelper thumbnailHelper) : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
 {
-    private readonly IMediator _mediator;
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IEventQueue _eventQueue;
-    private readonly DiscordAvatarHelper _discordAvatarHelper;
-    private readonly ThumbnailHelper _thumbnailHelper;
 
     public async Task<Result> RespondAsync(IGuildMemberAdd gatewayEvent, CancellationToken ct = new CancellationToken())
     {
@@ -38,19 +32,19 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
 
         var user = gatewayEvent.User.Value;
 
-        var avatarUrl = _discordAvatarHelper.GetAvatarUrl(user.ID.Value, 
-            user.Discriminator, 
-            user.Avatar?.Value, 
+        var avatarUrl = discordAvatarHelper.GetAvatarUrl(user.ID.Value,
+            user.Discriminator,
+            user.Avatar?.Value,
             user.Avatar?.HasGif == true);
 
-        await _eventQueue.Queue(new AddUserRequest(user.ID.Value, user.Username, avatarUrl, null, gatewayEvent.JoinedAt));
-        await _eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, avatarUrl, gatewayEvent.JoinedAt)));
+        await eventQueue.Queue(new AddUserRequest(user.ID.Value, user.Username, avatarUrl, null, gatewayEvent.JoinedAt));
+        await eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, avatarUrl, gatewayEvent.JoinedAt)));
 
-        var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
+        var channels = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
         if (channels.Any())
         {
-            var image = _thumbnailHelper.GetAvatar(user);
+            var image = thumbnailHelper.GetAvatar(user);
 
             var builder = new StringBuilder()
                 .AppendLine("**User Information**")
@@ -66,7 +60,7 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
 
             foreach (var channel in channels)
             {
-                await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: ct);
+                await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: ct);
             }
         }
 
@@ -75,9 +69,9 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
 
     public async Task<Result> RespondAsync(IGuildMemberRemove gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        var channels = await _mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
+        var channels = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
-        var image = _thumbnailHelper.GetAvatar(gatewayEvent.User);
+        var image = thumbnailHelper.GetAvatar(gatewayEvent.User);
 
         var user = gatewayEvent.User;
 
@@ -94,7 +88,7 @@ public partial class MemberJoinLeaveResponder : IResponder<IGuildMemberAdd>, IRe
 
         foreach (var channel in channels)
         {
-            await _channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: ct);
+            await channelApi.CreateMessageAsync(new Snowflake(channel), embeds: new[] { embed }, ct: ct);
         }
 
         return Result.FromSuccess();

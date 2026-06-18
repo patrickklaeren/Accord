@@ -7,14 +7,12 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-[AutoConstructor]
-public partial class GuildUpdateResponder : IResponder<IGuildUpdate>
+public class GuildUpdateResponder(DiscordCache discordCache) : IResponder<IGuildUpdate>
 {
-    private readonly DiscordCache _discordCache;
 
     public Task<Result> RespondAsync(IGuildUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        _discordCache.InvalidateGuildRoles();
+        discordCache.InvalidateGuildRoles();
         return Task.FromResult(Result.FromSuccess());
     }
 }
