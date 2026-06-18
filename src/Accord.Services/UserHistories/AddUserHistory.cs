@@ -39,7 +39,7 @@ public class AddUserHistoryHandler(AccordContext db,
 
         await db.SaveChangesAsync(cancellationToken);
 
-        IRequest? relayRequest = request.Type switch
+        INotification? relayRequest = request.Type switch
         {
             UserHistoryType.Ban => new RelayBanToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Unban => new RelayUnbanToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),

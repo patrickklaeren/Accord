@@ -15,7 +15,14 @@ public static class CommandContextExtensions
     public static async Task<PermissionUser> ToPermissionUser(this ICommandContext context, IDiscordRestGuildAPI guildApi)
     {
         var proxy = context.GetCommandProxy();
-        
+
+        var guild = await guildApi.GetGuildAsync(proxy.GuildId);
+
+        if (!guild.IsSuccess)
+        {
+            throw new InvalidOperationException("Cannot get guild");
+        }
+
         var member = await guildApi.GetGuildMemberAsync(proxy.GuildId, proxy.UserId);
 
         if (member.Entity is null)
@@ -23,7 +30,18 @@ public static class CommandContextExtensions
             throw new InvalidOperationException("Cannot get user when they do not exist in guild");
         }
 
-        var isAdministrator = member.Entity.Permissions.Value.HasPermission(DiscordPermission.Administrator);
+        var isAdministrator = guild.Entity.OwnerID == proxy.UserId;
+
+        if (!isAdministrator)
+        {
+            var memberRoleIds = member.Entity.Roles.Select(x => x.Value).ToHashSet();
+            var guildRoles = await guildApi.GetGuildRolesAsync(proxy.GuildId);
+
+            isAdministrator = guildRoles.Entity
+                .Where(r => memberRoleIds.Contains(r.ID.Value))
+                .Any(r => r.Permissions.HasPermission(DiscordPermission.Administrator));
+        }
+
         var roles = member.Entity.Roles.Select(x => x.Value);
 
         return new PermissionUser(proxy.UserId.Value, roles, isAdministrator);

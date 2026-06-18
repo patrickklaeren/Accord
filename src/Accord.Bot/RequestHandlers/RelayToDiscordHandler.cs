@@ -21,11 +21,11 @@ public class RelayToDiscordHandler(
     IDiscordRestGuildAPI guildApi,
     ThumbnailHelper thumbnailHelper,
     DiscordConfiguration discordConfiguration)
-    : IRequestHandler<RelayKickToDiscordRequest>,
-        IRequestHandler<RelayBanToDiscordRequest>,
-        IRequestHandler<RelayUnbanToDiscordRequest>,
-        IRequestHandler<RelayWarningToDiscordRequest>,
-        IRequestHandler<RelayNoteToDiscordRequest>
+    : INotificationHandler<RelayKickToDiscordRequest>,
+        INotificationHandler<RelayBanToDiscordRequest>,
+        INotificationHandler<RelayUnbanToDiscordRequest>,
+        INotificationHandler<RelayWarningToDiscordRequest>,
+        INotificationHandler<RelayNoteToDiscordRequest>
 {
     public async Task Handle(RelayKickToDiscordRequest request, CancellationToken cancellationToken)
     {
@@ -117,7 +117,7 @@ public class RelayToDiscordHandler(
         if (!targetGuildMember.IsSuccess || !targetGuildMember.Entity.User.HasValue)
             return;
         
-        var title = $"️{targetGuildMember.Entity.User.Value.Username} remarked";
+        var title = $"️📝 {targetGuildMember.Entity.User.Value.Username} remarked";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) remarked by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
         await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
     }
@@ -132,7 +132,7 @@ public class RelayToDiscordHandler(
         
         var embed = new Embed(
             Title: embedTitle,
-            Image: new EmbedImage(targetGuildMemberAvatar.Url),
+            Thumbnail: targetGuildMemberAvatar,
             Description: embedDescription,
             Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
         

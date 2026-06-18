@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,7 +16,6 @@ public sealed record PermissionsUpdateNotification(ulong UserId) : INotification
 
 public class UserHasPermission(AccordContext db, IAppCache appCache) : NotificationHandler<PermissionsUpdateNotification>, IRequestHandler<UserHasPermissionRequest, bool>
 {
-
     public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)
     {
         var permissions = await appCache.GetOrAddAsync(BuildGetPermissionsForUserCacheKey(request.User.DiscordUserId),
