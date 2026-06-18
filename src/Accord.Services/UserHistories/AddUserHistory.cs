@@ -11,12 +11,12 @@ namespace Accord.Services.UserHistories;
 public sealed record AddUserHistoryRequest(ulong DiscordUserId, ulong AddedByUserId, string Content) 
     : IRequest<ServiceResponse<int>>;
 
-public class AddUserHistoryHandler(AccordContext db, IMediator mediator) 
+public class AddUserHistoryHandler(AccordContext db, UserService userService) 
     : IRequestHandler<AddUserHistoryRequest, ServiceResponse<int>>
 {
     public async Task<ServiceResponse<int>> Handle(AddUserHistoryRequest request, CancellationToken cancellationToken)
     {
-        var userExists = await mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+        var userExists = await userService.UserExists(request.DiscordUserId, cancellationToken);
 
         if (!userExists)
             return ServiceResponse.Fail<int>("User does not exist");

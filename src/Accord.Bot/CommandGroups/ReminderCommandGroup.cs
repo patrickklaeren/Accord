@@ -19,9 +19,7 @@ using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
-using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
-using Remora.Discord.Interactivity;
 using Remora.Rest.Core;
 using Remora.Results;
 
@@ -82,11 +80,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
     {
         var proxy = _commandContext.GetCommandProxy();
 
-        var response = await _mediator.Send(new DeleteReminderRequest(proxy.UserId.Value, reminderId));
-
-        await response.GetAction(
-            async () => await _feedbackService.SendContextualAsync($"Your reminder has been deleted."),
-            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
+        await _mediator.Send(new DeleteReminderRequest(proxy.UserId.Value, reminderId));
 
         return Result.FromSuccess();
     }
@@ -95,11 +89,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
      Description("Deletes a reminder of the specified user.")]
     public async Task<IResult> DeleteReminder(IGuildMember guildMember, int reminderId)
     {
-        var response = await _mediator.Send(new DeleteReminderRequest(guildMember.User.Value!.ID.Value, reminderId));
-
-        await response.GetAction(async () => await _feedbackService.SendContextualAsync($"{guildMember.User.Value.Username}'s reminder has been deleted."),
-            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
-
+        await _mediator.Send(new DeleteReminderRequest(guildMember.User.Value!.ID.Value, reminderId));
         return Result.FromSuccess();
     }
 
@@ -108,10 +98,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
     {
         var proxy = _commandContext.GetCommandProxy();
 
-        var response = await _mediator.Send(new DeleteAllRemindersRequest(proxy.UserId.Value));
-
-        await response.GetAction(async () => await _feedbackService.SendContextualAsync($"Your reminders have been deleted."),
-            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
+        await _mediator.Send(new DeleteAllRemindersRequest(proxy.UserId.Value));
 
         return Result.FromSuccess();
     }
@@ -120,11 +107,7 @@ public partial class ReminderCommandGroup : AccordCommandGroup
      Description("Deletes all the reminders of the specified user.")]
     public async Task<IResult> DeleteAllReminders(IGuildMember guildMember)
     {
-        var response = await _mediator.Send(new DeleteAllRemindersRequest(guildMember.User.Value!.ID.Value));
-
-        await response.GetAction(async () => await _feedbackService.SendContextualAsync($"{guildMember.User.Value.Username}'s reminders has been deleted."),
-            async () => await _feedbackService.SendContextualAsync(response.ErrorMessage));
-
+        await _mediator.Send(new DeleteAllRemindersRequest(guildMember.User.Value!.ID.Value));
         return Result.FromSuccess();
     }
 
@@ -138,10 +121,6 @@ public partial class ReminderCommandGroup : AccordCommandGroup
         }
 
         var response = await _mediator.Send(new GetRemindersRequest(id.Value));
-        if (!response.Success)
-        {
-            return new Embed(Description: userResponse.ErrorMessage);
-        }
 
         var proxy = _commandContext.GetCommandProxy();
 
@@ -164,9 +143,9 @@ public partial class ReminderCommandGroup : AccordCommandGroup
             ? userDto.Username
             : guildUser.User.Value.Username;
 
-        var totalReminders = response.Value!.Count;
+        var totalReminders = response.Count;
 
-        var usedReminders = response.Value!.OrderByDescending(x => x.CreatedAt).Skip(page * 5).Take(5);
+        var usedReminders = response.OrderByDescending(x => x.CreatedAt).Skip(page * 5).Take(5);
         var sb = new StringBuilder();
 
         var userReminders = usedReminders as UserReminder[] ?? usedReminders.ToArray();

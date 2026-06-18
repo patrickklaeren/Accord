@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
-using Accord.Services.Helpers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,30 +11,27 @@ namespace Accord.Services.Users;
 public sealed record GetUserNameDiffRequest(ulong DiscordUserId, string DiscordUsername, string? DiscordNickname) : IRequest<UserNameDiffResponse>;
 public sealed record UserNameDiffResponse(bool HasDiff, List<string> Messages);
 
-[AutoConstructor]
-public partial class GetUserNameDiffHandler : IRequestHandler<GetUserNameDiffRequest, UserNameDiffResponse>
+public class GetUserNameDiffHandler(AccordContext db) : IRequestHandler<GetUserNameDiffRequest, UserNameDiffResponse>
 {
-    private readonly AccordContext _db;
-
     public async Task<UserNameDiffResponse> Handle(GetUserNameDiffRequest request, CancellationToken cancellationToken)
     {
         var diffMessages = new List<string>();
 
-        var user = await _db.Users
+        var user = await db.Users
             .Where(x => x.Id == request.DiscordUserId)
             .Select(x => new
             {
                 x.Id,
-                UsernameWithDiscriminator = x.Username,
+                x.Username,
                 x.Nickname
             }).SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         if (user is null)
             return new UserNameDiffResponse(false, diffMessages);
 
-        if (!string.IsNullOrWhiteSpace(user.UsernameWithDiscriminator) && user.UsernameWithDiscriminator != request.DiscordUsername)
+        if (!string.IsNullOrWhiteSpace(user.Username) && user.Username != request.DiscordUsername)
         {
-            diffMessages.Add($"Changed handle from {user.UsernameWithDiscriminator} to {request.DiscordUsername}");
+            diffMessages.Add($"Changed handle from {user.Username} to {request.DiscordUsername}");
         }
 
         if (user.Nickname != request.DiscordNickname)

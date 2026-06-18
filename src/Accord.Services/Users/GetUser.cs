@@ -13,58 +13,31 @@ namespace Accord.Services.Users;
 public sealed record GetUserRequest(ulong DiscordUserId) : IRequest<ServiceResponse<GetUserDto>>;
 public sealed record GetUserDto(UserDto User, List<UserMessagesInChannelDto> Messages, List<UserVoiceMinutesInChannelDto> VoiceMinutes);
 
-public sealed record UserDto(ulong Id, string? Username, string? Nickname, DateTimeOffset? JoinedGuildDateTime, DateTimeOffset FirstSeenDateTime, int ParticipationRank, int ParticipationPoints, double ParticipationPercentile);
 public sealed record UserMessagesInChannelDto(ulong DiscordChannelId, int NumberOfMessages);
 public sealed record UserVoiceMinutesInChannelDto(ulong DiscordChannelId, double NumberOfMinutes);
 
-[AutoConstructor]
-public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceResponse<GetUserDto>>
+public class GetUserHandler(AccordContext db, UserService userService, IAppCache appCache) : IRequestHandler<GetUserRequest, ServiceResponse<GetUserDto>>
 {
-    private readonly AccordContext _db;
-    private readonly IMediator _mediator;
-    private readonly IAppCache _appCache;
     private const int NUMBER_OF_DAYS_TO_LOOK_BACK = 30;
 
     public async Task<ServiceResponse<GetUserDto>> Handle(GetUserRequest request, CancellationToken cancellationToken)
     {
-        var userExists = await _mediator.Send(new UserExistsRequest(request.DiscordUserId), cancellationToken);
+        var userExists = await userService.UserExists(request.DiscordUserId, cancellationToken);
 
         if (!userExists)
             return ServiceResponse.Fail<GetUserDto>("User does not exist");
 
-        var user = await _appCache.GetOrAddAsync(BuildGetUserCacheKey(request.DiscordUserId), 
-            () => GetUser(request.DiscordUserId), 
-            DateTimeOffset.UtcNow.AddMinutes(5));
+        var user = await userService.GetUser(request.DiscordUserId, cancellationToken);
 
-        var messagesSent = await _appCache.GetOrAddAsync(BuildGetMessagesCacheKey(request.DiscordUserId),
+        var messagesSent = await appCache.GetOrAddAsync(BuildGetMessagesCacheKey(request.DiscordUserId),
             () => GetMessages(request.DiscordUserId),
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        var voice = await _appCache.GetOrAddAsync(BuildGetVoiceMinutesCacheKey(request.DiscordUserId),
+        var voice = await appCache.GetOrAddAsync(BuildGetVoiceMinutesCacheKey(request.DiscordUserId),
             () => GetVoiceMinutes(request.DiscordUserId),
             DateTimeOffset.UtcNow.AddMinutes(5));
 
         return ServiceResponse.Ok(new GetUserDto(user, messagesSent, voice));
-    }
-
-    internal static string BuildGetUserCacheKey(ulong discordUserId)
-    {
-        return $"{nameof(GetUserHandler)}/{nameof(GetUser)}/{discordUserId}";
-    }
-
-    private async Task<UserDto> GetUser(ulong discordUserId)
-    {
-        return await _db.Users
-            .Where(x => x.Id == discordUserId)
-            .Select(x => new UserDto(x.Id,
-                x.Username,
-                x.Nickname,
-                x.JoinedGuildDateTime,
-                x.FirstSeenDateTime,
-                x.ParticipationRank,
-                x.ParticipationPoints,
-                x.ParticipationPercentile))
-            .SingleAsync();
     }
 
     private static string BuildGetMessagesCacheKey(ulong discordUserId)
@@ -76,7 +49,7 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
     {
         var cutOff = DateTimeOffset.UtcNow.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
 
-        return await _db.UserMessages
+        return await db.UserMessages
             .Where(x => x.UserId == discordUserId)
             .Where(x => x.SentDateTime >= cutOff)
             .GroupBy(x => x.DiscordChannelId)
@@ -93,7 +66,7 @@ public partial class GetUserHandler : IRequestHandler<GetUserRequest, ServiceRes
     {
         var cutOff = DateTimeOffset.UtcNow.AddDays(-NUMBER_OF_DAYS_TO_LOOK_BACK);
 
-        return await _db.VoiceConnections
+        return await db.VoiceConnections
             .Where(x => x.UserId == discordUserId)
             .Where(x => x.EndDateTime != null)  
             .Where(x => x.MinutesInVoiceChannel != null)

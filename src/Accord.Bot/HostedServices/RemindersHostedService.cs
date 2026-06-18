@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -13,14 +12,11 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.HostedServices;
 
-[AutoConstructor]
-public partial class RemindersHostedService : BackgroundService
+public class RemindersHostedService(IServiceScopeFactory serviceScopeFactory) : BackgroundService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _serviceScopeFactory.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
         var services = scope.ServiceProvider;
 
         var mediator = services.GetRequiredService<IMediator>();
@@ -30,16 +26,17 @@ public partial class RemindersHostedService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             await ProcessReminders(mediator, channelApi, stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
 
-    private async Task ProcessReminders(IMediator mediator, IDiscordRestChannelAPI channelApi, CancellationToken stoppingToken)
+    private async Task ProcessReminders(IMediator mediator, 
+        IDiscordRestChannelAPI channelApi, 
+        CancellationToken stoppingToken)
     {
-        var reminders = await mediator.Send(new GetAllRemindersRequest(), stoppingToken);
+        var reminders = await mediator.Send(new GetRemindersToNotifyRequest(), stoppingToken);
 
-        var processableReminders = reminders.Value!.Where(x => x.RemindAt <= DateTime.Now);
-
-        foreach (var reminder in processableReminders)
+        foreach (var reminder in reminders)
         {
             if (DateTime.Now - reminder.RemindAt < TimeSpan.FromMinutes(1))
             {
@@ -54,7 +51,5 @@ public partial class RemindersHostedService : BackgroundService
 
             await mediator.Send(new DeleteReminderRequest(reminder.UserId, reminder.Id), stoppingToken);
         }
-
-        await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
     }
 }

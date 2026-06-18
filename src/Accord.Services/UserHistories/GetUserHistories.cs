@@ -19,7 +19,7 @@ public sealed record UserHistoryDto(int Id,
     DateTimeOffset AddedDateTime,
     ulong AddedByUserId);
 
-public partial class GetUserHistoriesHandler(AccordContext db) 
+public class GetUserHistoriesHandler(AccordContext db) 
     : IRequestHandler<GetUserHistoriesRequest, IReadOnlyCollection<UserHistoryDto>>
 {
     public async Task<IReadOnlyCollection<UserHistoryDto>> Handle(GetUserHistoriesRequest request, CancellationToken cancellationToken)
