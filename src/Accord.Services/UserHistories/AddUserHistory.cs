@@ -45,6 +45,7 @@ public class AddUserHistoryHandler(AccordContext db,
             UserHistoryType.Unban => new RelayUnbanToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Kick => new RelayKickToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Warning => new RelayWarningToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),
+            UserHistoryType.Note => new RelayNoteToDiscordRequest(request.ActingDiscordUserId, request.TargetDiscordUserId, request.Content),
             _ => null,
         };
 

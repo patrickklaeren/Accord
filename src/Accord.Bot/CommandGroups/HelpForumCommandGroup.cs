@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +18,6 @@ namespace Accord.Bot.CommandGroups;
 
 public class HelpForumCommandGroup(ICommandContext commandContext, IDiscordRestGuildAPI guildApi, FeedbackService feedbackService, IDiscordRestChannelAPI channelApi, IMediator mediator) : AccordCommandGroup
 {
-
     private static readonly Snowflake[] AllowedRolesToCloseForumPosts =
     {
         new(268470383571632128), // staff

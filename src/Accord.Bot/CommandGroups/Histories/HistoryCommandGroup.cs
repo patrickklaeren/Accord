@@ -29,7 +29,7 @@ public class HistoryCommandGroup(ICommandContext commandContext,
     : AccordCommandGroup
 {
     [Command("delete"), Description("Delete a note from history")]
-    public async Task<IResult> AddNote(int noteId)
+    public async Task<IResult> Delete(int noteId)
     {
         var user = await commandContext.ToPermissionUser(guildApi);
 
@@ -44,7 +44,7 @@ public class HistoryCommandGroup(ICommandContext commandContext,
     }
     
     [Command("list"), Description("List all history for a user")]
-    public async Task<IResult> GetHistory(IGuildMember member)
+    public async Task<IResult> List(IGuildMember member)
     {
         if (!member.User.HasValue)
         {

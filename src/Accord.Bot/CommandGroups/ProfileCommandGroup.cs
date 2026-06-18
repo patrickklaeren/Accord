@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -22,7 +22,6 @@ namespace Accord.Bot.CommandGroups;
 
 public class ProfileCommandGroup(IMediator mediator, ICommandContext commandContext, IDiscordRestGuildAPI guildApi, DiscordAvatarHelper discordAvatarHelper, FeedbackService feedbackService, ThumbnailHelper thumbnailHelper) : AccordCommandGroup
 {
-
     [Command("profile"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IGuildMember? member = null)
     {

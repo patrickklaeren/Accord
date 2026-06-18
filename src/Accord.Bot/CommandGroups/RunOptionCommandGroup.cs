@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -16,7 +16,6 @@ namespace Accord.Bot.CommandGroups;
 
 public class RunOptionCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
-
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot"), Ephemeral]
     public async Task<IResult> Configure(string type, string value)
     {

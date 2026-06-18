@@ -18,7 +18,6 @@ namespace Accord.Bot.CommandGroups;
 
 public class ParticipationCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
-
     [Command("leaderboard"), Description("Get a leaderboard of XP")]
     public async Task<IResult> GetLeaderboard()
     {

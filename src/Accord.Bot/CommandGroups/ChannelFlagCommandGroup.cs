@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -18,7 +18,6 @@ namespace Accord.Bot.CommandGroups;
 [Group("channel-flag")]
 public class ChannelFlagCommandGroup(ICommandContext commandContext, IMediator mediator, IDiscordRestGuildAPI guildApi, FeedbackService feedbackService) : AccordCommandGroup
 {
-
     [Command("add"), Description("Add flag to the current channel")]
     public async Task<IResult> AddFlag(string type, IChannel? channel = null)
     {

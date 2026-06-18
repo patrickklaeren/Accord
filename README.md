@@ -34,8 +34,6 @@ Keep things short, simple and maintainable. No pointless abstractions or complic
 - Get your bot token from the [Discord developer portal](https://discord.com/developers/applications)
 - Run via Aspire `Accord.AppHost`, set up the parameters as you see fit
 
-If you want to disable the Discord bot instance, for any reason, you can override `Discord:DisableBot` to `true`, which will only run the hosting ASP.NET Core project, skipping bot initialisation. Do note that several parts of the frontend require the bot to have a connection established.
-
 **Invite your bot**
 
 (Change your client Id to that of your application's)
@@ -69,7 +67,7 @@ services:
       - postgres
     restart: always
     environment:
-      ConnectionStrings__Database: ${CONNECTIONSTRINGS_DATABASE}
+      ConnectionStrings__accord: ${CONNECTIONSTRINGS_DATABASE}
       Discord__ClientSecret: ${DISCORD_CLIENTID}
       Discord__ClientId: ${DISCORD_CLIENTID}
       Discord__GuildId: ${DISCORD_GUILDID}

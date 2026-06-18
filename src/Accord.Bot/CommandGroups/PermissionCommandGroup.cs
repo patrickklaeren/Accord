@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -17,7 +17,6 @@ namespace Accord.Bot.CommandGroups;
 [Group("permission")]
 public class PermissionCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
-
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("adduser"), Description("Add permission to a user"), Ephemeral]
     public async Task<IResult> AddPermissionToMember(IGuildMember member, string type)
     {

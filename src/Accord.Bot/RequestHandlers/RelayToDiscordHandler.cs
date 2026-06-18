@@ -24,11 +24,12 @@ public class RelayToDiscordHandler(
     : IRequestHandler<RelayKickToDiscordRequest>,
         IRequestHandler<RelayBanToDiscordRequest>,
         IRequestHandler<RelayUnbanToDiscordRequest>,
-        IRequestHandler<RelayWarningToDiscordRequest>
+        IRequestHandler<RelayWarningToDiscordRequest>,
+        IRequestHandler<RelayNoteToDiscordRequest>
 {
     public async Task Handle(RelayKickToDiscordRequest request, CancellationToken cancellationToken)
     {
-        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
 
         if (!channelsToPostTo.Any())
             return;
@@ -47,7 +48,7 @@ public class RelayToDiscordHandler(
 
     public async Task Handle(RelayBanToDiscordRequest request, CancellationToken cancellationToken)
     {
-        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
 
         if (!channelsToPostTo.Any())
             return;
@@ -66,7 +67,7 @@ public class RelayToDiscordHandler(
 
     public async Task Handle(RelayUnbanToDiscordRequest request, CancellationToken cancellationToken)
     {
-        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
 
         if (!channelsToPostTo.Any())
             return;
@@ -85,7 +86,7 @@ public class RelayToDiscordHandler(
 
     public async Task Handle(RelayWarningToDiscordRequest request, CancellationToken cancellationToken)
     {
-        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.BanKickLogs), cancellationToken);
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
 
         if (!channelsToPostTo.Any())
             return;
@@ -99,6 +100,25 @@ public class RelayToDiscordHandler(
         
         var title = $"⚠ ️{targetGuildMember.Entity.User.Value.Username} warned";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) warned by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
+        await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
+    }
+
+    public async Task Handle(RelayNoteToDiscordRequest request, CancellationToken cancellationToken)
+    {
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
+
+        if (!channelsToPostTo.Any())
+            return;
+
+        var targetGuildMember = await guildApi.GetGuildMemberAsync(new Snowflake(discordConfiguration.GuildId),
+            new Snowflake(request.TargetDiscordUserId),
+            cancellationToken);
+
+        if (!targetGuildMember.IsSuccess || !targetGuildMember.Entity.User.HasValue)
+            return;
+        
+        var title = $"️{targetGuildMember.Entity.User.Value.Username} remarked";
+        var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) remarked by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
         await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
     }
 

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +18,6 @@ namespace Accord.Bot.CommandGroups;
 [Group("github")]
 public class GitHubChallengesCommandGroup(FeedbackService feedbackService, IMediator mediator) : AccordCommandGroup
 {
-
     [RequireDiscordPermission(DiscordPermission.Administrator),
         Command("post-challenge"),
         Description("Posts challenge to the current channel, parsed via its readme from the GitHub repository")]
