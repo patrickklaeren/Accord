@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -16,7 +16,6 @@ namespace Accord.Bot.RequestHandlers;
 
 public class LeftVoiceHandler(IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi, IMediator mediator, ThumbnailHelper thumbnailHelper) : IRequestHandler<LeftVoiceRequest>
 {
-
     public async Task Handle(LeftVoiceRequest request, CancellationToken cancellationToken)
     {
         var channels = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.VoiceLogs), cancellationToken);

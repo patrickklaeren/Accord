@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -12,7 +12,6 @@ public record CloseHelpForumPostRequest(IChannel Channel) : IRequest;
 
 public class CloseHelpForumPostHandler(IDiscordRestChannelAPI channelApi, ILogger<CloseHelpForumPostHandler> logger) : IRequestHandler<CloseHelpForumPostRequest>
 {
-
     private const string PREFIX = "✅";
 
     public async Task Handle(CloseHelpForumPostRequest request, CancellationToken cancellationToken)

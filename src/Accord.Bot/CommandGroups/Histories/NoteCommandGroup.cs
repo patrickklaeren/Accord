@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
+using Accord.Domain.Model;
 using Accord.Services.UserHistories;
 using MediatR;
 using Remora.Commands.Attributes;
@@ -27,7 +28,8 @@ public class NoteCommandGroup(ICommandContext commandContext,
         var response = await mediator.Send(new AddUserHistoryRequest(
             member.User.Value!.ID.Value,
             userId.Value,
-            sanitized
+            sanitized,
+            UserHistoryType.Note
         ));
 
         await response.GetAction(

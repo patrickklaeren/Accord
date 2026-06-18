@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain.Model;
@@ -13,7 +13,6 @@ namespace Accord.Bot.RequestHandlers;
 
 public class RaidAlertHandler(IDiscordRestChannelAPI channelApi, IMediator mediator) : IRequestHandler<RaidAlertRequest>
 {
-
     public async Task Handle(RaidAlertRequest request, CancellationToken cancellationToken)
     {
         var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.RaidLogs), cancellationToken);

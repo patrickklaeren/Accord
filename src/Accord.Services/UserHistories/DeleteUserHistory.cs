@@ -26,7 +26,7 @@ public class DeleteUserHistoryHandler(AccordContext db, IMediator mediator)
             return ServiceResponse.Fail("No history found");
         }
 
-        if (history.Type is not UserHistoryType.Note and UserHistoryType.Warning)
+        if (history.Type is not (UserHistoryType.Note or UserHistoryType.Warning))
         {
             return ServiceResponse.Fail("Only warnings and generic histories can be removed");
         }

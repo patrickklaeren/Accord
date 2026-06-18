@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Services;
@@ -12,7 +12,6 @@ namespace Accord.Bot.Responders;
 
 public class VoiceStateResponder(IEventQueue eventQueue) : IResponder<IVoiceStateUpdate>
 {
-
     public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
         if (!gatewayEvent.Member.HasValue
