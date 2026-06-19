@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Accord.Bot.CommandGroups.Eval;
+namespace Accord.Bot.Responders.Eval;
 
 public static partial class EvalHelper
 {

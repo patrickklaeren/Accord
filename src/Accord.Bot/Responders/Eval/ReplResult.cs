@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace Accord.Bot.CommandGroups.Eval;
+namespace Accord.Bot.Responders.Eval;
 
 public class ReplResult
 {

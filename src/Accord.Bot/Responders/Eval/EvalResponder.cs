@@ -1,68 +1,93 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.UserBotMessages;
 using MediatR;
-using Remora.Commands.Attributes;
+using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Contexts;
-using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups.Eval;
+namespace Accord.Bot.Responders.Eval;
 
-public class EvalCommandGroup(ICommandContext commandContext,
-    IDiscordRestChannelAPI channelApi,
+public class EvalResponder(ThumbnailHelper thumbnailHelper,
     JumpLinkHelper jumpLinkHelper,
-    ThumbnailHelper thumbnailHelper,
-    FeedbackService feedbackService,
-    HttpClient httpClient,
-    IMediator mediator) : AccordCommandGroup
+    IDiscordRestChannelAPI channelApi, 
+    IHttpClientFactory httpClientFactory,
+    IMediator mediator) : IResponder<IMessageCreate>
 {
-    [Command("eval", "repl", "exec", "e")]
-    public async Task<IResult> Eval([Greedy] string content)
+    private const string COMMAND_ONE = "!eval";
+    private const string COMMAND_TWO = "!exec";
+    private const string COMMAND_THREE = "!e";
+    
+    public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        var executingUser = commandContext.GetExecutingUser();
+        if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
+            return Result.FromSuccess();
+
+        var trimmed = gatewayEvent.Content.Trim();
+
+        if (trimmed.StartsWith(COMMAND_ONE, StringComparison.OrdinalIgnoreCase) 
+            || trimmed.StartsWith(COMMAND_TWO, StringComparison.OrdinalIgnoreCase) 
+            || trimmed.StartsWith(COMMAND_THREE, StringComparison.OrdinalIgnoreCase))
+        {
+            await ExecuteEval(gatewayEvent.Author, gatewayEvent);
+        }
+
+        return Result.FromSuccess();
+    }
+
+    private async Task ExecuteEval(IUser executingUser, IMessageCreate message)
+    {
         var avatar = thumbnailHelper.GetAvatar(executingUser);
 
-        var message = commandContext.TryGetMessage();
-        var replDescription = "Compiling and executing your code now...";
-
-        if (message is not null)
-        {
-            var jumpLink = jumpLinkHelper.FromMessage(message);
-            replDescription = $"Compiling and executing [your code]({jumpLink}) now...";
-        }
+        var jumpLink = jumpLinkHelper.FromMessage(message);
+        var replDescription = $"Compiling and executing [your code]({jumpLink}) now...";
         
         var embed = new Embed(Title: "C# REPL executing...",
             Colour: Color.Orange,
             Author: new EmbedAuthor(executingUser.Username, IconUrl: avatar.Url),
             Description: replDescription);
 
-        var workingMessageResult = await feedbackService.SendContextualEmbedAsync(embed);
+        var workingMessageResult = await channelApi.CreateMessageAsync(
+            message.ChannelID,
+            embeds: new[] { embed },
+            allowedMentions: new AllowedMentions(MentionRepliedUser: false)
+        );
+
         var workingMessage = workingMessageResult.Entity;
 
         await mediator.Publish(new AddUserBotMessageRequest(workingMessage.ID.Value,
             workingMessage.ChannelID.Value,
             executingUser.ID.Value));
         
-        var sanitised = EvalHelper.Sanitise(content);
+        // We need to sanitise the input from the command
+        var trimmed = message.Content.Trim();
+        string[] prefixes = [COMMAND_ONE, COMMAND_TWO, COMMAND_THREE];
+        var prefix = prefixes.First(x => trimmed.StartsWith(x, StringComparison.OrdinalIgnoreCase));
+        
+        var expression = trimmed[prefix.Length..].Trim();
+        var sanitised = EvalHelper.Sanitise(expression);
 
         try
         {
-            var response = await httpClient.PostAsync("Eval", new StringContent(sanitised, Encoding.UTF8, "text/plain"));
+            var client = httpClientFactory.CreateClient("repl");
+            var response = await client.PostAsync("Eval", new StringContent(sanitised, Encoding.UTF8, "text/plain"));
 
-            if (!response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadRequest)
             {
                 await RespondWithErrorEmbed($"The request failed with a status code of {(int)response.StatusCode} ({response.ReasonPhrase})");
-                return Result.FromSuccess();
+                return;
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -71,7 +96,7 @@ public class EvalCommandGroup(ICommandContext commandContext,
             if (replResult is null)
             {
                 await RespondWithErrorEmbed("The response did not deserialise into a known type");
-                return Result.FromSuccess();
+                return;
             }
             
             var successEmbed = GetSuccessEmbed(executingUser, replResult);
@@ -82,12 +107,9 @@ public class EvalCommandGroup(ICommandContext commandContext,
             await RespondWithErrorEmbed(ex.Message);
         }
 
-        if (message is not null)
-        {
-            await channelApi.DeleteMessageAsync(message.ChannelID, message.ID);
-        }
+        await channelApi.DeleteMessageAsync(message.ChannelID, message.ID);
 
-        return Result.FromSuccess();
+        return;
 
         async Task RespondWithErrorEmbed(string description)
         {

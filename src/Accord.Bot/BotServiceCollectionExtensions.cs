@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using Accord.Bot.CommandGroups;
-using Accord.Bot.CommandGroups.Eval;
 using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.Infrastructure;
+using Accord.Bot.Responders.Eval;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -44,7 +44,7 @@ public static class BotServiceCollectionExtensions
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
 
-        services.AddHttpClient<EvalCommandGroup>(x =>
+        services.AddHttpClient("repl", x =>
         {
             x.BaseAddress = new Uri(configuration["ReplBaseUrl"]!);
         })
@@ -63,7 +63,6 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<HelpForumCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
-            .WithCommandGroup<EvalCommandGroup>()
             .WithCommandGroup<TagCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
