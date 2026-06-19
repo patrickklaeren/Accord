@@ -81,7 +81,7 @@ services:
 - Postgres
 - Web host for ASP.NET Core
 
-Set environment variables for `ConnectionStrings:Database`, `Discord:GuildId`, `Discord:BotToken`, `Discord:ClientId`, `Discord:ClientSecret`.
+Set environment variables for `ConnectionStrings:accord`, `Discord:GuildId`, `Discord:BotToken`, `Discord:ClientId`, `Discord:ClientSecret`.
 
 This bot is intended for single-guild usage.
 

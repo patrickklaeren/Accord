@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.UserBotMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
@@ -24,6 +27,7 @@ public class TagResponder(TagHelper tagHelper, IDiscordRestChannelAPI channelApi
             var reply = await channelApi.CreateMessageAsync(gatewayEvent.ChannelID,
                 tag,
                 messageReference: gatewayEvent.MessageReference,
+                allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
                 ct: ct);
 
             if (reply.IsSuccess)

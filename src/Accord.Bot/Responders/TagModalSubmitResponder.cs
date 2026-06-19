@@ -65,7 +65,8 @@ public class TagModalSubmitResponder(
 
         var callback = new InteractionMessageCallbackData(
             Content: messageContent,
-            Flags: MessageFlags.Ephemeral
+            Flags: MessageFlags.Ephemeral,
+            AllowedMentions: new AllowedMentions(Parse: new List<MentionType>())
         );
 
         return await interactionApi.CreateInteractionResponseAsync(

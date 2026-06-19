@@ -32,11 +32,13 @@ public static class BotServiceCollectionExtensions
             .AddDiscordGateway(_ => discordConfiguration["BotToken"]!)
             .Configure<DiscordGatewayClientOptions>(o =>
             {
-                o.Intents |= GatewayIntents.GuildMessageReactions;
                 o.Intents |= GatewayIntents.MessageContents;
-                o.Intents |= GatewayIntents.GuildVoiceStates;
+                o.Intents |= GatewayIntents.Guilds;
+                o.Intents |= GatewayIntents.GuildBans;
                 o.Intents |= GatewayIntents.GuildMembers;
                 o.Intents |= GatewayIntents.GuildMessages;
+                o.Intents |= GatewayIntents.GuildMessageReactions;
+                o.Intents |= GatewayIntents.GuildVoiceStates;
             })
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
