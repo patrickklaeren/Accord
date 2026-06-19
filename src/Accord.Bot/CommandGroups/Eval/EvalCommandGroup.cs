@@ -82,6 +82,11 @@ public class EvalCommandGroup(ICommandContext commandContext,
             await RespondWithErrorEmbed(ex.Message);
         }
 
+        if (message is not null)
+        {
+            await channelApi.DeleteMessageAsync(message.ChannelID, message.ID);
+        }
+
         return Result.FromSuccess();
 
         async Task RespondWithErrorEmbed(string description)

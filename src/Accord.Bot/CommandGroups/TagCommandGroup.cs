@@ -175,9 +175,10 @@ public class TagCommandGroup(ICommandContext commandContext,
         }
 
         var sb = new StringBuilder();
+        
         foreach (var result in results.Take(25))
         {
-            sb.AppendLine($"`{result.Name}` - {result.Content.Truncate(100)}");
+            sb.AppendLine($"`{result.Name}`");
         }
 
         if (results.Count > 25)
