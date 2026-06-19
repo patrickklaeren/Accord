@@ -45,6 +45,10 @@ var discordCdnBaseUrl = builder.AddParameter(
     value: "https://cdn.discordapp.com",
     publishValueAsDefault: true);
 
+var replBaseUrl = builder.AddParameter(
+    name: "repl-base-url",
+    secret: false);
+
 builder
     .AddDockerComposeEnvironment("compose")
     .WithDashboard(false);
@@ -69,6 +73,7 @@ builder
     .WithEnvironment("Discord__GuildId", discordGuildId)
     .WithEnvironment("Discord__HelpForumChannelId", discordHelpForumChannelId)
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
+    .WithEnvironment("ReplBaseUrl", replBaseUrl)
     .PublishAsDockerComposeService((_, service) => service.Name = "web");
 
 builder.Build().Run();

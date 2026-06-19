@@ -1,10 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Accord.Bot.CommandGroups;
+using Accord.Bot.CommandGroups.Eval;
 using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
@@ -18,9 +22,7 @@ public static class BotServiceCollectionExtensions
 {
     public static IServiceCollection AddDiscordBot(this IServiceCollection services, IConfiguration configuration)
     {
-        var discordConfigurationSection = configuration.GetSection("Discord");
-
-        var token = discordConfigurationSection["BotToken"]!;
+        var discordConfiguration = configuration.GetSection("Discord");
 
         services
             .Configure<DiscordCommandResponderOptions>(o => o.Prefix = "!");
@@ -28,7 +30,7 @@ public static class BotServiceCollectionExtensions
         services
             .AddLogging()
             .AutoRegister()
-            .AddDiscordGateway(_ => token)
+            .AddDiscordGateway(_ => discordConfiguration["BotToken"]!)
             .Configure<DiscordGatewayClientOptions>(o =>
             {
                 o.Intents |= GatewayIntents.MessageContents;
@@ -40,6 +42,12 @@ public static class BotServiceCollectionExtensions
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
+
+        services.AddHttpClient<EvalCommandGroup>(x =>
+        {
+            x.BaseAddress = new Uri(configuration["ReplBaseUrl"]!);
+        })
+        .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 
         services
             .AddPagination()
@@ -55,7 +63,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ReportCommandGroup>()
             .WithCommandGroup<HelpForumCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
-            .WithCommandGroup<NoteCommandGroup>();
+            .WithCommandGroup<NoteCommandGroup>()
+            .WithCommandGroup<EvalCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()

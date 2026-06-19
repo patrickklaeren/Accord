@@ -29,4 +29,5 @@ public class AccordContext : DbContext
     public DbSet<UserReport> UserReports { get; set; } = null!;
     public DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
     public DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
+    public DbSet<UserBotMessage> UserBotMessages { get; set; } = null!;
 }

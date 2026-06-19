@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Accord.Services.Permissions;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Contexts;
 using Remora.Rest.Core;
 
@@ -24,6 +25,23 @@ public static class CommandContextExtensions
                 ITextCommandContext tx => new CommandContextProxy(tx.Message.Author.Value.ID, tx.GuildID.Value, tx.Message.ChannelID.Value),
                 _ => throw new NotSupportedException()
             };
+        }
+
+        public IUser GetExecutingUser()
+        {
+            return context switch
+            {
+                IInteractionCommandContext ix => ix.Interaction.Member.Value.User.Value,
+                ITextCommandContext tx => tx.Message.Author.Value,
+                _ => throw new NotSupportedException()
+            };
+        }
+
+        public IMessage? TryGetMessage()
+        {
+            return context is not ITextCommandContext textCommandContext
+                ? null
+                : textCommandContext.Message as IMessage;
         }
     }
 
