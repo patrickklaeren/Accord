@@ -13,7 +13,11 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class JoinedVoiceHandler(IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi, IMediator mediator, ThumbnailHelper thumbnailHelper) : IRequestHandler<JoinedVoiceRequest>
+public class JoinedVoiceHandler(IDiscordRestChannelAPI channelApi, 
+    IDiscordRestGuildAPI guildApi, 
+    IMediator mediator, 
+    ThumbnailHelper thumbnailHelper) 
+    : INotificationHandler<JoinedVoiceRequest>
 {
     public async Task Handle(JoinedVoiceRequest request, CancellationToken cancellationToken)
     {

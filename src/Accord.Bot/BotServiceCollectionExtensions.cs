@@ -3,7 +3,6 @@ using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.Eval;
 using Accord.Bot.CommandGroups.Histories;
-using Accord.Bot.CommandGroups.UserReports;
 using Accord.Bot.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,8 +58,6 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<RunOptionCommandGroup>()
             .WithCommandGroup<ReminderCommandGroup>()
             .WithCommandGroup<ProfileCommandGroup>()
-            .WithCommandGroup<UserReportCommandGroup>()
-            .WithCommandGroup<ReportCommandGroup>()
             .WithCommandGroup<HelpForumCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()

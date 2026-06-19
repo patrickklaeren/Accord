@@ -14,7 +14,11 @@ using Remora.Rest.Core;
 
 namespace Accord.Bot.RequestHandlers;
 
-public class LeftVoiceHandler(IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi, IMediator mediator, ThumbnailHelper thumbnailHelper) : IRequestHandler<LeftVoiceRequest>
+public class LeftVoiceHandler(IDiscordRestChannelAPI channelApi, 
+    IDiscordRestGuildAPI guildApi, 
+    IMediator mediator,
+    ThumbnailHelper thumbnailHelper) 
+    : INotificationHandler<LeftVoiceRequest>
 {
     public async Task Handle(LeftVoiceRequest request, CancellationToken cancellationToken)
     {

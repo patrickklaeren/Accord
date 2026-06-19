@@ -15,10 +15,10 @@ public sealed record FinishVoiceSessionRequest(ulong DiscordGuildId, ulong Disco
     DateTimeOffset DisconnectedDateTime) : IRequest, IEnsureUserExistsRequest;
 
 public sealed record JoinedVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
-    ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, string DiscordSessionId) : IRequest, IEnsureUserExistsRequest;
+    ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, string DiscordSessionId) : INotification;
 public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
     ulong DiscordChannelId, DateTimeOffset ConnectedDateTime, DateTimeOffset DisconnectedDateTime,
-    string DiscordSessionId) : IRequest, IEnsureUserExistsRequest;
+    string DiscordSessionId) : INotification;
 
 // Discord Session ID is a session ID for the voice state itself
 // it does not necessarily changed upon every new voice session, i.e.
@@ -29,7 +29,6 @@ public sealed record LeftVoiceRequest(ulong DiscordGuildId, ulong DiscordUserId,
 
 public class StartVoiceSessionHandler(AccordContext db, IMediator mediator) : IRequestHandler<StartVoiceSessionRequest>
 {
-
     public async Task Handle(StartVoiceSessionRequest request, CancellationToken cancellationToken)
     {
         if (await db.VoiceConnections.AnyAsync(a => a.DiscordSessionId == request.DiscordSessionId && a.EndDateTime == null, cancellationToken))
@@ -49,13 +48,12 @@ public class StartVoiceSessionHandler(AccordContext db, IMediator mediator) : IR
 
         await db.SaveChangesAsync(cancellationToken);
 
-        await mediator.Send(new JoinedVoiceRequest(request.DiscordGuildId, request.DiscordUserId, request.DiscordChannelId, request.ConnectedDateTime, request.DiscordSessionId), cancellationToken);
+        await mediator.Publish(new JoinedVoiceRequest(request.DiscordGuildId, request.DiscordUserId, request.DiscordChannelId, request.ConnectedDateTime, request.DiscordSessionId), cancellationToken);
     }
 }
 
 public class FinishVoiceSessionHandler(AccordContext db, IMediator mediator) : IRequestHandler<FinishVoiceSessionRequest>
 {
-
     public async Task Handle(FinishVoiceSessionRequest request, CancellationToken cancellationToken)
     {
         var session = await db.VoiceConnections
@@ -73,7 +71,7 @@ public class FinishVoiceSessionHandler(AccordContext db, IMediator mediator) : I
 
         await db.SaveChangesAsync(cancellationToken);
 
-        await mediator.Send(new LeftVoiceRequest(request.DiscordGuildId, session.UserId, session.DiscordChannelId, session.StartDateTime,
+        await mediator.Publish(new LeftVoiceRequest(request.DiscordGuildId, session.UserId, session.DiscordChannelId, session.StartDateTime,
             session.EndDateTime.Value, request.DiscordSessionId), cancellationToken);
     }
 }

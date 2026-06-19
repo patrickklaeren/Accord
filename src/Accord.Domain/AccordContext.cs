@@ -1,5 +1,4 @@
 ﻿using Accord.Domain.Model;
-using Accord.Domain.Model.UserReports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Domain;
@@ -26,8 +25,5 @@ public class AccordContext : DbContext
     public DbSet<UserHistory> UserHistories { get; set; } = null!;
     public DbSet<UserMessage> UserMessages { get; set; } = null!;
     public DbSet<UserReminder> UserReminders { get; set; } = null!;
-    public DbSet<UserReport> UserReports { get; set; } = null!;
-    public DbSet<UserReportMessage> UserReportMessages { get; set; } = null!;
-    public DbSet<UserReportBlock> UserReportBlocks { get; set; } = null!;
     public DbSet<UserBotMessage> UserBotMessages { get; set; } = null!;
 }
