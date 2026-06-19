@@ -19,8 +19,6 @@ namespace Accord.Bot.Responders;
 
 public class ReadyResponder(DiscordGatewayClient discordGatewayClient, DiscordCache discordCache, IDiscordRestGuildAPI guildApi, DiscordConfiguration discordConfiguration) : IResponder<IReady>
 {
-
-
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
         discordCache.SetSelfSnowflake(gatewayEvent.User.ID);

@@ -100,7 +100,8 @@ public class EvalCommandGroup(ICommandContext commandContext,
             Colour: Color.Red,
             Author: new EmbedAuthor(executingUser.Username, IconUrl: avatar.Url),
             Description: "Something went wrong. You can try again by re-running the command.",
-            Fields: new [] { field });
+            Fields: new [] { field },
+            Footer: new EmbedFooter("React to this message with ❌ or 🗑️ to remove it️"));
         
         return errorEmbed;
     }
