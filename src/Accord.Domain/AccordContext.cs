@@ -26,4 +26,6 @@ public class AccordContext : DbContext
     public DbSet<UserMessage> UserMessages { get; set; } = null!;
     public DbSet<UserReminder> UserReminders { get; set; } = null!;
     public DbSet<UserBotMessage> UserBotMessages { get; set; } = null!;
+    public DbSet<Tag> Tags { get; set; } = null!;
+    public DbSet<TagAlias> TagAliases { get; set; } = null!;
 }

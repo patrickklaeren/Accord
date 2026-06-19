@@ -29,6 +29,7 @@ public enum PermissionType
     BypassRaidCheck = 4,
     ManageHistories = 4,
     AddHistories = 5,
+    ManageTags = 6
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
