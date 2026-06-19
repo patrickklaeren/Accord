@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.Participation;
@@ -18,19 +18,40 @@ namespace Accord.Bot.CommandGroups;
 
 public class ParticipationCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
+    private static readonly string[] Medals = ["🥇", "🥈", "🥉"];
+
     [Command("leaderboard"), Description("Get a leaderboard of XP")]
     public async Task<IResult> GetLeaderboard()
     {
         var leaderboard = await mediator.Send(new GetLeaderboardRequest());
 
-        var stringBuilder = new StringBuilder();
+        var topPoints = leaderboard.MessageUsers.FirstOrDefault()?.ParticipationPoints ?? 1;
 
-        var leaderboardPayload = string.Join(Environment.NewLine, leaderboard.MessageUsers
-            .Select((user, position) => $"[{position + 1}] {DiscordFormatter.UserIdToMention(user.DiscordUserId)} {user.ParticipationPoints}"));
+        var lines = leaderboard.MessageUsers
+            .Select((user, position) =>
+            {
+                var prefix = position < 3
+                    ? Medals[position]
+                    : $"`#{position + 1}`";
 
-        stringBuilder.Append(leaderboardPayload);
+                var mention = DiscordFormatter.UserIdToMention(user.DiscordUserId);
+                var points = $"{user.ParticipationPoints:N0}";
 
-        var embed = new Embed(Title: "Leaderboard", Description: leaderboardPayload, Footer: new EmbedFooter("See individual statistics via the /profile command"));
+                var barLength = Math.Clamp((int)(user.ParticipationPoints / topPoints * 10), 1, 10);
+                var bar = new string('▰', barLength).PadRight(10, '▱');
+
+                return $"{prefix} {mention}\n{bar} **{points}** pts";
+            });
+
+        var description = string.Join("\n", lines);
+
+        var embed = new Embed(
+            Title: "🏆 Leaderboard",
+            Description: description,
+            Colour: Color.FromArgb(0xFF, 0xD7, 0x00),
+            Footer: new EmbedFooter("See individual statistics via /profile"),
+            Timestamp: DateTimeOffset.UtcNow
+        );
 
         return await feedbackService.SendContextualEmbedAsync(embed);
     }
