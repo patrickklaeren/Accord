@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Bot.Helpers;
 using Accord.Services;
 using Accord.Services.UserMessages;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -10,19 +11,10 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class UnknownHandler : IResponder<IUnknownEvent>
-{
-    public Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new CancellationToken())
-    {
-        return Task.FromResult(Result.FromSuccess());
-    }
-}
-
-public class MessageCreateDeleteResponder(IEventQueue eventQueue) : IResponder<IMessageCreate>,
+public class MessageCreateDeleteResponder(IEventQueue eventQueue, TagHelper tagHelper) : IResponder<IMessageCreate>,
     IResponder<IMessageDelete>,
     IResponder<IMessageDeleteBulk>
 {
-
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
         if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
@@ -39,7 +31,8 @@ public class MessageCreateDeleteResponder(IEventQueue eventQueue) : IResponder<I
         }
 
         await eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
-            gatewayEvent.Author.ID.Value, gatewayEvent.ChannelID.Value,
+            gatewayEvent.Author.ID.Value, 
+            gatewayEvent.ChannelID.Value,
             gatewayEvent.Timestamp));
 
         return Result.FromSuccess();

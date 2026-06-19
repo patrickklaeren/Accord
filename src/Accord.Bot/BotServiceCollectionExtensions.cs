@@ -61,7 +61,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<HelpForumCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
-            .WithCommandGroup<EvalCommandGroup>();
+            .WithCommandGroup<EvalCommandGroup>()
+            .WithCommandGroup<TagCommandGroup>();
 
         var responderTypes = typeof(BotClient).Assembly
             .GetExportedTypes()

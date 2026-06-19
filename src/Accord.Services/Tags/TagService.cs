@@ -13,28 +13,43 @@ namespace Accord.Services.Tags;
 [RegisterScoped]
 public class TagService(AccordContext db, IAppCache appCache, UserPermissionService userPermissionService)
 {
-    public async Task<string?> GetTag(string name)
+    public async Task<TagDto?> GetTag(string name)
     {
-        return await appCache.GetOrAddAsync(BuildGetTagCacheKey(name),
+        return await db.TagAliases
+            .Where(x => EF.Functions.ILike(x.Name, name))
+            .Select(x => new TagDto(x.TagId, x.Tag!.Aliases.Select(d => d.Name).ToList(), x.Tag!.Uses, x.Tag!.Content, x.Tag!.AddedDateTime, x.Tag!.AddedByUserId, x.Tag!.AddedByUser!.Username))
+            .SingleOrDefaultAsync();
+    }
+    
+    public async Task<string?> GetTagContent(string name)
+    {
+        var tag = await appCache.GetOrAddAsync(BuildGetTagCacheKey(name),
             async () =>
             {
                 return await db.TagAliases
                     .Where(x => EF.Functions.ILike(x.Name, name))
-                    .Select(x => x.Tag!.Content)
+                    .Select(x => new
+                    {
+                        x.TagId,
+                        x.Tag!.Content,
+                    })
                     .SingleOrDefaultAsync();
             },
             DateTimeOffset.UtcNow.AddDays(30));
+
+        if (tag is not null)
+        {
+            await IncreaseTagUsage(tag.TagId);
+        }
+
+        return tag?.Content;
     }
 
-    public async Task IncreaseTagUsage(string name)
+    private async Task IncreaseTagUsage(int tagId)
     {
-        var tag = await db.TagAliases
-            .Where(x => EF.Functions.ILike(x.Name, name))
-            .Select(x => x.Tag)
-            .SingleOrDefaultAsync();
-
-        if (tag is null)
-            return;
+        var tag = await db.Tags
+            .Where(x => x.Id == tagId)
+            .SingleAsync();
 
         tag.Uses++;
 
@@ -82,15 +97,11 @@ public class TagService(AccordContext db, IAppCache appCache, UserPermissionServ
         return ServiceResponse.Ok();
     }
 
-    public async Task<ServiceResponse> UpdateTag(string name, string content, PermissionUser user)
+    public async Task<ServiceResponse> UpdateTag(int id, string content, PermissionUser user)
     {
-        var tag = await db.TagAliases
-            .Where(x => EF.Functions.ILike(x.Name, name))
-            .Select(x => x.Tag)
-            .SingleOrDefaultAsync();
-
-        if (tag is null)
-            return ServiceResponse.Fail("Tag not found");
+        var tag = await db.Tags
+            .Where(x => x.Id == id)
+            .SingleAsync();
 
         var canEdit = await CanModifyTag(tag, user);
         if (!canEdit)
@@ -236,8 +247,15 @@ public class TagService(AccordContext db, IAppCache appCache, UserPermissionServ
 
     private static string BuildGetTagCacheKey(string name)
     {
-        return $"{nameof(TagService)}/{nameof(GetTag)}/{name.ToLowerInvariant()}";
+        return $"{nameof(TagService)}/{nameof(GetTagContent)}/{name.ToLowerInvariant()}";
     }
 }
 
 public sealed record TagSearchResult(string Name, string Content);
+public sealed record TagDto(int Id, 
+    IReadOnlyCollection<string> Aliases, 
+    int Uses, 
+    string Content, 
+    DateTimeOffset AddedDateTime, 
+    ulong AddedByDiscordUserId,
+    string? AddedByDiscordUsername);
