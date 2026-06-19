@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
@@ -6,6 +7,7 @@ using Accord.Domain.Model;
 using Accord.Services.Permissions;
 using Accord.Services.Users;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.UserHistories;
 
@@ -49,11 +51,16 @@ public class AddUserHistoryHandler(AccordContext db,
 
         await db.SaveChangesAsync(cancellationToken);
 
+        var targetUsername = await db.Users
+            .Where(x => x.Id == request.TargetDiscordUserId)
+            .Select(x => x.Username)
+            .SingleAsync(cancellationToken: cancellationToken);
+
         INotification? relayRequest = request.Type switch
         {
-            UserHistoryType.Ban => new RelayBanToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
-            UserHistoryType.Unban => new RelayUnbanToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
-            UserHistoryType.Kick => new RelayKickToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
+            UserHistoryType.Ban => new RelayBanToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, targetUsername, request.Content),
+            UserHistoryType.Unban => new RelayUnbanToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, targetUsername, request.Content),
+            UserHistoryType.Kick => new RelayKickToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, targetUsername, request.Content),
             UserHistoryType.Warning => new RelayWarningToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Note => new RelayNoteToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             _ => null,

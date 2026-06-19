@@ -34,16 +34,9 @@ public class RelayToDiscordHandler(
         if (!channelsToPostTo.Any())
             return;
 
-        var targetGuildMember = await guildApi.GetGuildMemberAsync(new Snowflake(discordConfiguration.GuildId),
-            new Snowflake(request.TargetDiscordUserId),
-            cancellationToken);
-
-        if (!targetGuildMember.IsSuccess || !targetGuildMember.Entity.User.HasValue)
-            return;
-        
-        var title = $"👢 {targetGuildMember.Entity.User.Value.Username} kicked";
+        var title = $"👢 {request.TargetDiscordUsername} kicked";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) kicked by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
-        await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
+        await PostEmbedToChannels(title, description, channelsToPostTo, cancellationToken);
     }
 
     public async Task Handle(RelayBanToDiscordRequest request, CancellationToken cancellationToken)
@@ -53,16 +46,9 @@ public class RelayToDiscordHandler(
         if (!channelsToPostTo.Any())
             return;
 
-        var targetGuildMember = await guildApi.GetGuildMemberAsync(new Snowflake(discordConfiguration.GuildId),
-            new Snowflake(request.TargetDiscordUserId),
-            cancellationToken);
-
-        if (!targetGuildMember.IsSuccess || !targetGuildMember.Entity.User.HasValue)
-            return;
-        
-        var title = $"🔨 {targetGuildMember.Entity.User.Value.Username} banned";
+        var title = $"🔨 {request.TargetDiscordUsername} banned";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) banned by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
-        await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
+        await PostEmbedToChannels(title, description, channelsToPostTo, cancellationToken);
     }
 
     public async Task Handle(RelayUnbanToDiscordRequest request, CancellationToken cancellationToken)
@@ -72,16 +58,9 @@ public class RelayToDiscordHandler(
         if (!channelsToPostTo.Any())
             return;
 
-        var targetGuildMember = await guildApi.GetGuildMemberAsync(new Snowflake(discordConfiguration.GuildId),
-            new Snowflake(request.TargetDiscordUserId),
-            cancellationToken);
-
-        if (!targetGuildMember.IsSuccess || !targetGuildMember.Entity.User.HasValue)
-            return;
-        
-        var title = $"{targetGuildMember.Entity.User.Value.Username} unbanned";
+        var title = $"{request.TargetDiscordUsername} unbanned";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) unbanned by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
-        await PostEmbedToChannels(targetGuildMember.Entity.User.Value, title, description, channelsToPostTo, cancellationToken);
+        await PostEmbedToChannels(title, description, channelsToPostTo, cancellationToken);
     }
 
     public async Task Handle(RelayWarningToDiscordRequest request, CancellationToken cancellationToken)
@@ -133,6 +112,22 @@ public class RelayToDiscordHandler(
         var embed = new Embed(
             Title: embedTitle,
             Thumbnail: targetGuildMemberAvatar,
+            Description: embedDescription,
+            Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
+        
+        foreach (var channelId in channelIds)
+        {
+            await channelApi.CreateMessageAsync(new Snowflake(channelId), embeds: new[] { embed }, ct: cancellationToken);   
+        }
+    }
+
+    private async Task PostEmbedToChannels(string embedTitle,
+        string embedDescription,
+        IReadOnlyCollection<ulong> channelIds, 
+        CancellationToken cancellationToken)
+    {
+        var embed = new Embed(
+            Title: embedTitle,
             Description: embedDescription,
             Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));
         
