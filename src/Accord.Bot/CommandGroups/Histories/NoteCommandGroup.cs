@@ -25,7 +25,7 @@ public class NoteCommandGroup(ICommandContext commandContext,
     : AccordCommandGroup
 {
     [Command("note"), Description("Add a note to a user"), Ephemeral]
-    public async Task<IResult> Note(IGuildMember member, string content)
+    public async Task<IResult> Note(IGuildMember member, [Greedy] string content)
     {
         commandContext.TryGetUserID(out var userId);
 
