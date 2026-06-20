@@ -45,10 +45,6 @@ var discordCdnBaseUrl = builder.AddParameter(
     value: "https://cdn.discordapp.com",
     publishValueAsDefault: true);
 
-var replBaseUrl = builder.AddParameter(
-    name: "repl-base-url",
-    secret: false);
-
 builder
     .AddDockerComposeEnvironment("compose")
     .WithDashboard(false);
@@ -61,10 +57,19 @@ var postgres = builder
     .WithPgAdmin()
     .AddDatabase("accord");
 
+var repl = builder
+    .AddContainer("repl", "ghcr.io/discord-csharp/csharprepl", "latest")
+    .WithEnvironment("ASPNETCORE_URLS", "http://+:31337")
+    .WithHttpEndpoint(
+        port: 31337,
+        targetPort: 31337,
+        name: "http");
+
 builder
     .AddProject<Projects.Accord_Web>("web")
     .WithReference(postgres)
     .WaitFor(postgres)
+    .WaitFor(repl)
     .WithEnvironment("Sentry__Dsn", sentryDsn)
     .WithEnvironment("Sentry__Environment", sentryEnvironment)
     .WithEnvironment("Discord__BotToken", discordBotToken)
@@ -73,7 +78,7 @@ builder
     .WithEnvironment("Discord__GuildId", discordGuildId)
     .WithEnvironment("Discord__HelpForumChannelId", discordHelpForumChannelId)
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
-    .WithEnvironment("ReplBaseUrl", replBaseUrl)
+    .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
     .PublishAsDockerComposeService((_, service) => service.Name = "web");
 
 builder.Build().Run();
