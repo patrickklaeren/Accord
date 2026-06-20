@@ -25,21 +25,19 @@ public class NoteCommandGroup(ICommandContext commandContext,
     : AccordCommandGroup
 {
     [Command("note"), Description("Add a note to a user"), Ephemeral]
-    public async Task<IResult> Note(IGuildMember member, [Greedy] string content)
+    public async Task<IResult> Note(IUser user, [Greedy] string content)
     {
-        commandContext.TryGetUserID(out var userId);
-
         var actingUser = await commandContext.ToPermissionUser(permissionUserFactory);
         var sanitized = content.SanitiseDiscordContent();
 
         var response = await mediator.Send(new AddUserHistoryRequest(
-            member.User.Value!.ID.Value,
+            user.ID.Value,
             actingUser,
             sanitized,
             UserHistoryType.Note
         ));
 
-        var targetUserMention = member.User.Value.ID.ToUserMention();
+        var targetUserMention = user.ID.ToUserMention();
         
         await response.GetAction(
             async () => await feedbackService.SendContextualAsync($"Note #{response.Value:0000} added to {targetUserMention}'s history"),
@@ -50,7 +48,7 @@ public class NoteCommandGroup(ICommandContext commandContext,
     }
     
     [Command("warn"), Description("Warn a user"), Ephemeral, RequireDiscordPermission(DiscordPermission.Administrator)]
-    public async Task<IResult> Warn(IGuildMember member, string content, bool announce = true)
+    public async Task<IResult> Warn(IUser user, string content, bool announce = true)
     {
         commandContext.TryGetUserID(out var userId);
         commandContext.TryGetChannelID(out var channelId);
@@ -59,13 +57,13 @@ public class NoteCommandGroup(ICommandContext commandContext,
         var sanitized = content.SanitiseDiscordContent();
 
         var response = await mediator.Send(new AddUserHistoryRequest(
-            member.User.Value!.ID.Value,
+            user.ID.Value,
             actingUser,
             sanitized,
             UserHistoryType.Warning
         ));
 
-        var targetUserMention = member.User.Value.ID.ToUserMention();
+        var targetUserMention = user.ID.ToUserMention();
 
         await response.GetAction(
             async () => await feedbackService.SendContextualAsync($"Warning #{response.Value:0000} added to {targetUserMention}'s history"),

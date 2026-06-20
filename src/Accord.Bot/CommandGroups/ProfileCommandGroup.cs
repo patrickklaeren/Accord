@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Accord.Bot.Extensions;
 using Accord.Bot.Helpers;
 using Accord.Services.Helpers;
 using Accord.Services.Users;
@@ -20,7 +19,13 @@ using Remora.Results;
 
 namespace Accord.Bot.CommandGroups;
 
-public class ProfileCommandGroup(IMediator mediator, ICommandContext commandContext, IDiscordRestGuildAPI guildApi, DiscordAvatarHelper discordAvatarHelper, FeedbackService feedbackService, ThumbnailHelper thumbnailHelper) : AccordCommandGroup
+public class ProfileCommandGroup(IMediator mediator, 
+    ICommandContext commandContext, 
+    IDiscordRestGuildAPI guildApi, 
+    DiscordAvatarHelper discordAvatarHelper, 
+    FeedbackService feedbackService, 
+    ThumbnailHelper thumbnailHelper) 
+    : AccordCommandGroup
 {
     [Command("profile"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IGuildMember? member = null)
