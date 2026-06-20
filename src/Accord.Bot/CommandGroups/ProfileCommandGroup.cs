@@ -29,7 +29,7 @@ public class ProfileCommandGroup(IMediator mediator,
     ThumbnailHelper thumbnailHelper) 
     : AccordCommandGroup
 {
-    [Command("profile"), Description("Get your profile")]
+    [Command("profile", "info"), Description("Get your profile")]
     public async Task<IResult> GetProfile(IUser? userToLookup = null)
     {
         var proxy = commandContext.GetCommandProxy();
@@ -128,7 +128,7 @@ public class ProfileCommandGroup(IMediator mediator,
             else
             {
                 builder
-                    .AppendLine("No time spent in voice channels");
+                    .AppendLine("Last 30 days: No time spent in voice");
             }
 
             if (userHistory is not null)

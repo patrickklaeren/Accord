@@ -1,56 +1,17 @@
 # Accord
 <p align="center">
-    <img alt='Accord Logo' src='branding/readme-logo.png'/>
+    <img alt='Accord Logo' src='branding/readme-banner.png'/>
 </p>
 
 ## Reach accord, prevent discord, on Discord.
 
 A C# .NET Discord bot with moderation, XP/guild participation and utilities aimed at all users within a guild. This is not a hosted bot, it is intended to be self hosted.
 
-### How do I contribute
-
-Accord is actively developed with both Rider and Visual Studio. It is recommended you use either IDE for a positive experience. However, Accord is built entirely on .NET and therefore works anywhere `dotnet build` can be executed.
-
-You can grab an unassigned issue and comment on it to indicate your interest on championing it. Alternatively, if you have a suggestion for a new feature and want to champion this, create a new issue and it can be discussed in the repository.
-
-**Development ethos**
-
-Keep things short, simple and maintainable. No pointless abstractions or complicated chains. Move fast, break and innovate. This is a Discord bot first and foremost and it strives for simplicity.
-
-**What you'll need**
-
-- Latest .NET SDK
-- Docker
-- Discord Bot
-
-**How to get Accord running in development**
-
-- Set up a bot account on the [Discord developer portal](https://discord.com/developers/applications)
-    - Ensure you have the following priviledged gateway intents enabled:
-        - Presence Intent
-        - Server Members Intent
-- Clone/fork the repository from `main` branch
-- Get the Id of the Discord Guild you will be testing the bot in, for the purposes of Slash command updating
-- Get your bot token from the [Discord developer portal](https://discord.com/developers/applications)
-- Run via Aspire `Accord.AppHost`, set up the parameters as you see fit
-
-**Invite your bot**
-
-(Change your client Id to that of your application's)
-
-```https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=1573252310```
-
-This ensures the bot has the minimum required permissions and can manage Slash commands on the guild.
-
-Start the bot. This will apply migrations automatically via Entity Framework.
-
-### How to self host
+## How to self host
 
 You can build from source or host via the published Docker image. An example `docker-compose.yml` is below.
 
 ```yml
-version: '3.1'
-
 services:
   postgres:
     image: postgres
@@ -58,8 +19,6 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - '5432:5432'
 
   bot:
     image: ghcr.io/patrickklaeren/accord:main
@@ -68,27 +27,29 @@ services:
     restart: always
     environment:
       ConnectionStrings__accord: ${CONNECTIONSTRINGS_DATABASE}
+      ReplBaseUrl: ${REPLBASEURL}
       Discord__ClientSecret: ${DISCORD_CLIENTID}
       Discord__ClientId: ${DISCORD_CLIENTID}
       Discord__GuildId: ${DISCORD_GUILDID}
       Discord__BotToken: ${DISCORD_BOTTOKEN}
-    ports:
-      - '80:80'
-      - '443:443'
 ```
 
-**Requirements**
-- Postgres
-- Web host for ASP.NET Core
+Accord can optionally connect to a C# REPL service, via the REPL module. You can self-host this:
 
-Set environment variables for `ConnectionStrings:accord`, `Discord:GuildId`, `Discord:BotToken`, `Discord:ClientId`, `Discord:ClientSecret`.
+```yml
+  repl:
+    image: ghcr.io/discord-csharp/csharprepl:latest
+    environment:
+      - ASPNETCORE_URLS=http://+:31337
+```
 
-This bot is intended for single-guild usage.
+| Variable | Description |
+|----------------------|-------------|
+| `ConnectionStrings__accord` | Connection string to the PostgreSQL database. |
+| `ReplBaseUrl` | Base URL to the REPL service used by the REPL module. If you do not intend to use this service, set the value to `http://`. Otherwise, configure it to point to the appropriate REPL service endpoint. |
+| `Discord__ClientId` | Client ID of your Discord application. |
+| `Discord__ClientSecret` | Client secret of your Discord application. |
+| `Discord__GuildId` | Guild (server) snowflake ID that the bot will connect to. |
+| `Discord__BotToken` | Bot token of your Discord application. |
 
-### Credits
-
-Notable dependencies for this project include:
-- [Remora](https://github.com/Nihlus/Remora.Discord)
-- [MediatR](https://github.com/jbogard/MediatR)
-- [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
-- [Npgsql EF Core Provider](https://www.npgsql.org/efcore/)
+This bot is intended for **single-guild** usage.
