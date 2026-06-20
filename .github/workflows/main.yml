@@ -5,7 +5,7 @@ on:
     paths-ignore:
       - 'README.md'
       - 'CONTRIBUTING.md'
-      - 'ACKNOWLEDGEMENTS.md'
+      - 'ACKNOWLEDGMENTS.md'
       - 'branding/**'
     branches:
       - main
