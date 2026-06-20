@@ -177,7 +177,7 @@ Project boundaries are intentional and should not be crossed casually.
 
 ### Cross-boundary communication
 
-```mermaid~~~~
+```mermaid
 sequenceDiagram
     participant Discord
     participant Bot as Accord.Bot
