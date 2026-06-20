@@ -15,7 +15,7 @@ public class AddReminderHandler(UserService userService, UserReminderService use
         var userExists = await userService.UserExists(request.DiscordUserId, cancellationToken);
 
         if (!userExists)
-            return ServiceResponse.Fail<GetUserDto>("User does not exist");
+            return ServiceResponse.Fail<GetUserProfileDto>("User does not exist");
 
         await userReminderService.AddReminder(request.DiscordUserId,
             request.DiscordChannelId,

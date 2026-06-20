@@ -28,7 +28,7 @@ public static partial class EvalHelper
             ? $"```{Environment.NewLine}```"
             : $"```{language}{Environment.NewLine}{input}{Environment.NewLine}```";
     }
-        
+    
     public static string TruncateToEmbedField(string input)
     {
         const int MAX_FIELD_LENGTH = 256;

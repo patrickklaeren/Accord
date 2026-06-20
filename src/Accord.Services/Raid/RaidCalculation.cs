@@ -17,16 +17,20 @@ public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto U
 
 public sealed record RaidAlertRequest : IRequest;
 
-public class RaidCalculationHandler(RaidCalculator raidCalculator, 
-    IMediator mediator, 
-    AccordContext db) : IRequestHandler<RaidCalculationRequest>
+public class RaidCalculationHandler(
+    RaidCalculator raidCalculator,
+    IMediator mediator,
+    AccordContext db,
+    UserService userService)
+    : IRequestHandler<RaidCalculationRequest>
 {
     public async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {
         var sequentialLimit = await mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
         var accountCreationLimit = await mediator.Send(new GetAccountCreationSimilarityLimitRequest(), cancellationToken);
 
-        var raidResult = raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.DiscordAvatarUrl, request.User.JoinedDateTime.DateTime), sequentialLimit, accountCreationLimit);
+        var raidResult = raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.DiscordAvatarUrl, request.User.JoinedDateTime.DateTime), sequentialLimit,
+            accountCreationLimit);
 
         var isAutoRaidModeEnabled = await mediator.Send(new GetIsAutoRaidModeEnabledRequest(), cancellationToken);
         var isInExistingRaidMode = await mediator.Send(new GetIsInRaidModeRequest(), cancellationToken);
@@ -50,19 +54,18 @@ public class RaidCalculationHandler(RaidCalculator raidCalculator,
             await mediator.Send(new RaidAlertRequest(), cancellationToken);
         }
 
-        if (raidResult.IsRaid && isAutoRaidModeEnabled)
+        if (raidResult.IsRaid 
+            && isAutoRaidModeEnabled 
+            && await userService.UserExists(request.DiscordUserId, cancellationToken))
         {
-            var user = await mediator.Send(new GetUserRequest(request.DiscordUserId), cancellationToken);
+            var user = await userService.GetUser(request.DiscordUserId, cancellationToken);
 
-            if (user.Success)
-            {
-                var kickRequest = new KickRequest(request.DiscordGuildId,
-                    request.DiscordUserId,
-                    user.Value!.User.Username ?? request.DiscordUserId.ToString(),
-                    $"Auto detection - {raidResult.Reason}");
+            var kickRequest = new KickRequest(request.DiscordGuildId,
+                request.DiscordUserId,
+                user.Username ?? request.DiscordUserId.ToString(),
+                $"Auto detection - {raidResult.Reason}");
 
-                await mediator.Send(kickRequest, cancellationToken);
-            }
+            await mediator.Send(kickRequest, cancellationToken);
         }
     }
 }

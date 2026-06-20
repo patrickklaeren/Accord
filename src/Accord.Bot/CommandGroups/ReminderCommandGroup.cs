@@ -26,7 +26,11 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups;
 
 [Group("remind")]
-public class ReminderCommandGroup(ICommandContext commandContext, IMediator mediator, IDiscordRestGuildAPI guildApi, DiscordAvatarHelper discordAvatarHelper, FeedbackService feedbackService) : AccordCommandGroup
+public class ReminderCommandGroup(ICommandContext commandContext, 
+    IMediator mediator, 
+    IDiscordRestGuildAPI guildApi, 
+    DiscordAvatarHelper discordAvatarHelper, 
+    FeedbackService feedbackService) : AccordCommandGroup
 {
     [Command("me"), Description("Add a reminder for yourself")]
     [SuppressInteractionResponse(true)]
@@ -126,7 +130,7 @@ public class ReminderCommandGroup(ICommandContext commandContext, IMediator medi
         }
 
         var guildUser = guildUserEntity.Entity;
-        var (userDto, _, _, _) = userResponse.Value!;
+        var userDto = userResponse.Value!;
 
         var avatarUrl = discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
             guildUser.User.Value.Discriminator,

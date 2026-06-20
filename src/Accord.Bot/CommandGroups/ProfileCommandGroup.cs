@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -20,126 +21,151 @@ using Remora.Results;
 namespace Accord.Bot.CommandGroups;
 
 public class ProfileCommandGroup(IMediator mediator, 
-    ICommandContext commandContext, 
-    IDiscordRestGuildAPI guildApi, 
+    ICommandContext commandContext,
+    IDiscordRestUserAPI userApi,
+    IDiscordRestGuildAPI guildApi,
     DiscordAvatarHelper discordAvatarHelper, 
     FeedbackService feedbackService, 
     ThumbnailHelper thumbnailHelper) 
     : AccordCommandGroup
 {
     [Command("profile"), Description("Get your profile")]
-    public async Task<IResult> GetProfile(IGuildMember? member = null)
+    public async Task<IResult> GetProfile(IUser? userToLookup = null)
     {
-        if (member is not null && !member.User.HasValue)
-        {
-            return await feedbackService.SendContextualAsync("Failed finding user");
-        }
-
         var proxy = commandContext.GetCommandProxy();
+        var userId = userToLookup?.ID ?? proxy.UserId;
 
-        var userId = member?.User.Value!.ID.Value ?? proxy.UserId.Value;
+        var discordUserResponse = await userApi.GetUserAsync(userId);
 
-        var response = await mediator.Send(new GetUserRequest(userId));
-
-        if (!response.Success)
+        if (!discordUserResponse.IsSuccess)
         {
-            return await feedbackService.SendContextualAsync(response.ErrorMessage);
+            return await feedbackService.SendContextualAsync("Could not retrieve user via Discord API");
         }
 
-        var guildUserEntity = await guildApi.GetGuildMemberAsync(proxy.GuildId, new Snowflake(userId));
+        var discordUser = discordUserResponse.Entity;
 
-        if (!guildUserEntity.IsSuccess || !guildUserEntity.Entity.User.HasValue)
+        var response = await mediator.Send(new GetUserProfileRequest(userId.Value));
+        
+        UserDto? trackedUser = null;
+        UserHistorySummaryDto? userHistory = null;
+        IReadOnlyCollection<UserMessagesInChannelDto> userMessages = [];
+        IReadOnlyCollection<UserVoiceMinutesInChannelDto> userVoiceActivity = [];
+
+        if (response is not null)
         {
-            return await feedbackService.SendContextualAsync("Couldn't find user in Guild");
+            (trackedUser, userHistory, userMessages, userVoiceActivity) = response;    
         }
+        
+        var status = await GetStatus(proxy.GuildId, userId, trackedUser);
 
-        var guildUser = guildUserEntity.Entity;
-        var (user, userHistory, userMessages, userVoiceActivity) = response.Value!;
+        var avatarUrl = discordAvatarHelper.GetAvatarUrl(discordUser.ID.Value,
+            discordUser.Discriminator,
+            discordUser.Avatar?.Value,
+            discordUser.Avatar?.HasGif == true);
 
-        var avatarUrl = discordAvatarHelper.GetAvatarUrl(guildUser.User.Value.ID.Value,
-            guildUser.User.Value.Discriminator,
-            guildUser.User.Value.Avatar?.Value,
-            guildUser.User.Value.Avatar?.HasGif == true);
-
-        var avatarImage = thumbnailHelper.GetAvatar(guildUser.User.Value);
+        var avatarImage = thumbnailHelper.GetAvatar(discordUser);
 
         var builder = new StringBuilder();
 
-        var userHandle = !string.IsNullOrWhiteSpace(user.Username)
-            ? user.Username
-            : guildUser.User.Value.Username;
-
-        var userCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userId);
+        var userCreated = DiscordSnowflakeHelper.ToDateTimeOffset(userId.Value);
 
         builder
             .AppendLine("**User Information**")
-            .AppendLine($"ID: {user.Id}")
-            .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(user.Id)}")
-            .AppendLine($"Handle: {userHandle}");
-
-        if (!string.IsNullOrWhiteSpace(user.Nickname))
+            .AppendLine($"ID: {discordUser.ID.Value}")
+            .AppendLine($"Profile: {DiscordFormatter.UserIdToMention(discordUser.ID.Value)}")
+            .AppendLine($"Handle: {discordUser.Username}");
+        
+        if (!string.IsNullOrWhiteSpace(trackedUser?.Nickname))
         {
-            builder.AppendLine($"Nickname: {user.Nickname}");
+            builder.AppendLine($"Nickname: {trackedUser.Nickname}");
         }
 
         builder.AppendLine($"Created: {userCreated.ToTimeMarkdown()}");
 
-        if (user.JoinedGuildDateTime is not null)
+        if (trackedUser?.JoinedGuildDateTime is not null)
         {
-            builder.AppendLine($"Joined: {user.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
+            builder.AppendLine($"Joined: {trackedUser.JoinedGuildDateTime.Value.ToTimeMarkdown()}");
+            builder.AppendLine($"First tracked: {trackedUser.FirstSeenDateTime.ToTimeMarkdown()}");
         }
-
-        builder.AppendLine($"First tracked: {user.FirstSeenDateTime.ToTimeMarkdown()}");
-
-        builder
-            .AppendLine()
-            .AppendLine("**Guild Participation**")
-            .AppendLine($"Rank: {user.ParticipationRank}")
-            .AppendLine($"Points: {user.ParticipationPoints}")
-            .AppendLine($"Percentile: {Math.Round(user.ParticipationPercentile, 0)}")
-            .AppendLine()
-            .AppendLine("**Message Participation**")
-            .AppendLine($"Last 30 days: {userMessages.Sum(x => x.NumberOfMessages)} messages");
-
-        if (userMessages.Any())
-        {
-            var (discordChannelId, numberOfMessages) = userMessages
-                .OrderByDescending(x => x.NumberOfMessages)
-                .First();
-
-            builder.AppendLine($"Most active text channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({numberOfMessages} messages)");
-        }
-
-        builder
-            .AppendLine()
-            .AppendLine("**Voice Participation**");
-
-        if (userVoiceActivity.Any())
-        {
-            var (discordChannelId, numberOfMinutes) = userVoiceActivity
-                .OrderByDescending(x => x.NumberOfMinutes)
-                .First();
-
-            builder
-                .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceActivity.Sum(x => x.NumberOfMinutes)).Humanize()}")
-                .AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
-        }
-        else
+        
+        builder.AppendLine($"Status: {status}");
+        
+        if (trackedUser is not null)
         {
             builder
-                .AppendLine("No time spent in voice channels");
+                .AppendLine()
+                .AppendLine("**Guild Participation**")
+                .AppendLine($"Rank: {trackedUser.ParticipationRank}")
+                .AppendLine($"Points: {trackedUser.ParticipationPoints}")
+                .AppendLine($"Percentile: {Math.Round(trackedUser.ParticipationPercentile, 0)}")
+                .AppendLine()
+                .AppendLine("**Message Participation**")
+                .AppendLine($"Last 30 days: {userMessages.Sum(x => x.NumberOfMessages)} messages");
+
+            if (userMessages.Any())
+            {
+                var (discordChannelId, numberOfMessages) = userMessages
+                    .OrderByDescending(x => x.NumberOfMessages)
+                    .First();
+
+                builder.AppendLine($"Most active text channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({numberOfMessages} messages)");
+            }
+
+            builder
+                .AppendLine()
+                .AppendLine("**Voice Participation**");
+
+            if (userVoiceActivity.Any())
+            {
+                var (discordChannelId, numberOfMinutes) = userVoiceActivity
+                    .OrderByDescending(x => x.NumberOfMinutes)
+                    .First();
+
+                builder
+                    .AppendLine($"Last 30 days: {TimeSpan.FromMinutes(userVoiceActivity.Sum(x => x.NumberOfMinutes)).Humanize()}")
+                    .AppendLine($"Most active voice channel: {DiscordFormatter.ChannelIdToMention(discordChannelId)} ({TimeSpan.FromMinutes(numberOfMinutes).Humanize()})");
+            }
+            else
+            {
+                builder
+                    .AppendLine("No time spent in voice channels");
+            }
+
+            if (userHistory is not null)
+            {
+                builder
+                    .AppendLine()
+                    .AppendLine("**History**")
+                    .AppendLine($"{userHistory.Total} history records")
+                    .AppendLine($"{userHistory.Bans} bans, {userHistory.Kicks} kicks, {userHistory.Mutes} mutes, {userHistory.Warnings} warnings, {userHistory.Notes} notes");                
+            }
         }
 
-        builder
-            .AppendLine()
-            .AppendLine("**History**")
-            .AppendLine($"{userHistory.Total} history records")
-            .AppendLine($"{userHistory.Bans} bans, {userHistory.Kicks} kicks, {userHistory.Mutes} mutes, {userHistory.Warnings} warnings, {userHistory.Notes} notes");
-
-        var embed = new Embed(Author: new EmbedAuthor(userHandle, IconUrl: avatarUrl),
+        var embed = new Embed(Author: new EmbedAuthor(discordUser.Username, IconUrl: avatarUrl),
             Thumbnail: avatarImage,
             Description: builder.ToString());
 
         return await feedbackService.SendContextualEmbedAsync(embed);
+    }
+
+    private async Task<string> GetStatus(Snowflake guildSnowflake, 
+        Snowflake userSnowflake, 
+        UserDto? trackedUser)
+    {
+        var guildUser = await guildApi.GetGuildMemberAsync(guildSnowflake, userSnowflake);
+
+        if (guildUser.IsSuccess)
+        {
+            return "Active in guild";
+        }
+
+        var ban = await guildApi.GetGuildBanAsync(guildSnowflake, userSnowflake);
+            
+        if (ban.IsSuccess)
+        {
+            return $"🔨 Banned for {ban.Entity.Reason}";
+        }
+
+        return trackedUser is not null ? "Left the guild" : "Has never joined the guild";
     }
 }

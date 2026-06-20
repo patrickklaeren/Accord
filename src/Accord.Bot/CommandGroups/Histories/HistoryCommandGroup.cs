@@ -44,21 +44,16 @@ public class HistoryCommandGroup(ICommandContext commandContext,
     }
     
     [Command("list"), Description("List all history for a user")]
-    public async Task<IResult> List(IGuildMember member)
+    public async Task<IResult> List(IUser user)
     {
-        if (!member.User.HasValue)
-        {
-            return await feedbackService.SendContextualAsync("Could not find user");
-        }
-
-        var response = await mediator.Send(new GetUserHistoriesRequest(member.User.Value.ID.Value));
+        var response = await mediator.Send(new GetUserHistoriesRequest(user.ID.Value));
 
         if (!response.Any())
         {
             return await feedbackService.SendContextualAsync("No history notes for this user");
         }
 
-        var pages = BuildPages(response, member.User.Value);
+        var pages = BuildPages(response, user);
 
         var proxy = commandContext.GetCommandProxy();
 
