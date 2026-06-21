@@ -1,0 +1,393 @@
+@page "/tags"
+@using Accord.Bot.Services;
+@using Accord.Bot.Helpers;
+@using Accord.Services.Tags;
+@using Accord.Services.Permissions;
+@using Accord.Domain.Model;
+@using MediatR;
+@using Remora.Discord.API.Abstractions.Objects;
+@using Accord.Web.DiscordServices
+@inject DiscordUserService DiscordUserService
+@inject IMediator Mediator
+@inject DiscordCache DiscordCache
+@inject UserPermissionService UserPermissionService
+
+<PageTitle>@PageTitleFactory.Title("Tags")</PageTitle>
+
+<MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8" Elevation="2">
+            <MudText Align="Align.Center">Loading...</MudText>
+        </MudPaper>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Class="mb-6">Tags</MudText>
+
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="6">
+                    <MudTextField Value="_searchTerm"
+                                  ValueChanged="@((string? v) => { _searchTerm = v ?? string.Empty; ApplyFilter(); })"
+                                  Label="Search tags"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Placeholder="Type to filter tags..." />
+                </MudItem>
+                @if (_hasManagePermission)
+                {
+                    <MudItem xs="12" sm="6" Class="d-flex align-end justify-end">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="@OpenAddDialog">
+                            Add Tag
+                        </MudButton>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <MudDataGrid Items="@_filteredTags"
+                         Hover="true"
+                         Dense="true"
+                         Elevation="0"
+                         Class="mud-table-dense">
+                <Columns>
+                    <TemplateColumn Title="Aliases" Sortable="false">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@string.Join(", ", context.Item.Aliases)</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Content" Title="Content" />
+                    <PropertyColumn Property="x => x.Uses" Title="Uses" />
+                    <PropertyColumn Property="x => x.AddedByDiscordUsername" Title="Added By" />
+                    <PropertyColumn Property="x => x.AddedDateTime" Title="Added">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@context.Item.AddedDateTime.LocalDateTime.ToShortDateString()</MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    @if (_hasManagePermission)
+                    {
+                        <TemplateColumn Title="Actions" Sortable="false" CellClass="text-center">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Size="Size.Small"
+                                               Color="Color.Primary"
+                                               OnClick="@(async () => await OpenEditDialog(context.Item))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(async () => await OpenDeleteDialog(context.Item))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    }
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@if (_showAddDialog)
+{
+    <MudOverlay Visible="@_showAddDialog" OnClick="@CloseAddDialog" />
+    <MudPaper Class="pa-6" Elevation="8" Style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; max-width: 500px; width: 90%;">
+        <MudText Typo="Typo.h6" Class="mb-4">Add Tag</MudText>
+        <MudTextField @bind-Value="_newTagName"
+                      Label="Name"
+                      Variant="Variant.Outlined"
+                      Class="mb-3"
+                      Disabled="@_saving" />
+        <MudTextField @bind-Value="_newTagContent"
+                      Label="Content"
+                      Variant="Variant.Outlined"
+                      Class="mb-3"
+                      Lines="5"
+                      Disabled="@_saving" />
+        <MudGrid Class="mt-2">
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Default"
+                           OnClick="@CloseAddDialog"
+                           FullWidth="true"
+                           Disabled="@_saving">
+                    Cancel
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="@AddTag"
+                           FullWidth="true"
+                           Disabled="@IsAddButtonDisabled">
+                    Save
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@if (_editTag is not null)
+{
+    <MudOverlay Visible="@_showEditDialog" OnClick="@CloseEditDialog" />
+    <MudPaper Class="pa-6" Elevation="8" Style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; max-width: 500px; width: 90%;">
+        <MudText Typo="Typo.h6" Class="mb-4">Edit Tag: @_editTag.Name</MudText>
+        <MudTextField @bind-Value="_editContent"
+                      Label="Content"
+                      Variant="Variant.Outlined"
+                      Class="mb-3"
+                      Lines="5"
+                      Disabled="@_saving"
+                      Immediate="true" />
+        <MudGrid Class="mt-2">
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Default"
+                           OnClick="@CloseEditDialog"
+                           FullWidth="true"
+                           Disabled="@_saving">
+                    Cancel
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="@UpdateTag"
+                           FullWidth="true"
+                           Disabled="@IsUpdateButtonDisabled">
+                    Save
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@if (_deleteTag is not null)
+{
+    <MudOverlay Visible="@_showDeleteDialog" OnClick="@CloseDeleteDialog" />
+    <MudPaper Class="pa-6" Elevation="8" Style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; max-width: 500px; width: 90%;">
+        <MudText Typo="Typo.h6" Class="mb-4">Delete Tag</MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Are you sure you want to delete the tag <strong>@_deleteTag.Name</strong>?
+        </MudText>
+        <MudGrid Class="mt-2">
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Default"
+                           OnClick="@CloseDeleteDialog"
+                           FullWidth="true"
+                           Disabled="@_saving">
+                    Cancel
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           OnClick="@DeleteTag"
+                           FullWidth="true"
+                           Disabled="@_saving">
+                    Delete
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@code {
+    private bool _loading = true;
+    private bool _hasManagePermission;
+    private List<TagOverviewDto> _allTags = [];
+    private List<TagOverviewDto> _filteredTags = [];
+    private string _searchTerm = string.Empty;
+
+    private bool _saving;
+    private bool _showAddDialog;
+    private string _newTagName = string.Empty;
+    private string _newTagContent = string.Empty;
+
+    private TagOverviewDto? _editTag;
+    private bool _showEditDialog;
+    private string _editContent = string.Empty;
+
+    private TagOverviewDto? _deleteTag;
+    private bool _showDeleteDialog;
+
+    private bool IsAddButtonDisabled => _saving || string.IsNullOrWhiteSpace(_newTagName) || string.IsNullOrWhiteSpace(_newTagContent);
+    private bool IsUpdateButtonDisabled => _saving || _editTag is null || _editContent == _editTag.Content;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = DiscordUserService.GetDiscordId();
+            _hasManagePermission = await CheckHasManagePermission(userId);
+
+            _allTags = await Mediator.Send(new GetAllTagsRequest());
+            ApplyFilter();
+        }
+        catch
+        {
+            // fall through
+        }
+
+        _loading = false;
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            _filteredTags = _allTags;
+        }
+        else
+        {
+            var term = _searchTerm.Trim().ToLowerInvariant();
+            _filteredTags = _allTags
+                .Where(t => t.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                         || t.Content.Contains(term, StringComparison.OrdinalIgnoreCase)
+                         || t.Aliases.Any(a => a.Contains(term, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+    }
+
+    private async Task<bool> CheckHasManagePermission(ulong userId)
+    {
+        var memberResult = await DiscordCache.GetGuildMember(userId);
+        if (!memberResult.IsSuccess)
+            return false;
+
+        var member = memberResult.Entity;
+        var memberRoleIds = member.Roles.Select(r => r.Value).ToHashSet();
+        var allRoles = await DiscordCache.GetGuildRoles();
+
+        var isAdmin = allRoles.Any(r => memberRoleIds.Contains(r.ID.Value) && r.Permissions.HasPermission(DiscordPermission.Administrator));
+
+        if (isAdmin)
+            return true;
+
+        var permissionUser = new PermissionUser(userId, memberRoleIds, false, false);
+        return await UserPermissionService.HasPermission(permissionUser, PermissionType.ManageTags);
+    }
+
+    private async Task<PermissionUser> BuildPermissionUser(ulong userId)
+    {
+        var memberResult = await DiscordCache.GetGuildMember(userId);
+        var member = memberResult.Entity;
+        var memberRoleIds = member.Roles.Select(r => r.Value).ToHashSet();
+        var allRoles = await DiscordCache.GetGuildRoles();
+        var isAdmin = allRoles.Any(r => memberRoleIds.Contains(r.ID.Value) && r.Permissions.HasPermission(DiscordPermission.Administrator));
+
+        return new PermissionUser(userId, memberRoleIds, isAdmin, false);
+    }
+
+    private void OpenAddDialog()
+    {
+        _newTagName = string.Empty;
+        _newTagContent = string.Empty;
+        _showAddDialog = true;
+    }
+
+    private void CloseAddDialog()
+    {
+        _showAddDialog = false;
+    }
+
+    private async Task AddTag()
+    {
+        _saving = true;
+
+        try
+        {
+            var userId = DiscordUserService.GetDiscordId();
+            var permissionUser = await BuildPermissionUser(userId);
+            var result = await Mediator.Send(new AddTagRequest(_newTagName.Trim(), _newTagContent.Trim(), permissionUser));
+
+            if (result.Success)
+            {
+                _allTags = await Mediator.Send(new GetAllTagsRequest());
+                ApplyFilter();
+                CloseAddDialog();
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task OpenEditDialog(TagOverviewDto tag)
+    {
+        _editTag = tag;
+        _editContent = tag.Content;
+        _showEditDialog = true;
+    }
+
+    private void CloseEditDialog()
+    {
+        _editTag = null;
+        _showEditDialog = false;
+    }
+
+    private async Task UpdateTag()
+    {
+        if (_editTag is null)
+            return;
+
+        _saving = true;
+
+        try
+        {
+            var userId = DiscordUserService.GetDiscordId();
+            var permissionUser = await BuildPermissionUser(userId);
+            var result = await Mediator.Send(new UpdateTagRequest(_editTag.Id, _editContent, permissionUser));
+
+            if (result.Success)
+            {
+                _allTags = await Mediator.Send(new GetAllTagsRequest());
+                ApplyFilter();
+                CloseEditDialog();
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task OpenDeleteDialog(TagOverviewDto tag)
+    {
+        _deleteTag = tag;
+        _showDeleteDialog = true;
+    }
+
+    private void CloseDeleteDialog()
+    {
+        _deleteTag = null;
+        _showDeleteDialog = false;
+    }
+
+    private async Task DeleteTag()
+    {
+        if (_deleteTag is null)
+            return;
+
+        _saving = true;
+
+        try
+        {
+            var userId = DiscordUserService.GetDiscordId();
+            var permissionUser = await BuildPermissionUser(userId);
+            var result = await Mediator.Send(new DeleteTagRequest(_deleteTag.Name, permissionUser));
+
+            if (result.Success)
+            {
+                _allTags = await Mediator.Send(new GetAllTagsRequest());
+                ApplyFilter();
+                CloseDeleteDialog();
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

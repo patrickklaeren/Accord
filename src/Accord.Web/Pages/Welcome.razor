@@ -2,13 +2,130 @@
 @attribute [AllowAnonymous]
 @layout EmptyLayout
 
-<MudContainer MaxWidth="MaxWidth.Small">
-    <MudText Typo="Typo.h1">Reach <strong>Accord</strong>, not Discord</MudText>
-    <MudText Typo="Typo.subtitle2">A Discord utilities and moderation bot for the C# Discord server, built in the open, on <a href="#">GitHub</a>.</MudText>
-    <MudButton Color="Color.Primary"
-               Variant="Variant.Filled"
-               Href="/login"
-               Class="mt-4">
-        Log in with your Discord account
-    </MudButton>
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    <MudPaper Class="hero-section d-flex flex-column align-center justify-center" Elevation="0">
+        <MudContainer MaxWidth="MaxWidth.Small" Class="text-center py-16">
+            <MudText Typo="Typo.h2" Class="hero-title mb-4">
+                <MudIcon Icon="@Icons.Custom.Brands.Discord" Size="Size.Large" Class="mr-2" />
+                Accord
+            </MudText>
+            <MudText Typo="Typo.h6" Class="hero-subtitle mb-8">
+                A Discord utilities and moderation bot purpose-built for the C# Discord server.
+                Track participation, manage permissions, compile code, and more — all in one place.
+            </MudText>
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Href="/login"
+                       Class="hero-button">
+                <MudIcon Icon="@Icons.Custom.Brands.Discord" Class="mr-2" />
+                Log in with Discord
+            </MudButton>
+            <MudText Typo="Typo.body2" Class="mt-4 text-secondary">
+                Open source on <MudLink Href="https://github.com/patrickklaeren/Accord" Target="_blank">GitHub</MudLink>
+            </MudText>
+        </MudContainer>
+    </MudPaper>
+
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-12">
+        <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-8">Features</MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">User Profiles</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        View participation stats, message activity, voice time, and moderation history.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Reminders</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        Set personal reminders with natural time spans and never miss a beat.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Bookmark" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Tags</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        Create and manage reusable content with aliases, search, and instant recall.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Terminal" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Code Compilation</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        Compile C#, F#, VB, and IL directly in chat via the Godbolt compiler explorer.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Shield" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Moderation</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        Track infractions, manage permissions per role or user, and log server events.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-6 text-center h-100">
+                    <MudIcon Icon="@Icons.Material.Filled.Mic" Size="Size.Large" Color="Color.Primary" Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Voice Tracking</MudText>
+                    <MudText Typo="Typo.body2" Class="text-secondary">
+                        Monitor voice channel participation and reward active community members.
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+
+    <MudPaper Class="cta-section py-12 text-center" Elevation="0">
+        <MudContainer MaxWidth="MaxWidth.Small">
+            <MudText Typo="Typo.h4" Class="mb-4">Ready to get started?</MudText>
+            <MudText Typo="Typo.body1" Class="mb-6 text-secondary">
+                Log in with your Discord account to access your profile and manage server settings.
+            </MudText>
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Size="Size.Large"
+                       Href="/login">
+                <MudIcon Icon="@Icons.Custom.Brands.Discord" Class="mr-2" />
+                Log in with Discord
+            </MudButton>
+        </MudContainer>
+    </MudPaper>
 </MudContainer>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1B1B2F 0%, #162447 50%, #1F4068 100%);
+        min-height: 70vh;
+        color: white;
+    }
+    .hero-title {
+        font-weight: 700;
+    }
+    .hero-subtitle {
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+    .hero-button {
+        font-size: 1.1rem;
+        padding: 12px 32px;
+        border-radius: 8px;
+    }
+    .cta-section {
+        background-color: var(--mud-palette-background);
+    }
+    .h-100 {
+        height: 100%;
+    }
+</style>
