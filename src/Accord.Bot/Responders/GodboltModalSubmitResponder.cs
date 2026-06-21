@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.Godbolt;
+using Accord.Services.UserBotMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -12,7 +13,6 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
-using CodeInDiscordHelper = Accord.Bot.Helpers.CodeInDiscordHelper;
 
 namespace Accord.Bot.Responders;
 
@@ -74,16 +74,17 @@ public class GodboltModalSubmitResponder(
         var editResult = await interactionApi.EditOriginalInteractionResponseAsync(
             appId,
             token,
-            embeds: new[] { embed }
-        );
+            embeds: new[] { embed }, ct: ct);
+
+        await mediator.Publish(new AddUserBotMessageRequest(editResult.Entity.ID.Value, editResult.Entity.ChannelID.Value, user.ID.Value), ct);
 
         return (Result)editResult;
     }
 
     private static Embed GetSuccessEmbed(IUser user, EmbedThumbnail avatar, ExecuteGodboltResultDto result)
     {
-        var truncated = CodeInDiscordHelper.TruncateToEmbedField(result.Result);
-        var codeBlock = CodeInDiscordHelper.FormatAsCodeBlock(truncated, "json");
+        var truncated = DiscordFormatter.TruncateToEmbedField(result.Result);
+        var codeBlock = DiscordFormatter.FormatAsCodeBlock(truncated, "json");
 
         var fields = new List<EmbedField>
         {

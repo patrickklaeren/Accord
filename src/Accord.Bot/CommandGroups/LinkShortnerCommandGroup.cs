@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -63,7 +62,7 @@ public class LinkShortnerCommandGroup(
 
         var embed = new Embed(Title: "Shortened preview",
             Colour: Color.Green,
-            Description: CodeInDiscordHelper.FormatAsCodeBlock(CodeInDiscordHelper.TruncateToEmbedField(preview)),
+            Description: DiscordFormatter.FormatAsCodeBlock(DiscordFormatter.TruncateToEmbedField(preview)),
             Fields: fields);
 
         return await feedbackService.SendContextualAsync(embeds:  new[] { embed });

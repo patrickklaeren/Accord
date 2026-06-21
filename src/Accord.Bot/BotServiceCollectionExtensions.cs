@@ -76,6 +76,7 @@ public static class BotServiceCollectionExtensions
             .AddResponder<VoiceStateResponder>()
             .AddResponder<EvalResponder>()
             .AddResponder<GodboltModalSubmitResponder>()
+            .AddResponder<LinkedMessageResponder>()
             .AddResponder<UnknownEventResponder>();
 
         return services;
