@@ -23,10 +23,6 @@ public class RolePermission : Permission
 public enum PermissionType
 {
     ManageFlags = 0,
-    ManageUserReports = 1,
-    ManagePatterns = 2,
-    ListRiskyUsers = 3,
-    BypassRaidCheck = 4,
     ManageHistories = 4,
     AddHistories = 5,
     ManageTags = 6,

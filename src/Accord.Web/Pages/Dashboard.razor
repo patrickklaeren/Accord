@@ -1,47 +1,249 @@
 ﻿@page "/"
 @using Accord.Bot.Services;
+@using Accord.Bot.Helpers;
+@using Accord.Services;
+@using Accord.Services.Helpers;
+@using Accord.Services.Users;
 @using MediatR;
+@using Humanizer;
 @using Accord.Web.DiscordServices
 @inject DiscordUserService DiscordUserService
 @inject IMediator Mediator
+@inject DiscordCache DiscordCache
 
 <PageTitle>Dashboard</PageTitle>
 
 <MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
-    <MudGrid>
-        <MudItem xs="12">
-            <MudPaper Elevation="2" Class="pa-4 d-flex flex-wrap gap-4">
-                <MudAvatar>
-                    <MudImage Src="@_avatarUrl" Width="50"></MudImage>
-                </MudAvatar>
-                <MudText Class="mt-2">Hello, @_nameInGuild</MudText>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8" Elevation="2">
+            <MudText Align="Align.Center">Loading your profile...</MudText>
+        </MudPaper>
+    }
+    else if (_error is not null)
+    {
+        <MudPaper Class="pa-8" Elevation="2">
+            <MudAlert Severity="Severity.Warning">@_error</MudAlert>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudPaper Elevation="2" Class="pa-6 d-flex align-center gap-4">
+                    <MudAvatar Class="flex-shrink-0" Size="Size.Large">
+                        <MudImage Src="@_avatarUrl" Width="64"></MudImage>
+                    </MudAvatar>
+                    <div>
+                        <MudText Typo="Typo.h5">@_displayName</MudText>
+                        <MudText Typo="Typo.body2" Class="text-secondary">@_status</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.h6" Class="mb-4">User Information</MudText>
+                    <div class="mud-table mud-table-dense">
+                        <table>
+                            <tbody>
+                                <tr><td class="font-weight-bold pe-4">ID</td><td>@_userId</td></tr>
+                                <tr><td class="font-weight-bold pe-4">Handle</td><td>@_handle</td></tr>
+                                @if (!string.IsNullOrWhiteSpace(_guildNickname))
+                                {
+                                    <tr><td class="font-weight-bold pe-4">Nickname</td><td>@_guildNickname</td></tr>
+                                }
+                                <tr><td class="font-weight-bold pe-4">Created</td><td>@_createdAt.ToString("g")</td></tr>
+                                @if (_joinedAt is not null)
+                                {
+                                    <tr><td class="font-weight-bold pe-4">Joined</td><td>@_joinedAt.Value.ToString("g")</td></tr>
+                                }
+                                @if (_firstSeen is not null)
+                                {
+                                    <tr><td class="font-weight-bold pe-4">First tracked</td><td>@_firstSeen.Value.ToString("g")</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </MudPaper>
+            </MudItem>
+
+            @if (_trackedUser is not null)
+            {
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Guild Participation</MudText>
+                        <div class="mud-table mud-table-dense">
+                            <table>
+                                <tbody>
+                                    <tr><td class="font-weight-bold pe-4">Rank</td><td>@_trackedUser.ParticipationRank</td></tr>
+                                    <tr><td class="font-weight-bold pe-4">Points</td><td>@_trackedUser.ParticipationPoints</td></tr>
+                                    <tr><td class="font-weight-bold pe-4">Percentile</td><td>@Math.Round(_trackedUser.ParticipationPercentile, 0)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Message Participation</MudText>
+                        <MudText Class="mb-2">
+                            Last 30 days: @_userMessages.Sum(x => x.NumberOfMessages) messages
+                        </MudText>
+                        @if (_mostActiveTextChannel is not null)
+                        {
+                            <MudText>Most active: @_mostActiveTextChannel</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudPaper Elevation="2" Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Voice Participation</MudText>
+                        @if (_userVoiceActivity.Any())
+                        {
+                            <MudText Class="mb-2">
+                                Last 30 days: @TimeSpan.FromMinutes(_userVoiceActivity.Sum(x => x.NumberOfMinutes)).Humanize()
+                            </MudText>
+                            @if (_mostActiveVoiceChannel is not null)
+                            {
+                                <MudText>Most active: @_mostActiveVoiceChannel</MudText>
+                            }
+                        }
+                        else
+                        {
+                            <MudText>Last 30 days: No time spent in voice</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                @if (_history is not null)
+                {
+                    <MudItem xs="12">
+                        <MudPaper Elevation="2" Class="pa-4">
+                            <MudText Typo="Typo.h6" Class="mb-4">History</MudText>
+                            <MudText Class="mb-2">@_history.Total history records</MudText>
+                            <MudText>
+                                @_history.Bans bans, @_history.Kicks kicks,
+                                @_history.Mutes mutes, @_history.Warnings warnings,
+                                @_history.Notes notes
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+                }
+            }
+        </MudGrid>
+    }
 </MudContainer>
 
 @code {
+    private bool _loading = true;
+    private string? _error;
     private string _avatarUrl = null!;
-    private string _nameInGuild = null!;
+    private ulong _userId;
+    private string _displayName = null!;
+    private string _handle = null!;
+    private string? _guildNickname;
+    private string _status = null!;
+    private DateTimeOffset _createdAt;
+    private DateTimeOffset? _joinedAt;
+    private DateTimeOffset? _firstSeen;
+    private UserDto? _trackedUser;
+    private IReadOnlyCollection<UserMessagesInChannelDto> _userMessages = [];
+    private IReadOnlyCollection<UserVoiceMinutesInChannelDto> _userVoiceActivity = [];
+    private UserHistorySummaryDto? _history;
+    private string? _mostActiveTextChannel;
+    private string? _mostActiveVoiceChannel;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
+            return;
+
+        try
         {
             _avatarUrl = DiscordUserService.GetAvatarUrl();
+            _userId = DiscordUserService.GetDiscordId();
 
-            var userId = DiscordUserService.GetDiscordId();
-
-            var memberInGuild = await Mediator.Send(new GetGuildMemberRequest(userId));
+            var memberInGuild = await Mediator.Send(new GetGuildMemberRequest(_userId));
 
             if (memberInGuild.Success)
             {
-                _nameInGuild = memberInGuild.Value!.Nickname ?? memberInGuild.Value.Username;
+                _displayName = memberInGuild.Value!.Nickname ?? memberInGuild.Value.Username;
+                _handle = memberInGuild.Value.Username;
+                _guildNickname = memberInGuild.Value.Nickname;
+                _status = "Active in guild";
+            }
+            else
+            {
+                _status = "Not in guild";
             }
 
-            StateHasChanged();
+            _createdAt = DiscordSnowflakeHelper.ToDateTimeOffset(_userId);
+
+            var profileResponse = await Mediator.Send(new GetUserProfileRequest(_userId));
+
+            if (profileResponse is not null)
+            {
+                _trackedUser = profileResponse.User;
+                _history = profileResponse.HistorySummary;
+                _userMessages = profileResponse.Messages;
+                _userVoiceActivity = profileResponse.VoiceMinutes;
+
+                if (_trackedUser is not null)
+                {
+                    _joinedAt = _trackedUser.JoinedGuildDateTime;
+                    _firstSeen = _trackedUser.FirstSeenDateTime;
+                }
+
+                _mostActiveTextChannel = await GetMostActiveTextChannelName();
+                _mostActiveVoiceChannel = await GetMostActiveVoiceChannelName();
+            }
+
+            _displayName ??= $"User {_userId}";
+        }
+        catch (Exception)
+        {
+            _error = "Could not load profile data.";
         }
 
-        await base.OnAfterRenderAsync(firstRender);
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task<string?> GetMostActiveTextChannelName()
+    {
+        if (!_userMessages.Any())
+            return null;
+
+        var top = _userMessages.OrderByDescending(x => x.NumberOfMessages).First();
+        var name = await GetChannelName(top.DiscordChannelId);
+        return $"{name} ({top.NumberOfMessages} messages)";
+    }
+
+    private async Task<string?> GetMostActiveVoiceChannelName()
+    {
+        if (!_userVoiceActivity.Any())
+            return null;
+
+        var top = _userVoiceActivity.OrderByDescending(x => x.NumberOfMinutes).First();
+        var name = await GetChannelName(top.DiscordChannelId);
+        var duration = TimeSpan.FromMinutes(top.NumberOfMinutes).Humanize();
+        return $"{name} ({duration})";
+    }
+
+    private async Task<string> GetChannelName(ulong channelId)
+    {
+        try
+        {
+            var channels = await DiscordCache.GetGuildChannels();
+            var channel = channels.FirstOrDefault(c => c.ID.Value == channelId);
+            return channel?.Name.HasValue == true ? channel.Name.Value! : $"#{channelId}";
+        }
+        catch
+        {
+            return $"#{channelId}";
+        }
     }
 }
