@@ -33,6 +33,8 @@ services:
       Discord__ClientId: ${DISCORD_CLIENTID}
       Discord__GuildId: ${DISCORD_GUILDID}
       Discord__BotToken: ${DISCORD_BOTTOKEN}
+      Shlink__BaseUrl: ${SHLINK_BASEURL}
+      Shlink__APIKey: ${SHLINK_APIKEY}
 ```
 
 Accord can optionally connect to a C# REPL service, via the REPL module. You can self-host this:
@@ -49,19 +51,30 @@ When using the REPL service, Accord also makes use of a "paste service", in this
 ```yml
   wastebin:
     image: quxfoo/wastebin:latest
-    restart: always
     ports:
       - "8088:8088"
 ```
 
-| Variable | Description |
-|----------------------|-------------|
-| `ConnectionStrings__accord` | Connection string to the PostgreSQL database. |
-| `ReplBaseUrl` | Base URL to the REPL service used by the REPL module. If you do not intend to use this service, set the value to `http://`. Otherwise, configure it to point to the appropriate REPL service endpoint. |
-| `Discord__ClientId` | Client ID of your Discord application. |
-| `Discord__ClientSecret` | Client secret of your Discord application. |
-| `Discord__GuildId` | Guild (server) snowflake ID that the bot will connect to. |
-| `Discord__BotToken` | Bot token of your Discord application. |
+Accord also has a link shortening service via https://github.com/shlinkio/shlink. You can self-host this:
+
+```yml
+  shlink:
+    image: "ghcr.io/shlinkio/shlink:latest"
+    ports:
+      - "8080:8080"
+```
+
+| Variable                    | Description                                                                                                                                                                                                                                                                                          |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ConnectionStrings__accord` | Connection string to the PostgreSQL database.                                                                                                                                                                                                                                                        |
+| `ReplBaseUrl`               | Base URL to the REPL service used by the REPL module. If you do not intend to use this service, set the value to `http://`. Otherwise, configure it to point to the appropriate service endpoint.                                                                                                    |
+| `PasteBaseUrl`              | Base URL to the paste service. If you do not intend to use this service, set the value to `http://`. Otherwise, configure it to point to the appropriate service endpoint. If the REPL service is configured, but no paste service is provided, the REPL service may fail to post results in Discord. |
+| `Discord__ClientId`         | Client ID of your Discord application.                                                                                                                                                                                                                                                               |
+| `Discord__ClientSecret`     | Client secret of your Discord application.                                                                                                                                                                                                                                                           |
+| `Discord__GuildId`          | Guild (server) snowflake ID that the bot will connect to.                                                                                                                                                                                                                                            |
+| `Discord__BotToken`         | Bot token of your Discord application.                                                                                                                                                                                                                                                               |
+| `Shlink__BaseUrl`           | Base URL to the Shlink instance for link shortening. If you do not intend to use this service, set the value to `http://`. Otherwise, configure it to point to the appropriate service endpoint.                                                                                                     |
+| `Shlink__ApiKey`            | API Key generated in your Shlink instance in order for the Rest API to authenticate requests.                                                             |
 
 This bot is intended for **single-guild** usage.
 
