@@ -7,6 +7,7 @@ using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.CodeEvaluation;
+using Accord.Services.Paste;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -68,6 +69,12 @@ builder.Services.AddMudServices();
 builder.Services.AddHttpClient<CSharpReplApiService>(x =>
     {
         x.BaseAddress = new Uri(builder.Configuration["ReplBaseUrl"]!);
+    })
+    .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
+
+builder.Services.AddHttpClient<PasteApiService>(x =>
+    {
+        x.BaseAddress = new Uri(builder.Configuration["PasteBaseUrl"]!);
     })
     .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 

@@ -31,10 +31,10 @@ public static partial class EvalHelper
     
     public static string TruncateToEmbedField(string input)
     {
-        const int MAX_FIELD_LENGTH = 256;
+        const int MAX_FIELD_LENGTH = 252;
         
         return input.Length < MAX_FIELD_LENGTH
             ? input
-            : input[..MAX_FIELD_LENGTH];
+            : input[..MAX_FIELD_LENGTH] + "...";
     }
 }

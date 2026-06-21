@@ -119,20 +119,20 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         return errorEmbed;
     }
 
-    private Embed GetSuccessEmbed(IUser executingUser, EvalResultDto parsedResult)
+    private Embed GetSuccessEmbed(IUser executingUser, ExecuteEvalResultDto evalResult)
     {
         var avatar = thumbnailHelper.GetAvatar(executingUser);
         
-        var consoleOut = parsedResult.ConsoleOut;
-        var hasException = !string.IsNullOrEmpty(parsedResult.Exception);
+        var consoleOut = evalResult.ConsoleOut;
+        var hasException = !string.IsNullOrEmpty(evalResult.Exception);
         var status = hasException ? "failed" : "succeeded";
 
         var fields = new List<EmbedField>();
         
-        if (parsedResult.ReturnValue is not null)
+        if (evalResult.ReturnValue is not null)
         {
-            var title = EvalHelper.TruncateToEmbedField($"Result: {parsedResult.ReturnTypeName}");
-            var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(parsedResult.ReturnValue.ToString()!), "json");
+            var title = EvalHelper.TruncateToEmbedField($"Result: {evalResult.ReturnTypeName}");
+            var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(evalResult.ReturnValue.ToString()!), "json");
             fields.Add(new EmbedField(title, value, false));
         }
 
@@ -145,18 +145,23 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
 
         if (hasException)
         {
-            var exceptionMadeNice = EvalHelper.MakeRawExceptionNiceForDiscordEmbed(parsedResult.Exception!);
-            var title = EvalHelper.TruncateToEmbedField($"Exception: {parsedResult.ExceptionType}");
+            var exceptionMadeNice = EvalHelper.MakeRawExceptionNiceForDiscordEmbed(evalResult.Exception!);
+            var title = EvalHelper.TruncateToEmbedField($"Exception: {evalResult.ExceptionType}");
             var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(exceptionMadeNice), "diff");
             fields.Add(new EmbedField(title, value, false));
         }
 
+        if (!string.IsNullOrWhiteSpace(evalResult.ResultPasteUrl))
+        {
+            fields.Add(new EmbedField("Full output", evalResult.ResultPasteUrl));   
+        }
+        
         var embed = new Embed(Title: $"C# REPL {status}",
             Colour: hasException ? Color.Red : Color.Green,
             Author: new EmbedAuthor(executingUser.Username, IconUrl: avatar.Url),
-            Description: EvalHelper.FormatAsCodeBlock(parsedResult.Code),
+            Description: EvalHelper.FormatAsCodeBlock(evalResult.Code),
             Fields: fields,
-            Footer: new EmbedFooter($"{parsedResult.CompileTime.TotalMilliseconds:F}ms to compile | {parsedResult.ExecutionTime.TotalMilliseconds:F}ms to execute"));
+            Footer: new EmbedFooter($"{evalResult.CompileTime.TotalMilliseconds:F}ms to compile | {evalResult.ExecutionTime.TotalMilliseconds:F}ms to execute"));
         
         return embed;
     }
