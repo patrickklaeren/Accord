@@ -15,7 +15,7 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
-namespace Accord.Bot.Responders.Eval;
+namespace Accord.Bot.Responders;
 
 public class EvalResponder(ThumbnailHelper thumbnailHelper,
     JumpLinkHelper jumpLinkHelper,
@@ -73,7 +73,7 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         var prefix = prefixes.First(x => trimmed.StartsWith(x, StringComparison.OrdinalIgnoreCase));
         
         var expression = trimmed[prefix.Length..].Trim();
-        var sanitised = EvalHelper.Sanitise(expression);
+        var sanitised = Helpers.CodeInDiscordHelper.Sanitise(expression);
 
         try
         {
@@ -131,23 +131,23 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         
         if (evalResult.ReturnValue is not null)
         {
-            var title = EvalHelper.TruncateToEmbedField($"Result: {evalResult.ReturnTypeName}");
-            var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(evalResult.ReturnValue.ToString()!), "json");
+            var title = Helpers.CodeInDiscordHelper.TruncateToEmbedField($"Result: {evalResult.ReturnTypeName}");
+            var value = Helpers.CodeInDiscordHelper.FormatAsCodeBlock(Helpers.CodeInDiscordHelper.TruncateToEmbedField(evalResult.ReturnValue.ToString()!), "json");
             fields.Add(new EmbedField(title, value, false));
         }
 
         if (!string.IsNullOrWhiteSpace(consoleOut))
         {
-            var title = EvalHelper.TruncateToEmbedField("Console Output");
-            var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(consoleOut), "txt");
+            var title = Helpers.CodeInDiscordHelper.TruncateToEmbedField("Console Output");
+            var value = Helpers.CodeInDiscordHelper.FormatAsCodeBlock(Helpers.CodeInDiscordHelper.TruncateToEmbedField(consoleOut), "txt");
             fields.Add(new EmbedField(title, value, false));
         }
 
         if (hasException)
         {
-            var exceptionMadeNice = EvalHelper.MakeRawExceptionNiceForDiscordEmbed(evalResult.Exception!);
-            var title = EvalHelper.TruncateToEmbedField($"Exception: {evalResult.ExceptionType}");
-            var value = EvalHelper.FormatAsCodeBlock(EvalHelper.TruncateToEmbedField(exceptionMadeNice), "diff");
+            var exceptionMadeNice = Helpers.CodeInDiscordHelper.MakeRawExceptionNiceForDiscordEmbed(evalResult.Exception!);
+            var title = Helpers.CodeInDiscordHelper.TruncateToEmbedField($"Exception: {evalResult.ExceptionType}");
+            var value = Helpers.CodeInDiscordHelper.FormatAsCodeBlock(Helpers.CodeInDiscordHelper.TruncateToEmbedField(exceptionMadeNice), "diff");
             fields.Add(new EmbedField(title, value, false));
         }
 
@@ -159,7 +159,7 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         var embed = new Embed(Title: $"C# REPL {status}",
             Colour: hasException ? Color.Red : Color.Green,
             Author: new EmbedAuthor(executingUser.Username, IconUrl: avatar.Url),
-            Description: EvalHelper.FormatAsCodeBlock(evalResult.Code),
+            Description: Helpers.CodeInDiscordHelper.FormatAsCodeBlock(evalResult.Code),
             Fields: fields,
             Footer: new EmbedFooter($"{evalResult.CompileTime.TotalMilliseconds:F}ms to compile | {evalResult.ExecutionTime.TotalMilliseconds:F}ms to execute"));
         

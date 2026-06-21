@@ -3,7 +3,6 @@ using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.Infrastructure;
 using Accord.Bot.Responders;
-using Accord.Bot.Responders.Eval;
 using Accord.Services.CodeEvaluation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,7 +57,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<HelpForumCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
-            .WithCommandGroup<TagCommandGroup>();
+            .WithCommandGroup<TagCommandGroup>()
+            .WithCommandGroup<GodboltCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()
@@ -74,6 +74,7 @@ public static class BotServiceCollectionExtensions
             .AddResponder<TagResponder>()
             .AddResponder<VoiceStateResponder>()
             .AddResponder<EvalResponder>()
+            .AddResponder<GodboltModalSubmitResponder>()
             .AddResponder<UnknownEventResponder>();
 
         return services;

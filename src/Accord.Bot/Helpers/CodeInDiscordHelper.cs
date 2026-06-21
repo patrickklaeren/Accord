@@ -1,9 +1,9 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Accord.Bot.Responders.Eval;
+namespace Accord.Bot.Helpers;
 
-public static partial class EvalHelper
+public static partial class CodeInDiscordHelper
 {
     [GeneratedRegex(@"```([^\s]*)", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex CodeBlockStripperRegex();

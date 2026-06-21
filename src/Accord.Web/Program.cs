@@ -3,10 +3,10 @@ using System.Linq;
 using System.Security.Claims;
 using Accord.Bot;
 using Accord.Bot.HostedServices;
-using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.CodeEvaluation;
+using Accord.Services.Godbolt;
 using Accord.Services.Paste;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
@@ -75,6 +75,12 @@ builder.Services.AddHttpClient<CSharpReplApiService>(x =>
 builder.Services.AddHttpClient<PasteApiService>(x =>
     {
         x.BaseAddress = new Uri(builder.Configuration["PasteBaseUrl"]!);
+    })
+    .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
+
+builder.Services.AddHttpClient<GodboltApiService>(x =>
+    {
+        x.DefaultRequestHeaders.Add("Accept", "text/plain");
     })
     .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 
