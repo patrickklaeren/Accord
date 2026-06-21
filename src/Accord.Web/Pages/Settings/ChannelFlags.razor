@@ -1,0 +1,320 @@
+@page "/settings/channel-flags"
+@using Accord.Bot.Services;
+@using Accord.Bot.Helpers;
+@using Accord.Services.ChannelFlags;
+@using Accord.Services.Permissions;
+@using Accord.Domain.Model;
+@using MediatR;
+@using Remora.Discord.API.Abstractions.Objects;
+@using Accord.Web.DiscordServices
+@inject DiscordUserService DiscordUserService
+@inject IMediator Mediator
+@inject DiscordCache DiscordCache
+@inject ChannelFlagService ChannelFlagService
+@inject UserPermissionService UserPermissionService
+
+<PageTitle>@PageTitleFactory.Title("Channel Flags")</PageTitle>
+
+<MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8" Elevation="2">
+            <MudText Align="Align.Center">Loading...</MudText>
+        </MudPaper>
+    }
+    else if (!_hasPermission)
+    {
+        <MudAlert Severity="Severity.Warning">
+            You need the <strong>ManageFlags</strong> permission to manage channel flags.
+        </MudAlert>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Class="mb-6">Channel Flag Management</MudText>
+
+        <MudPaper Elevation="2" Class="pa-4 mb-6">
+            <MudText Typo="Typo.h6" Class="mb-4">Channels</MudText>
+
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_newChannelId"
+                                  Label="Discord Channel ID"
+                                  Placeholder="123456789012345678"
+                                  Variant="Variant.Outlined"
+                                  Disabled="@_channelSaving" />
+                </MudItem>
+                <MudItem xs="12" sm="3" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="@AddChannel"
+                               Disabled="@IsAddChannelButtonDisabled">
+                        Add Channel
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            @if (_activeChannels.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Class="text-secondary">
+                    Add a channel ID above to view and manage its flags.
+                </MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Class="mb-4 text-secondary">
+                    Toggle flags on or off for each channel.
+                </MudText>
+
+                @if (_activeChannels.Count > 0)
+                {
+                    <div class="mud-table mud-table-dense mud-table-hover" style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="pa-2">Flag</th>
+                                    @foreach (var channelId in _activeChannels)
+                                    {
+                                        <th class="text-center pa-2" style="white-space: nowrap;">
+                                            @GetChannelName(channelId)
+                                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(async () => await RemoveChannel(channelId))" />
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var flagType in _flagTypes)
+                                {
+                                    <tr>
+                                        <td class="pa-2">@FlagDisplayName(flagType)</td>
+                                        @foreach (var channelId in _activeChannels)
+                                        {
+                                            <td class="text-center pa-2">
+                                                <MudSwitch T="bool"
+                                                           Value="@_flagSet.Contains((channelId, flagType))"
+                                                           ValueChanged="@(async (bool v) => await ToggleFlag(channelId, flagType))"
+                                                           Disabled="@_flagSaving.Contains((channelId, flagType))" />
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </MudPaper>
+
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">By Flag Type</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4 text-secondary">
+                All channels currently assigned to each flag.
+            </MudText>
+
+            @foreach (var flagType in _flagTypes)
+            {
+                var channelsWithFlag = _flagSet
+                    .Where(x => x.flag == flagType)
+                    .Select(x => x.channelId)
+                    .ToList();
+
+                <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Class="mr-1" />
+                    @FlagDisplayName(flagType)
+                </MudText>
+
+                @if (channelsWithFlag.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Class="text-secondary ml-4 mb-2">
+                        No channels assigned.
+                    </MudText>
+                }
+                else
+                {
+                    <div class="d-flex flex-wrap gap-2 ml-4 mb-4">
+                        @foreach (var channelId in channelsWithFlag)
+                        {
+                            var cid = channelId;
+                            <MudPaper Class="pa-2 d-flex align-center gap-2" Elevation="1">
+                                <MudText Typo="Typo.body2">@GetChannelName(cid)</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(async () => await RemoveFlagFromChannel(cid, flagType))" />
+                            </MudPaper>
+                        }
+                    </div>
+                }
+            }
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private bool _loading = true;
+    private bool _hasPermission;
+    private ChannelFlagType[] _flagTypes = [];
+    private List<ulong> _activeChannels = [];
+    private HashSet<(ulong channelId, ChannelFlagType flag)> _flagSet = [];
+    private HashSet<(ulong channelId, ChannelFlagType flag)> _flagSaving = [];
+    private Dictionary<ulong, string> _channelNames = [];
+    private bool _channelSaving;
+    private string _newChannelId = string.Empty;
+
+    private bool IsAddChannelButtonDisabled => _channelSaving || string.IsNullOrWhiteSpace(_newChannelId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _flagTypes = Enum.GetValues<ChannelFlagType>();
+
+            var allChannelFlags = await Mediator.Send(new GetAllChannelFlagsRequest());
+            _flagSet = allChannelFlags.Flags
+                .Select(x => (x.DiscordChannelId, x.Type))
+                .ToHashSet();
+
+            foreach (var channelId in _flagSet.Select(x => x.channelId).Distinct())
+            {
+                if (!_channelNames.ContainsKey(channelId))
+                    _channelNames[channelId] = await ResolveChannelName(channelId);
+            }
+
+            var userId = DiscordUserService.GetDiscordId();
+            _hasPermission = await CheckHasManageFlagPermission(userId);
+        }
+        catch
+        {
+            _hasPermission = false;
+        }
+
+        _loading = false;
+    }
+
+    private async Task<bool> CheckHasManageFlagPermission(ulong userId)
+    {
+        var memberResult = await DiscordCache.GetGuildMember(userId);
+        if (!memberResult.IsSuccess)
+            return false;
+
+        var member = memberResult.Entity;
+        var memberRoleIds = member.Roles.Select(r => r.Value).ToHashSet();
+        var allRoles = await DiscordCache.GetGuildRoles();
+
+        var isAdmin = allRoles.Any(r => memberRoleIds.Contains(r.ID.Value) && r.Permissions.HasPermission(DiscordPermission.Administrator));
+
+        if (isAdmin)
+            return true;
+
+        var permissionUser = new PermissionUser(userId, memberRoleIds, false, false);
+        return await UserPermissionService.HasPermission(permissionUser, PermissionType.ManageFlags);
+    }
+
+    private async Task AddChannel()
+    {
+        if (!ulong.TryParse(_newChannelId, out var channelId))
+            return;
+
+        if (_activeChannels.Contains(channelId))
+            return;
+
+        _channelSaving = true;
+
+        try
+        {
+            var name = await ResolveChannelName(channelId);
+            _channelNames[channelId] = name;
+            _activeChannels.Add(channelId);
+            _newChannelId = string.Empty;
+        }
+        finally
+        {
+            _channelSaving = false;
+        }
+    }
+
+    private async Task RemoveChannel(ulong channelId)
+    {
+        _activeChannels.Remove(channelId);
+    }
+
+    private async Task ToggleFlag(ulong channelId, ChannelFlagType flagType)
+    {
+        var key = (channelId, flagType);
+        _flagSaving.Add(key);
+
+        try
+        {
+            if (_flagSet.Contains(key))
+            {
+                await ChannelFlagService.DeleteChannelFlag(channelId, flagType);
+                _flagSet.Remove(key);
+            }
+            else
+            {
+                await ChannelFlagService.AddChannelFlag(channelId, flagType, default);
+                _flagSet.Add(key);
+            }
+        }
+        finally
+        {
+            _flagSaving.Remove(key);
+        }
+    }
+
+    private async Task RemoveFlagFromChannel(ulong channelId, ChannelFlagType flagType)
+    {
+        var key = (channelId, flagType);
+        _flagSaving.Add(key);
+
+        try
+        {
+            await ChannelFlagService.DeleteChannelFlag(channelId, flagType);
+            _flagSet.Remove(key);
+        }
+        finally
+        {
+            _flagSaving.Remove(key);
+        }
+    }
+
+    private string GetChannelName(ulong channelId)
+    {
+        if (_channelNames.TryGetValue(channelId, out var name))
+            return name;
+
+        return $"#{channelId}";
+    }
+
+    private async Task<string> ResolveChannelName(ulong channelId)
+    {
+        try
+        {
+            var channels = await DiscordCache.GetGuildChannels();
+            var channel = channels.FirstOrDefault(c => c.ID.Value == channelId);
+            if (channel?.Name.HasValue == true && !string.IsNullOrWhiteSpace(channel.Name.Value))
+                return $"#{channel.Name.Value}";
+        }
+        catch
+        {
+            // fall through
+        }
+
+        return $"#{channelId}";
+    }
+
+    private static string FlagDisplayName(ChannelFlagType type) => type switch
+    {
+        ChannelFlagType.IgnoredFromXp => "Ignored From XP",
+        ChannelFlagType.JoinLeaveLogs => "Join/Leave Logs",
+        ChannelFlagType.UserUpdateLogs => "User Update Logs",
+        ChannelFlagType.UserHistoryLogs => "User History Logs",
+        ChannelFlagType.RaidLogs => "Raid Logs",
+        ChannelFlagType.VoiceLogs => "Voice Logs",
+        ChannelFlagType.BotLogs => "Bot Logs",
+        ChannelFlagType.TimeOutLogs => "Time Out Logs",
+        _ => type.ToString()
+    };
+}
