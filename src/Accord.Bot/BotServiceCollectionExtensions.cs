@@ -58,7 +58,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
             .WithCommandGroup<TagCommandGroup>()
-            .WithCommandGroup<GodboltCommandGroup>();
+            .WithCommandGroup<GodboltCommandGroup>()
+            .WithCommandGroup<LinkShortnerCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()

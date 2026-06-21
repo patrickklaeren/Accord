@@ -45,6 +45,10 @@ var discordCdnBaseUrl = builder.AddParameter(
     value: "https://cdn.discordapp.com",
     publishValueAsDefault: true);
 
+var shlinkApiKey = builder.AddParameter(
+    name: "shlink-api-key",
+    secret: true);
+
 builder
     .AddDockerComposeEnvironment("compose")
     .WithDashboard(false);
@@ -54,24 +58,41 @@ var postgres = builder
     .WithImageTag("18.4")
     .WithDataVolume("accord-postgres-data")
     .WithLifetime(ContainerLifetime.Persistent)
-    .WithPgAdmin()
-    .AddDatabase("accord");
+    .WithPgAdmin();
+
+var accordDatabase = postgres.AddDatabase("accord");
+var shlinkDatabase = postgres.AddDatabase("shlink");
 
 var repl = builder
-    .AddContainer("repl", "ghcr.io/discord-csharp/csharprepl", "latest")
+    .AddContainer("repl-app", "ghcr.io/discord-csharp/csharprepl", "latest")
     .WithEnvironment("ASPNETCORE_URLS", "http://+:31337")
     .WithHttpEndpoint(port: 31337, targetPort: 31337, name: "http");
 
 var paste = builder
-    .AddContainer("paste", "quxfoo/wastebin", "latest")
+    .AddContainer("paste-app", "quxfoo/wastebin", "latest")
     .WithHttpEndpoint(port: 8088, targetPort: 8088, name: "http");
 
+var shlink = builder
+    .AddContainer("shlink-app", "ghcr.io/shlinkio/shlink", "latest")
+    .WithReference(shlinkDatabase)
+    .WaitFor(shlinkDatabase)
+    .WithEnvironment("DEFAULT_DOMAIN", "localhost:8089")
+    .WithEnvironment("IS_HTTPS_ENABLED", "false")
+    .WithEnvironment("DB_DRIVER", "postgres")
+    .WithEnvironment("DB_PASSWORD", postgresPassword)
+    .WithEnvironment("DB_USER", postgres.Resource.UserNameReference)
+    .WithEnvironment("DB_PORT", postgres.Resource.Port)
+    .WithEnvironment("DB_HOST", postgres.Resource.Host)
+    .WithEnvironment("INITIAL_API_KEY", shlinkApiKey)
+    .WithHttpEndpoint(port: 8089, targetPort: 8080, name: "http");
+
 builder
-    .AddProject<Projects.Accord_Web>("web")
-    .WithReference(postgres)
-    .WaitFor(postgres)
+    .AddProject<Projects.Accord_Web>("app")
+    .WithReference(accordDatabase)
+    .WaitFor(accordDatabase)
     .WaitFor(paste)
     .WaitFor(repl)
+    .WaitFor(shlink)
     .WithEnvironment("Sentry__Dsn", sentryDsn)
     .WithEnvironment("Sentry__Environment", sentryEnvironment)
     .WithEnvironment("Discord__BotToken", discordBotToken)
@@ -82,6 +103,8 @@ builder
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
     .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
     .WithEnvironment("PasteBaseUrl", paste.GetEndpoint("http"))
-    .PublishAsDockerComposeService((_, service) => service.Name = "web");
+    .WithEnvironment("Shlink__BaseUrl", shlink.GetEndpoint("http"))
+    .WithEnvironment("Shlink__ApiKey", shlinkApiKey)
+    .PublishAsDockerComposeService((_, service) => service.Name = "app");
 
 builder.Build().Run();

@@ -8,6 +8,7 @@ using Accord.Services;
 using Accord.Services.CodeEvaluation;
 using Accord.Services.Godbolt;
 using Accord.Services.Paste;
+using Accord.Services.Shlink;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -81,6 +82,13 @@ builder.Services.AddHttpClient<PasteApiService>(x =>
 builder.Services.AddHttpClient<GodboltApiService>(x =>
     {
         x.DefaultRequestHeaders.Add("Accept", "text/plain");
+    })
+    .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
+
+builder.Services.AddHttpClient<ShlinkApiService>(x =>
+    {
+        x.BaseAddress = new Uri(builder.Configuration["Shlink:BaseUrl"]!);
+        x.DefaultRequestHeaders.Add("X-Api-Key", builder.Configuration["Shlink:ApiKey"]);
     })
     .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 

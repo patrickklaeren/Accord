@@ -23,6 +23,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
     <PackageVersion Include="MudBlazor" Version="9.5.0" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="protobuf-net" Version="3.2.56" />
     <PackageVersion Include="Remora.Discord" Version="2026.1.0" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
     <PackageVersion Include="TimeSpanParserUtil" Version="1.2.0" />
