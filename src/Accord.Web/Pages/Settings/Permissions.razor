@@ -1,0 +1,293 @@
+@page "/settings/permissions"
+@using Accord.Bot.Services;
+@using Accord.Bot.Helpers;
+@using Accord.Services.Permissions;
+@using Accord.Domain.Model;
+@using MediatR;
+@using Remora.Discord.API.Abstractions.Objects;
+@using Accord.Web.DiscordServices
+@inject DiscordUserService DiscordUserService
+@inject IMediator Mediator
+@inject DiscordCache DiscordCache
+
+<PageTitle>@PageTitleFactory.Title("Permissions")</PageTitle>
+
+<MudContainer Class="mt-8 px-8" MaxWidth="MaxWidth.False">
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8" Elevation="2">
+            <MudText Align="Align.Center">Loading...</MudText>
+        </MudPaper>
+    }
+    else if (!_isAdmin)
+    {
+        <MudAlert Severity="Severity.Warning">
+            You need <strong>Administrator</strong> access in the guild to manage permissions.
+        </MudAlert>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Class="mb-6">Permission Management</MudText>
+
+        <MudPaper Elevation="2" Class="pa-4 mb-6">
+            <MudText Typo="Typo.h6" Class="mb-4">Role Permissions</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4 text-secondary">
+                Toggle permissions on or off for each guild role.
+            </MudText>
+            <div class="mud-table mud-table-dense mud-table-hover">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="pa-2">Permission</th>
+                            @foreach (var role in _guildRoles)
+                            {
+                                <th class="text-center pa-2">@RoleDisplayName(role)</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var permType in _permissionTypes)
+                        {
+                            <tr>
+                                <td class="pa-2">@PermissionDisplayName(permType)</td>
+                                @foreach (var role in _guildRoles)
+                                {
+                                    <td class="text-center pa-2">
+                                        <MudSwitch T="bool"
+                                                   Value="@_rolePermissionSet.Contains((role.ID.Value, permType))"
+                                                   ValueChanged="@(async (bool v) => await ToggleRolePermission(role.ID.Value, permType))"
+                                                   Disabled="@_roleSaving.Contains((role.ID.Value, permType))" />
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">User Permission Overrides</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4 text-secondary">
+                Assign or revoke permissions for specific users.
+            </MudText>
+
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_newUserId"
+                                  Label="Discord User ID"
+                                  Placeholder="123456789012345678"
+                                  Variant="Variant.Outlined"
+                                  Disabled="@_userSaving" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect @bind-Value="_newUserPermission"
+                               Label="Permission"
+                               Variant="Variant.Outlined"
+                               Disabled="@_userSaving">
+                        @foreach (var pt in _permissionTypes)
+                        {
+                            <MudSelectItem Value="@pt">@PermissionDisplayName(pt)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="@AddUserPermission"
+                               Disabled="@IsAddUserButtonDisabled">
+                        Add Override
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            @if (_userOverrides.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Class="text-secondary">No user permission overrides configured.</MudText>
+            }
+            else
+            {
+                <div class="mud-table mud-table-dense mud-table-hover">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="pa-2">User ID</th>
+                                <th class="pa-2">Username</th>
+                                <th class="pa-2">Permission</th>
+                                <th class="pa-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var perm in _userOverrides)
+                            {
+                                <tr>
+                                    <td class="pa-2">@perm.UserId</td>
+                                    <td class="pa-2">@_userNameCache.GetValueOrDefault(perm.UserId, perm.UserId.ToString())</td>
+                                    <td class="pa-2">@PermissionDisplayName(perm.Type)</td>
+                                    <td class="pa-2">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Size="Size.Small"
+                                                       Color="Color.Error"
+                                                       OnClick="@(async () => await RemoveUserPermission(perm))"
+                                                       Disabled="@_userSaving" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private bool _loading = true;
+    private bool _isAdmin;
+    private PermissionType[] _permissionTypes = [];
+    private IReadOnlyList<IRole> _guildRoles = [];
+    private HashSet<(ulong roleId, PermissionType type)> _rolePermissionSet = [];
+    private HashSet<(ulong roleId, PermissionType type)> _roleSaving = [];
+    private List<UserPermissionDto> _userOverrides = [];
+    private bool _userSaving;
+    private string _newUserId = string.Empty;
+    private PermissionType _newUserPermission = PermissionType.ManageFlags;
+    private Dictionary<ulong, string> _userNameCache = [];
+
+    private bool IsAddUserButtonDisabled => _userSaving || string.IsNullOrWhiteSpace(_newUserId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _permissionTypes = Enum.GetValues<PermissionType>();
+            _guildRoles = await DiscordCache.GetGuildRoles();
+
+            var userId = DiscordUserService.GetDiscordId();
+            _isAdmin = await CheckIsAdmin(userId);
+
+            if (_isAdmin)
+            {
+                var allPerms = await Mediator.Send(new GetAllPermissionsRequest());
+                _rolePermissionSet = allPerms.RolePermissions
+                    .Select(x => (x.RoleId, x.Type))
+                    .ToHashSet();
+                _userOverrides = allPerms.UserPermissions.ToList();
+                await LoadUserNames();
+            }
+        }
+        catch
+        {
+            _isAdmin = false;
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadUserNames()
+    {
+        foreach (var perm in _userOverrides)
+        {
+            if (!_userNameCache.ContainsKey(perm.UserId))
+            {
+                var member = await Mediator.Send(new GetGuildMemberRequest(perm.UserId));
+                if (member.Success)
+                {
+                    _userNameCache[perm.UserId] = member.Value!.Nickname ?? member.Value.Username;
+                }
+                else
+                {
+                    _userNameCache[perm.UserId] = perm.UserId.ToString();
+                }
+            }
+        }
+    }
+
+    private async Task<bool> CheckIsAdmin(ulong userId)
+    {
+        var memberResult = await DiscordCache.GetGuildMember(userId);
+        if (!memberResult.IsSuccess)
+            return false;
+
+        var member = memberResult.Entity;
+        var memberRoleIds = member.Roles.Select(r => r.Value).ToHashSet();
+        var allRoles = await DiscordCache.GetGuildRoles();
+        return allRoles.Any(r => memberRoleIds.Contains(r.ID.Value) && r.Permissions.HasPermission(DiscordPermission.Administrator));
+    }
+
+    private async Task ToggleRolePermission(ulong roleId, PermissionType type)
+    {
+        var key = (roleId, type);
+        _roleSaving.Add(key);
+
+        try
+        {
+            if (_rolePermissionSet.Contains(key))
+            {
+                await Mediator.Send(new RemovePermissionForRoleRequest(roleId, type));
+                _rolePermissionSet.Remove(key);
+            }
+            else
+            {
+                await Mediator.Send(new AddPermissionForRoleRequest(roleId, type));
+                _rolePermissionSet.Add(key);
+            }
+        }
+        finally
+        {
+            _roleSaving.Remove(key);
+        }
+    }
+
+    private async Task AddUserPermission()
+    {
+        if (!ulong.TryParse(_newUserId, out var userId))
+            return;
+
+        _userSaving = true;
+
+        try
+        {
+            await Mediator.Send(new AddPermissionForUserRequest(userId, _newUserPermission));
+            _userOverrides.Add(new UserPermissionDto(userId, _newUserPermission));
+            _userNameCache[userId] = userId.ToString();
+            _newUserId = string.Empty;
+        }
+        finally
+        {
+            _userSaving = false;
+        }
+    }
+
+    private async Task RemoveUserPermission(UserPermissionDto perm)
+    {
+        _userSaving = true;
+
+        try
+        {
+            await Mediator.Send(new RemovePermissionForUserRequest(perm.UserId, perm.Type));
+            _userOverrides.Remove(perm);
+            _userNameCache.Remove(perm.UserId);
+        }
+        finally
+        {
+            _userSaving = false;
+        }
+    }
+
+    private static string PermissionDisplayName(PermissionType type) => type switch
+    {
+        PermissionType.ManageFlags => "Manage Flags",
+        PermissionType.ManageHistories => "Manage Histories",
+        PermissionType.AddHistories => "Add Histories",
+        PermissionType.ManageTags => "Manage Tags",
+        PermissionType.CreateShortUrls => "Create Short URLs",
+        _ => type.ToString()
+    };
+
+    private static string RoleDisplayName(IRole role)
+    {
+        var name = role.Name;
+        return string.IsNullOrWhiteSpace(name) ? $"#{role.ID.Value}" : name;
+    }
+}

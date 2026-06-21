@@ -55,6 +55,30 @@ public class UserPermissionService(AccordContext db)
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RemovePermissionFromRole(ulong discordRoleId, PermissionType permission, CancellationToken ct)
+    {
+        var entity = await db.RolePermissions
+            .FirstOrDefaultAsync(x => x.RoleId == discordRoleId && x.Type == permission, ct);
+
+        if (entity is null)
+            return;
+
+        db.Remove(entity);
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task RemovePermissionFromUser(ulong discordUserId, PermissionType permission, CancellationToken ct)
+    {
+        var entity = await db.UserPermissions
+            .FirstOrDefaultAsync(x => x.UserId == discordUserId && x.Type == permission, ct);
+
+        if (entity is null)
+            return;
+
+        db.Remove(entity);
+        await db.SaveChangesAsync(ct);
+    }
+
     private async Task<List<PermissionType>> GetPermissionsForUser(PermissionUser user)
     {
         return await db.Permissions
