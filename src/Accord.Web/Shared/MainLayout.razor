@@ -17,6 +17,9 @@
             <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
         </MudMenu>
     </MudAppBar>
+    <MudDrawer Open="@_drawerOpen" Variant="DrawerVariant.Responsive">
+        <Menu />
+    </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
