@@ -28,6 +28,7 @@ services:
     environment:
       ConnectionStrings__accord: ${CONNECTIONSTRINGS_DATABASE}
       ReplBaseUrl: ${REPLBASEURL}
+      PasteBaseUrl: ${PASTEBASEURL}
       Discord__ClientSecret: ${DISCORD_CLIENTID}
       Discord__ClientId: ${DISCORD_CLIENTID}
       Discord__GuildId: ${DISCORD_GUILDID}
@@ -43,6 +44,16 @@ Accord can optionally connect to a C# REPL service, via the REPL module. You can
       - ASPNETCORE_URLS=http://+:31337
 ```
 
+When using the REPL service, Accord also makes use of a "paste service", in this case: https://github.com/matze/wastebin. You can self-host this:
+
+```yml
+  wastebin:
+    image: quxfoo/wastebin:latest
+    restart: always
+    ports:
+      - "8088:8088"
+```
+
 | Variable | Description |
 |----------------------|-------------|
 | `ConnectionStrings__accord` | Connection string to the PostgreSQL database. |
@@ -53,3 +64,11 @@ Accord can optionally connect to a C# REPL service, via the REPL module. You can
 | `Discord__BotToken` | Bot token of your Discord application. |
 
 This bot is intended for **single-guild** usage.
+
+## Credits
+
+Notable dependencies for this project include:
+- [Remora](https://github.com/Nihlus/Remora.Discord)
+- [MediatR](https://github.com/jbogard/MediatR)
+- [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
+- [Npgsql EF Core Provider](https://www.npgsql.org/efcore/)
