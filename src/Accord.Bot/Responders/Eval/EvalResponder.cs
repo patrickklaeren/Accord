@@ -153,7 +153,7 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
 
         if (!string.IsNullOrWhiteSpace(evalResult.ResultPasteUrl))
         {
-            fields.Add(new EmbedField("Full output", evalResult.ResultPasteUrl));   
+            fields.Add(new EmbedField("Full output", $"[Click here]({evalResult.ResultPasteUrl})"));   
         }
         
         var embed = new Embed(Title: $"C# REPL {status}",
