@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Linq;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.Infrastructure;
+using Accord.Bot.Responders;
 using Accord.Bot.Responders.Eval;
+using Accord.Services.CodeEvaluation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -44,12 +45,6 @@ public static class BotServiceCollectionExtensions
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
             .AddParser<TimeSpanParser>();
 
-        services.AddHttpClient("repl", x =>
-        {
-            x.BaseAddress = new Uri(configuration["ReplBaseUrl"]!);
-        })
-        .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
-
         services
             .AddPagination()
             .AddCommandTree()
@@ -65,14 +60,21 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<NoteCommandGroup>()
             .WithCommandGroup<TagCommandGroup>();
 
-        var responderTypes = typeof(BotClient).Assembly
-            .GetExportedTypes()
-            .Where(t => t.IsResponder());
-
-        foreach (var responderType in responderTypes)
-        {
-            services.AddResponder(responderType);
-        }
+        services
+            .AddResponder<ChannelUpdateResponder>()
+            .AddResponder<GuildUpdateResponder>()
+            .AddResponder<MemberJoinLeaveResponder>()
+            .AddResponder<MemberUpdateResponder>()
+            .AddResponder<MessageCreateDeleteResponder>()
+            .AddResponder<ModerationActionResponder>()
+            .AddResponder<ReactionResponder>()
+            .AddResponder<ReadyResponder>()
+            .AddResponder<RoleUpdateResponder>()
+            .AddResponder<TagModalSubmitResponder>()
+            .AddResponder<TagResponder>()
+            .AddResponder<VoiceStateResponder>()
+            .AddResponder<EvalResponder>()
+            .AddResponder<UnknownEventResponder>();
 
         return services;
     }

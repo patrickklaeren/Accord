@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Security.Claims;
 using Accord.Bot;
@@ -5,6 +6,7 @@ using Accord.Bot.HostedServices;
 using Accord.Bot.Infrastructure;
 using Accord.Domain;
 using Accord.Services;
+using Accord.Services.CodeEvaluation;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -15,6 +17,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using Polly;
+using Polly.Extensions.Http;
 using Sentry;
 
 var builder = WebApplication
@@ -50,7 +54,7 @@ builder.Services
         options.ClientSecret = builder.Configuration["Discord:ClientSecret"]!;
         options.SaveTokens = true;
         options.AccessDeniedPath = "/welcome";
-        
+
         options.Scope.Add("identify");
 
         options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id", ClaimValueTypes.UInteger64);
@@ -60,6 +64,12 @@ builder.Services
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
+
+builder.Services.AddHttpClient<CSharpReplApiService>(x =>
+    {
+        x.BaseAddress = new Uri(builder.Configuration["ReplBaseUrl"]!);
+    })
+    .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 
 if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 {

@@ -60,15 +60,17 @@ var postgres = builder
 var repl = builder
     .AddContainer("repl", "ghcr.io/discord-csharp/csharprepl", "latest")
     .WithEnvironment("ASPNETCORE_URLS", "http://+:31337")
-    .WithHttpEndpoint(
-        port: 31337,
-        targetPort: 31337,
-        name: "http");
+    .WithHttpEndpoint(port: 31337, targetPort: 31337, name: "http");
+
+var paste = builder
+    .AddContainer("paste", "quxfoo/wastebin", "latest")
+    .WithHttpEndpoint(port: 8088, targetPort: 8088, name: "http");
 
 builder
     .AddProject<Projects.Accord_Web>("web")
     .WithReference(postgres)
     .WaitFor(postgres)
+    .WaitFor(paste)
     .WaitFor(repl)
     .WithEnvironment("Sentry__Dsn", sentryDsn)
     .WithEnvironment("Sentry__Environment", sentryEnvironment)
@@ -79,6 +81,7 @@ builder
     .WithEnvironment("Discord__HelpForumChannelId", discordHelpForumChannelId)
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
     .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
+    .WithEnvironment("PasteBaseUrl", paste.GetEndpoint("http"))
     .PublishAsDockerComposeService((_, service) => service.Name = "web");
 
 builder.Build().Run();

@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Services.CodeEvaluation;
 using Accord.Services.UserBotMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -22,8 +19,7 @@ namespace Accord.Bot.Responders.Eval;
 
 public class EvalResponder(ThumbnailHelper thumbnailHelper,
     JumpLinkHelper jumpLinkHelper,
-    IDiscordRestChannelAPI channelApi, 
-    IHttpClientFactory httpClientFactory,
+    IDiscordRestChannelAPI channelApi,
     IMediator mediator) : IResponder<IMessageCreate>
 {
     private const string COMMAND_ONE = "!eval";
@@ -81,25 +77,15 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
 
         try
         {
-            var client = httpClientFactory.CreateClient("repl");
-            var response = await client.PostAsync("Eval", new StringContent(sanitised, Encoding.UTF8, "text/plain"));
+            var replResult = await mediator.Send(new ExecuteEvalRequest(sanitised));
 
-            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadRequest)
+            if (!replResult.Success)
             {
-                await RespondWithErrorEmbed($"The request failed with a status code of {(int)response.StatusCode} ({response.ReasonPhrase})");
-                return;
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var replResult = JsonSerializer.Deserialize<ReplResult>(responseContent);
-
-            if (replResult is null)
-            {
-                await RespondWithErrorEmbed("The response did not deserialise into a known type");
+                await RespondWithErrorEmbed(replResult.ErrorMessage);
                 return;
             }
             
-            var successEmbed = GetSuccessEmbed(executingUser, replResult);
+            var successEmbed = GetSuccessEmbed(executingUser, replResult.Value!);
             await channelApi.EditMessageAsync(workingMessage.ChannelID, workingMessage.ID, embeds: new[] { successEmbed });
         }
         catch (Exception ex)
@@ -133,7 +119,7 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         return errorEmbed;
     }
 
-    private Embed GetSuccessEmbed(IUser executingUser, ReplResult parsedResult)
+    private Embed GetSuccessEmbed(IUser executingUser, EvalResultDto parsedResult)
     {
         var avatar = thumbnailHelper.GetAvatar(executingUser);
         

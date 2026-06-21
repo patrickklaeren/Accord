@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Text.Json.Serialization;
 
-namespace Accord.Bot.Responders.Eval;
+namespace Accord.Services.CodeEvaluation;
 
-public class ReplResult
+internal class CSharpReplApiResult
 {
     [JsonPropertyName("returnTypeName")]
     public string? ReturnTypeName { get; set; }

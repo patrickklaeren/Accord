@@ -6,7 +6,7 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class UnknownHandler : IResponder<IUnknownEvent>
+public class UnknownEventResponder : IResponder<IUnknownEvent>
 {
     public Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new CancellationToken())
     {
