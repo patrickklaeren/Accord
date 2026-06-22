@@ -14,6 +14,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Pagination.Extensions;
 using Remora.Results;
@@ -28,6 +29,38 @@ public class HistoryCommandGroup(ICommandContext commandContext,
     ThumbnailHelper thumbnailHelper) 
     : AccordCommandGroup
 {
+    [Command("get"), Description("Get a single history record")]
+    public async Task<IResult> Get(int noteId)
+    {
+        var history = await mediator.Send(new GetUserHistoryRequest(noteId));
+
+        if (history is null)
+        {
+            return await feedbackService.SendContextualAsync($"Record #{noteId:0000} not found");
+        }
+        
+        var addedByMention = DiscordFormatter.UserIdToMention(history.AddedByUserId);
+        var againstMention = DiscordFormatter.UserIdToMention(history.TargetUserId);
+        var timestamp = history.AddedDateTime.ToTimeMarkdown();
+
+        var fields = new List<IEmbedField>
+        {
+            new EmbedField("Against", againstMention),
+            new EmbedField(" By", $"{addedByMention} on {timestamp}")
+        };
+
+        var embed = new Embed(
+            Title: $"{history.Type.Humanize()} #{noteId:0000}",
+            Description: history.Content,
+            Fields: fields
+        );
+
+        await feedbackService.SendContextualAsync(embeds: new[] { embed },
+            options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>())));
+
+        return Result.FromSuccess();
+    }
+    
     [Command("delete"), Description("Delete a note from history")]
     public async Task<IResult> Delete(int noteId)
     {
@@ -59,7 +92,8 @@ public class HistoryCommandGroup(ICommandContext commandContext,
 
         return await feedbackService.SendContextualPaginatedMessageAsync(
             proxy.UserId,
-            pages
+            pages, 
+            options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()))
         );
     }
 

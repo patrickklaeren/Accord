@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
@@ -8,10 +9,12 @@ using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
@@ -38,9 +41,10 @@ public class NoteCommandGroup(ICommandContext commandContext,
         ));
 
         var targetUserMention = user.ID.ToUserMention();
-        
+
         await response.GetAction(
-            async () => await feedbackService.SendContextualAsync($"Note #{response.Value:0000} added to {targetUserMention}'s history"),
+            async () => await feedbackService.SendContextualAsync($"Note #{response.Value:0000} added to {targetUserMention}'s history", 
+                options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()))),
             async () => await feedbackService.SendContextualAsync(response.ErrorMessage)
         );
 
@@ -66,7 +70,8 @@ public class NoteCommandGroup(ICommandContext commandContext,
         var targetUserMention = user.ID.ToUserMention();
 
         await response.GetAction(
-            async () => await feedbackService.SendContextualAsync($"Warning #{response.Value:0000} added to {targetUserMention}'s history"),
+            async () => await feedbackService.SendContextualAsync($"Warning #{response.Value:0000} added to {targetUserMention}'s history", 
+                options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()))),
             async () => await feedbackService.SendContextualAsync(response.ErrorMessage)
         );
 
