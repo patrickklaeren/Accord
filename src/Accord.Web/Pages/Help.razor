@@ -1,0 +1,431 @@
+@page "/help"
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    <MudPaper Class="hero-section d-flex flex-column align-center justify-center" Elevation="0">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="text-center py-16">
+            <MudText Typo="Typo.h2" Class="hero-title mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.HelpOutline" Size="Size.Large" Class="mr-2" />
+                Commands
+            </MudText>
+            <MudText Typo="Typo.h6" Class="hero-subtitle mb-2">
+                All Accord bot commands and how to use them.
+            </MudText>
+            <MudText Typo="Typo.body1" Class="hero-subtitle mb-8" Style="opacity: 0.8;">
+                Use <MudText Typo="Typo.body1" Class="command-inline" Style="display: inline;">/help</MudText> to get linked back here any time.
+            </MudText>
+        </MudContainer>
+    </MudPaper>
+
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-12 px-6">
+        <MudExpansionPanels Class="mb-8" MultiExpansion="true">
+            @foreach (var group in _commandGroups)
+            {
+                <MudExpansionPanel Class="command-group-panel">
+                    <TitleContent>
+                        <MudText Typo="Typo.h6" Class="d-flex align-center">
+                            <MudIcon Icon="@group.Icon" Size="Size.Small" Class="mr-2" Color="Color.Primary" />
+                            @group.Name
+                            <MudChip T="string" Size="Size.Small" Class="ml-4" Color="Color.Primary">@group.Commands.Count commands</MudChip>
+                        </MudText>
+                    </TitleContent>
+                    <ChildContent>
+                        <div class="pa-4">
+                        @if (!string.IsNullOrEmpty(group.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-4 text-secondary">@group.Description</MudText>
+                        }
+                        @foreach (var cmd in group.Commands)
+                        {
+                            <MudPaper Elevation="1" Class="command-card pa-4 mb-3">
+                                <div class="d-flex align-center flex-wrap mb-2">
+                                    <MudText Typo="Typo.subtitle2" Class="command-name mr-4">
+                                        <code class="command-code">@cmd.Usage</code>
+                                    </MudText>
+                                    <div class="d-flex gap-2">
+                                        @if (cmd.IsAdmin)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="chip-badge">Admin</MudChip>
+                                        }
+                                        @if (cmd.IsEphemeral)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="chip-badge">Private</MudChip>
+                                        }
+                                        @if (cmd.IsModal)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Class="chip-badge">Interactive</MudChip>
+                                        }
+                                    </div>
+                                </div>
+                                <MudText Typo="Typo.body2" Class="mb-2">@cmd.Description</MudText>
+                                @if (cmd.Parameters.Count > 0)
+                                {
+                                    <div class="params-table">
+                                        <MudText Typo="Typo.caption" Class="text-secondary mb-1">Parameters:</MudText>
+                                        @foreach (var param in cmd.Parameters)
+                                        {
+                                            <div class="param-row d-flex align-center mb-1">
+                                                <code class="param-name">@param.Name</code>
+                                                <MudText Typo="Typo.caption" Class="param-type ml-2">@param.Type</MudText>
+                                                @if (param.IsOptional)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Class="optional-chip ml-2">optional</MudChip>
+                                                }
+                                                @if (param.IsGreedy)
+                                                {
+                                                    <MudChip T="string" Size="Size.Small" Class="greedy-chip ml-2">rest of input</MudChip>
+                                                }
+                                                <MudText Typo="Typo.body2" Class="param-desc ml-4">@param.Description</MudText>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </MudPaper>
+                        }
+                    </div>
+                    </ChildContent>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    </MudContainer>
+</MudContainer>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #003d32 0%, #005c4b 50%, #007e68 100%);
+        min-height: 40vh;
+        color: white;
+    }
+    .hero-title {
+        font-weight: 700;
+    }
+    .hero-subtitle {
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+    .command-inline {
+        font-weight: 600;
+        background: rgba(255,255,255,0.15);
+        padding: 0 8px;
+        border-radius: 4px;
+    }
+    .command-group-panel {
+        margin-bottom: 12px;
+        border-radius: 8px !important;
+    }
+    .command-card {
+        border-left: 3px solid #007e68;
+        border-radius: 6px;
+    }
+    .command-name {
+        font-size: 0.95rem;
+    }
+    .command-code {
+        background: #1e1e2e;
+        color: #7ec699;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    .chip-badge {
+        font-size: 0.7rem;
+        height: 20px;
+    }
+    .params-table {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: rgba(0,0,0,0.03);
+        border-radius: 6px;
+    }
+    .param-row {
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+    .param-name {
+        background: #2d2d3f;
+        color: #e6db74;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.8rem;
+    }
+    .param-type {
+        color: #66d9ef;
+        font-size: 0.75rem;
+    }
+    .param-desc {
+        font-size: 0.85rem;
+    }
+    .optional-chip, .greedy-chip {
+        font-size: 0.65rem;
+        height: 18px;
+    }
+    .gap-2 {
+        gap: 8px;
+    }
+</style>
+
+@code {
+    private List<CommandGroup> _commandGroups = [];
+
+    protected override void OnInitialized()
+    {
+        _commandGroups =
+        [
+            new CommandGroup("Profile & Participation", @Icons.Material.Filled.Person,
+                "View user profiles and server participation statistics.")
+            {
+                Commands =
+                [
+                    new Command("/profile", "Get your profile or another user's profile", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("userToLookup", "IUser", "User to look up (optional, defaults to yourself)", true, false)
+                        ]
+                    },
+                    new Command("/leaderboard", "Get a leaderboard of XP and participation points", false, false, false),
+                    new Command("/calculate-xp", "Recalculate XP for all users", true, true, false),
+                ]
+            },
+            new CommandGroup("Reminders", @Icons.Material.Filled.Notifications,
+                "Set, list, and manage personal reminders.")
+            {
+                Commands =
+                [
+                    new Command("/remind me", "Add a reminder for yourself", false, false, true)
+                    {
+                        Parameters =
+                        [
+                            new Param("timeSpan", "TimeSpan", "When to be reminded (e.g. 1h, 30m)", false, false),
+                            new Param("message", "string", "Reminder message content", false, false)
+                        ]
+                    },
+                    new Command("/remind list", "List your pending reminders", false, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("page", "int", "Page number (default: 1)", true, false)
+                        ]
+                    },
+                    new Command("/remind delete", "Delete one of your reminders", false, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("reminderId", "int", "ID of the reminder to delete", false, false)
+                        ]
+                    },
+                    new Command("/remind delete-all", "Delete all your reminders", false, true, false),
+                    new Command("/remind list-user", "List another user's reminders", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("member", "IGuildMember", "User to look up", false, false),
+                            new Param("page", "int", "Page number (default: 1)", true, false)
+                        ]
+                    },
+                    new Command("/remind delete-user", "Delete a specific user's reminder", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("guildMember", "IGuildMember", "User whose reminder to delete", false, false),
+                            new Param("reminderId", "int", "ID of the reminder to delete", false, false)
+                        ]
+                    },
+                    new Command("/remind delete-user-all", "Delete all reminders for a user", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("guildMember", "IGuildMember", "User whose reminders to clear", false, false)
+                        ]
+                    },
+                ]
+            },
+            new CommandGroup("Tags", @Icons.Material.Filled.Bookmark,
+                "Create, edit, search, and manage reusable content tags.")
+            {
+                Commands =
+                [
+                    new Command("/tag add", "Add a new tag", false, false, true),
+                    new Command("/tag edit", "Edit an existing tag", false, false, true)
+                    {
+                        Parameters =
+                        [
+                            new Param("name", "string", "Name of the tag to edit", false, false)
+                        ]
+                    },
+                    new Command("/tag delete", "Delete a tag", false, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("name", "string", "Name of the tag to delete", false, false)
+                        ]
+                    },
+                    new Command("/tag alias-add", "Add an alias to a tag", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("name", "string", "Tag name", false, false),
+                            new Param("newAlias", "string", "Alias to add", false, false)
+                        ]
+                    },
+                    new Command("/tag alias-delete", "Remove an alias from a tag", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("name", "string", "Alias to remove", false, false)
+                        ]
+                    },
+                    new Command("/tag search", "Search tags by name or content", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("searchTerm", "string", "Search query", false, false)
+                        ]
+                    },
+                    new Command("/tag info", "Get detailed information about a tag", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("name", "string", "Tag name", false, false)
+                        ]
+                    },
+                ]
+            },
+            new CommandGroup("History & Moderation", @Icons.Material.Filled.Shield,
+                "View and manage user history records, notes, and warnings.")
+            {
+                Commands =
+                [
+                    new Command("/note", "Add a private note to a user's history", false, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("user", "IUser", "User to note", false, false),
+                            new Param("content", "string", "Note content (rest of message)", false, true)
+                        ]
+                    },
+                    new Command("/warn", "Warn a user and optionally announce in channel", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("user", "IUser", "User to warn", false, false),
+                            new Param("content", "string", "Warning reason", false, false),
+                            new Param("announce", "bool", "Announce warning publicly (default: true)", true, false)
+                        ]
+                    },
+                    new Command("/history get", "Get a single history record by ID", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("noteId", "int", "History record ID", false, false)
+                        ]
+                    },
+                    new Command("/history delete", "Delete a history record", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("noteId", "int", "History record ID", false, false)
+                        ]
+                    },
+                    new Command("/history list", "List all history records for a user", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("user", "IUser", "User to look up", false, false)
+                        ]
+                    },
+                ]
+            },
+            new CommandGroup("Channel Flags", @Icons.Material.Filled.Flag,
+                "Assign or remove flags that control bot behaviour per channel.")
+            {
+                Commands =
+                [
+                    new Command("/channel-flag add", "Add a flag to a channel", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("type", "string", "Flag type (e.g. IgnoredFromXp, JoinLeaveLogs)", false, false),
+                            new Param("channel", "IChannel", "Target channel (optional, defaults to current)", true, false)
+                        ]
+                    },
+                    new Command("/channel-flag remove", "Remove a flag from a channel", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("type", "string", "Flag type to remove", false, false),
+                            new Param("channel", "IChannel", "Target channel (optional, defaults to current)", true, false)
+                        ]
+                    },
+                ]
+            },
+            new CommandGroup("Permissions", @Icons.Material.Filled.AdminPanelSettings,
+                "Grant or revoke bot permissions for users and roles.")
+            {
+                Commands =
+                [
+                    new Command("/permission adduser", "Grant a permission to a user", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("member", "IGuildMember", "User to grant permission to", false, false),
+                            new Param("type", "string", "Permission type (e.g. ManageFlags, ManageTags)", false, false)
+                        ]
+                    },
+                    new Command("/permission addrole", "Grant a permission to a role", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("role", "IRole", "Role to grant permission to", false, false),
+                            new Param("type", "string", "Permission type", false, false)
+                        ]
+                    },
+                ]
+            },
+            new CommandGroup("Utilities", @Icons.Material.Filled.Build,
+                "Utility commands for URLs, code compilation, bot configuration, and more.")
+            {
+                Commands =
+                [
+                    new Command("/shorten", "Shorten a URL using the configured link shortener", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("url", "string", "URL to shorten (rest of message)", false, true)
+                        ]
+                    },
+                    new Command("/godbolt", "Compile code via Godbolt compiler explorer", false, false, true),
+                    new Command("/configure", "Update a bot configuration option", true, true, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("type", "string", "Configuration option name", false, false),
+                            new Param("value", "string", "New value", false, false)
+                        ]
+                    },
+                    new Command("/close", "Mark the current help forum thread as answered", false, true, false),
+                    new Command("/github post-challenge", "Post a coding challenge from a GitHub repo", true, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("readmeUrl", "string", "URL to the challenge README", false, false)
+                        ]
+                    },
+                ]
+            },
+        ];
+    }
+
+    private sealed record CommandGroup(string Name, string Icon, string? Description = null)
+    {
+        public List<Command> Commands { get; init; } = [];
+    }
+
+    private sealed record Command(string Usage, string Description, bool IsAdmin, bool IsEphemeral, bool IsModal)
+    {
+        public List<Param> Parameters { get; init; } = [];
+    }
+
+    private sealed record Param(string Name, string Type, string Description, bool IsOptional, bool IsGreedy);
+}

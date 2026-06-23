@@ -49,6 +49,11 @@ var shlinkApiKey = builder.AddParameter(
     name: "shlink-api-key",
     secret: true);
 
+var appBaseUrl = builder.AddParameter(
+    name: "app-base-url",
+    secret: false,
+    value: "https://localhost:7568");
+
 builder
     .AddDockerComposeEnvironment("compose")
     .WithDashboard(false);
@@ -101,6 +106,7 @@ builder
     .WithEnvironment("Discord__GuildId", discordGuildId)
     .WithEnvironment("Discord__HelpForumChannelId", discordHelpForumChannelId)
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
+    .WithEnvironment("AppBaseUrl", appBaseUrl)
     .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
     .WithEnvironment("PasteBaseUrl", paste.GetEndpoint("http"))
     .WithEnvironment("Shlink__BaseUrl", shlink.GetEndpoint("http"))

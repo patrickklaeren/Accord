@@ -28,6 +28,9 @@ var builder = WebApplication
 
 builder.WebHost.UseSentry(x => x.SetBeforeSend(BeforeSend));
 
+var accordConfiguration = new AccordConfiguration();
+builder.Configuration.Bind(accordConfiguration);
+
 var discordConfiguration = new DiscordConfiguration();
 builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
 
@@ -39,6 +42,7 @@ builder
     .AddHttpClient()
     .AddMediatR(d => d.RegisterServicesFromAssemblies(typeof(BotClient).Assembly, typeof(ServiceResponse).Assembly))
     .AddDiscordBot(builder.Configuration)
+    .AddSingleton(accordConfiguration)
     .AddSingleton(discordConfiguration)
     .AutoRegister()
     .AutoRegisterFromAccordServices();

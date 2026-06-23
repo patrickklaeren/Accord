@@ -64,7 +64,7 @@ public partial class LinkedMessageResponder(
                 if (!channel.IsSuccess)
                     continue;
 
-                if (channel.Entity.IsNsfw.Value)
+                if (channel.Entity.IsNsfw is { HasValue: true, Value: true })
                     continue;
 
                 var messageSnowflake = new Snowflake(messageId);
@@ -81,17 +81,18 @@ public partial class LinkedMessageResponder(
 
                 var embed = BuildEmbed(channel.Entity, message.Entity, gatewayEvent.Author);
 
-                var workingMessageResult = await channelApi.CreateMessageAsync(
+                var embedMessage = await channelApi.CreateMessageAsync(
                     gatewayEvent.ChannelID,
                     embeds: new[] { embed },
                     allowedMentions: new AllowedMentions(MentionRepliedUser: false),
+                    messageReference: gatewayEvent.MessageReference,
                     ct: ct);
 
-                if (!workingMessageResult.IsSuccess)
+                if (!embedMessage.IsSuccess)
                     continue;
 
-                await mediator.Publish(new AddUserBotMessageRequest(workingMessageResult.Entity.ID.Value,
-                        workingMessageResult.Entity.ChannelID.Value,
+                await mediator.Publish(new AddUserBotMessageRequest(embedMessage.Entity.ID.Value,
+                        embedMessage.Entity.ChannelID.Value,
                         gatewayEvent.Author.ID.Value),
                     ct);
 
