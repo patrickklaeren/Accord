@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,12 +22,11 @@ using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using Polly;
 using Polly.Extensions.Http;
-using Sentry;
 
 var builder = WebApplication
     .CreateBuilder(args);
 
-builder.WebHost.UseSentry(x => x.SetBeforeSend(BeforeSend));
+builder.WebHost.UseSentry();
 
 var accordConfiguration = new AccordConfiguration();
 builder.Configuration.Bind(accordConfiguration);
@@ -108,6 +108,13 @@ builder.Services.AddHostedService<EventQueueProcessor>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto
+});
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -135,27 +142,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 await app.RunAsync();
-
-SentryEvent? BeforeSend(SentryEvent arg)
-{
-    var ignoredLogMessages = new[]
-    {
-        "No matching command could be found.",
-        "Guild User requesting the command does not have the required Administrator permission",
-        "Unknown interaction"
-    };
-
-    if (arg.Message?.Formatted is not null
-        && ignoredLogMessages.Any(x => arg.Message.Formatted.Contains(x)))
-    {
-        return null;
-    }
-
-    var hasCode = arg.Extra.TryGetValue("StatusCode", out var code);
-
-    // Don't log 404's
-    if (hasCode && code?.ToString() == "404")
-        return null;
-
-    return arg;
-}
