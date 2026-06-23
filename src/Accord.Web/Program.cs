@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,17 @@ var builder = WebApplication
     .CreateBuilder(args);
 
 builder.WebHost.UseSentry();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 var accordConfiguration = new AccordConfiguration();
 builder.Configuration.Bind(accordConfiguration);
@@ -108,13 +120,7 @@ builder.Services.AddHostedService<EventQueueProcessor>();
 
 var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor |
-        ForwardedHeaders.XForwardedProto |
-        ForwardedHeaders.XForwardedHost
-});
+app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -133,6 +139,14 @@ app.MapFallbackToPage("/_Host");
 
 app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
+
+app.MapGet("/debug/headers", (HttpContext context) => new
+{
+    scheme = context.Request.Scheme,
+    host = context.Request.Host.Value,
+    forwardedProto = context.Request.Headers["X-Forwarded-Proto"].ToString(),
+    forwardedHost = context.Request.Headers["X-Forwarded-Host"].ToString()
+});
 
 using (var scope = app.Services.CreateScope())
 {
