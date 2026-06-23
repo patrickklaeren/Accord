@@ -140,13 +140,10 @@ app.MapFallbackToPage("/_Host");
 app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
 
-app.MapGet("/debug/headers", (HttpContext context) => new
-{
-    scheme = context.Request.Scheme,
-    host = context.Request.Host.Value,
-    forwardedProto = context.Request.Headers["X-Forwarded-Proto"].ToString(),
-    forwardedHost = context.Request.Headers["X-Forwarded-Host"].ToString()
-});
+app.MapGet("/debug/all-headers", (HttpContext context) =>
+    context.Request.Headers.ToDictionary(
+        x => x.Key,
+        x => x.Value.ToString()));
 
 using (var scope = app.Services.CreateScope())
 {
