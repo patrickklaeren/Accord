@@ -73,14 +73,14 @@
             </MudText>
 
             <MudGrid Class="mb-4">
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="4" Class="d-flex align-center">
                     <MudTextField @bind-Value="_newUserId"
                                   Label="Discord User ID"
                                   Placeholder="123456789012345678"
                                   Variant="Variant.Outlined"
                                   Disabled="@_userSaving" />
                 </MudItem>
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="4" Class="d-flex align-center">
                     <MudSelect @bind-Value="_newUserPermission"
                                Label="Permission"
                                Variant="Variant.Outlined"
@@ -91,7 +91,7 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                <MudItem xs="12" sm="4" Class="d-flex align-center">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
                                OnClick="@AddUserPermission"

@@ -1,5 +1,4 @@
 @page "/tags"
-@using Accord.Bot.Services;
 @using Accord.Bot.Helpers;
 @using Accord.Services.Tags;
 @using Accord.Services.Permissions;
@@ -27,7 +26,7 @@
 
         <MudPaper Elevation="2" Class="pa-4">
             <MudGrid Class="mb-4">
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="6" Class="d-flex align-center">
                     <MudTextField Value="_searchTerm"
                                   ValueChanged="@((string? v) => { _searchTerm = v ?? string.Empty; ApplyFilter(); })"
                                   Label="Search tags"
@@ -37,7 +36,7 @@
                 </MudItem>
                 @if (_hasManagePermission)
                 {
-                    <MudItem xs="12" sm="6" Class="d-flex align-end justify-end">
+                    <MudItem xs="12" sm="6" Class="d-flex align-center justify-end">
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    OnClick="@OpenAddDialog">
@@ -60,12 +59,6 @@
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Content" Title="Content" />
                     <PropertyColumn Property="x => x.Uses" Title="Uses" />
-                    <PropertyColumn Property="x => x.AddedByDiscordUsername" Title="Added By" />
-                    <PropertyColumn Property="x => x.AddedDateTime" Title="Added">
-                        <CellTemplate>
-                            <MudText Typo="Typo.body2">@context.Item.AddedDateTime.LocalDateTime.ToShortDateString()</MudText>
-                        </CellTemplate>
-                    </PropertyColumn>
                     @if (_hasManagePermission)
                     {
                         <TemplateColumn Title="Actions" Sortable="false" CellClass="text-center">

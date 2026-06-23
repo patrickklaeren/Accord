@@ -36,14 +36,14 @@
             <MudText Typo="Typo.h6" Class="mb-4">Channels</MudText>
 
             <MudGrid Class="mb-4">
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="6" Class="d-flex align-center">
                     <MudTextField @bind-Value="_newChannelId"
                                   Label="Discord Channel ID"
                                   Placeholder="123456789012345678"
                                   Variant="Variant.Outlined"
                                   Disabled="@_channelSaving" />
                 </MudItem>
-                <MudItem xs="12" sm="3" Class="d-flex align-end">
+                <MudItem xs="12" sm="3" Class="d-flex align-center">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
                                OnClick="@AddChannel"
