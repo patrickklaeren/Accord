@@ -107,6 +107,11 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 
 builder.Services.AddHostedService<EventQueueProcessor>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -131,6 +136,13 @@ app.MapGet("/debug/all-headers", (HttpContext context) =>
     context.Request.Headers.ToDictionary(
         x => x.Key,
         x => x.Value.ToString()));
+
+app.MapGet("/debug/request", (HttpContext context) => new
+{
+    Scheme = context.Request.Scheme,
+    Host = context.Request.Host.ToString(),
+    RedirectUri = $"{context.Request.Scheme}://{context.Request.Host}/signin-discord"
+});
 
 using (var scope = app.Services.CreateScope())
 {
