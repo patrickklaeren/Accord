@@ -29,17 +29,6 @@ var builder = WebApplication
 
 builder.WebHost.UseSentry();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders =
-        ForwardedHeaders.XForwardedFor |
-        ForwardedHeaders.XForwardedProto |
-        ForwardedHeaders.XForwardedHost;
-
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
-});
-
 var accordConfiguration = new AccordConfiguration();
 builder.Configuration.Bind(accordConfiguration);
 
@@ -125,10 +114,8 @@ app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCookiePolicy();
