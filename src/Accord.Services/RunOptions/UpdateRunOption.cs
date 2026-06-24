@@ -9,75 +9,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.RunOptions;
 
-public sealed record UpdateRunOptionRequest(RunOptionType Type, string RawValue) : IRequest<ServiceResponse>;
+public sealed record UpdateRunOptionRequest(RunOptionKey Key, string RawValue) : IRequest<ServiceResponse>;
 
-public class UpdateRunOptionHandler(AccordContext db, IMediator mediator) : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
+public class UpdateRunOptionHandler(RunOptionService runOptionService) : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
 {
-
     public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
     {
-        var runOption = await db.RunOptions
-            .SingleAsync(x => x.Type == request.Type, cancellationToken: cancellationToken);
-
-        bool success;
-
-        switch (request.Type)
+        try
         {
-            case RunOptionType.RaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                await mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
-                success = true;
-                break;
-
-            case RunOptionType.AutoRaidModeEnabled when bool.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                await mediator.Send(new InvalidateGetIsAutoRaidModeEnabledRequest(), cancellationToken);
-                success = true;
-                break;
-
-            case RunOptionType.SequentialJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                await mediator.Send(new InvalidateGetJoinLimitPerMinuteRequest(), cancellationToken);
-                success = true;
-                break;
-
-            case RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode when int.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                await mediator.Send(new InvalidateGetAccountCreationSimilarityLimitRequest(), cancellationToken);
-                success = true;
-                break;
-
-            case RunOptionType.UserReportsEnabled when bool.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                success = true;
-                break;
-
-            case RunOptionType.UserReportsOutboxCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                success = true;
-                break;
-
-            case RunOptionType.UserReportsInboxCategoryId when ulong.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                success = true;
-                break;
-
-            case RunOptionType.UserReportsAgentRoleId when ulong.TryParse(request.RawValue, out var actualValue):
-                runOption.Value = actualValue.ToString();
-                success = true;
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(request.Type), $"{request.Type} has not been configured to be updated, add the type to {nameof(UpdateRunOptionHandler)}", null);
+            await runOptionService.UpdateOption(request.Key, request.RawValue);
         }
-
-        if (!success)
+        catch (Exception ex)
         {
-            return ServiceResponse.Fail("Failed updating value");
+            return ServiceResponse.Fail(ex.Message);
         }
-
-        await db.SaveChangesAsync(cancellationToken);
-
+        
         return ServiceResponse.Ok();
     }
 }

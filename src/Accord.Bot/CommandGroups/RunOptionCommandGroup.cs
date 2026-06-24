@@ -19,7 +19,7 @@ public class RunOptionCommandGroup(IMediator mediator, FeedbackService feedbackS
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot"), Ephemeral]
     public async Task<IResult> Configure(string type, string value)
     {
-        if (!Enum.TryParse<RunOptionType>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
+        if (!Enum.TryParse<RunOptionKey>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
         {
             return await feedbackService.SendContextualAsync("Configuration is not found");
         }

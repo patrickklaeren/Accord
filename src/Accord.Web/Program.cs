@@ -9,6 +9,7 @@ using Accord.Services.CodeEvaluation;
 using Accord.Services.Godbolt;
 using Accord.Services.Paste;
 using Accord.Services.Shlink;
+using Accord.Services.Starboard;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -105,7 +106,8 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
         .AddHostedService<RemindersHostedService>();
 }
 
-builder.Services.AddHostedService<EventQueueProcessor>();
+builder.Services.AddHostedService<CoreEventQueueProcessor>();
+builder.Services.AddHostedService<StarboardEventQueueProcessor>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

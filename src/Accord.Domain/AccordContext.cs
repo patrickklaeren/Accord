@@ -28,4 +28,7 @@ public class AccordContext : DbContext
     public DbSet<UserBotMessage> UserBotMessages { get; set; } = null!;
     public DbSet<Tag> Tags { get; set; } = null!;
     public DbSet<TagAlias> TagAliases { get; set; } = null!;
+    public DbSet<StarboardChannel> StarboardChannels { get; set; } = null!;
+    public DbSet<StarboardEntry> StarboardEntries { get; set; } = null!;
+    public DbSet<StarboardEntryOutput> StarboardEntryOutputs { get; set; } = null!;
 }

@@ -24,7 +24,7 @@ namespace Accord.Bot.Responders;
 
 public class MemberJoinLeaveResponder(IMediator mediator, 
     IDiscordRestChannelAPI channelApi, 
-    IEventQueue eventQueue,
+    CoreEventQueue eventQueue,
     DiscordAvatarHelper discordAvatarHelper, 
     ThumbnailHelper thumbnailHelper) : IResponder<IGuildMemberAdd>, IResponder<IGuildMemberRemove>
 {
