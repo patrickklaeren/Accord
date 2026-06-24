@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Accord.Services.Starboard;
 public sealed record StarMessageRequest(
     ulong DiscordMessageId,
     ulong DiscordMessageChannelId,
+    ulong? DiscordMessageChannelParentId,
     ulong DiscordMessageUserId) : IRequest;
 
 public class StarMessageHandler(
@@ -27,10 +29,18 @@ public class StarMessageHandler(
 {
     public async Task Handle(StarMessageRequest request, CancellationToken cancellationToken)
     {
+        var isStarboardChannel = await db.StarboardChannels
+            .Where(x => x.DiscordStarboardChannelId == request.DiscordMessageChannelId)
+            .AnyAsync(cancellationToken: cancellationToken);
+
+        if (isStarboardChannel)
+            return;
+
         var ignoredChannelIds = await channelFlagService.GetChannelIdsWithFlag(ChannelFlagType.IgnoreStarredMessages,
             cancellationToken);
 
-        if (ignoredChannelIds.Contains(request.DiscordMessageChannelId))
+        if (ignoredChannelIds.Contains(request.DiscordMessageChannelId)
+            || (request.DiscordMessageChannelParentId is not null && ignoredChannelIds.Contains(request.DiscordMessageChannelParentId.Value)))
             return;
 
         var numberOfReactionsRequired = await runOptionService.GetOption<int>(RunOptionKey.NumberOfReactionsForStarboardEntry);
@@ -72,20 +82,8 @@ public class StarMessageHandler(
         int numberOfReactions,
         CancellationToken cancellationToken)
     {
-        var hasDesignatedStarboards = await db.StarboardChannels
-            .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelId)
-            .AnyAsync(cancellationToken);
-
-        var channelIds = hasDesignatedStarboards
-            ? await db.StarboardChannels
-                .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelId)
-                .Select(x => x.DiscordStarboardChannelId)
-                .ToListAsync(cancellationToken: cancellationToken)
-            : await db.StarboardChannels
-                .Where(x => x.DiscordChannelBeingStarredInId == null)
-                .Select(x => x.DiscordStarboardChannelId)
-                .ToListAsync(cancellationToken: cancellationToken);
-
+        var channelIds = await GetStarboardChannelIdsToPostIn(request, cancellationToken);
+        
         if (!channelIds.Any())
             return;
 
@@ -129,6 +127,38 @@ public class StarMessageHandler(
         db.StarboardEntries.Add(entry);
     }
 
+    private async Task<IReadOnlyCollection<ulong>> GetStarboardChannelIdsToPostIn(StarMessageRequest request, CancellationToken cancellationToken)
+    {
+        if (request.DiscordMessageChannelParentId is not null)
+        {
+            var hasParentDesignatedStarboards = await db.StarboardChannels
+                .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelParentId)
+                .AnyAsync(cancellationToken);
+
+            if (hasParentDesignatedStarboards)
+            {
+                return await db.StarboardChannels
+                    .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelParentId)
+                    .Select(x => x.DiscordStarboardChannelId)
+                    .ToListAsync(cancellationToken: cancellationToken);
+            }
+        }
+        
+        var hasDesignatedStarboards = await db.StarboardChannels
+            .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelId)
+            .AnyAsync(cancellationToken);
+
+        return hasDesignatedStarboards
+            ? await db.StarboardChannels
+                .Where(x => x.DiscordChannelBeingStarredInId == request.DiscordMessageChannelId)
+                .Select(x => x.DiscordStarboardChannelId)
+                .ToListAsync(cancellationToken: cancellationToken)
+            : await db.StarboardChannels
+                .Where(x => x.DiscordChannelBeingStarredInId == null)
+                .Select(x => x.DiscordStarboardChannelId)
+                .ToListAsync(cancellationToken: cancellationToken);
+    }
+
     private async Task HandleExistingStarboardEntry(StarboardEntry entry,
         int numberOfReactions,
         CancellationToken cancellationToken)
@@ -153,7 +183,7 @@ public class StarMessageHandler(
                     output.DiscordChannelId);
             }
         }
-        
+
         entry.Stars = numberOfReactions;
     }
 

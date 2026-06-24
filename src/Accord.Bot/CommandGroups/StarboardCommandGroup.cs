@@ -19,7 +19,7 @@ public class StarboardCommandGroup(ICommandContext commandContext,
     FeedbackService feedbackService) 
     : AccordCommandGroup
 {
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-here"), Description("Configure an option for the bot"), Ephemeral]
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-here"), Description("Configures this channel as a default starboard"), Ephemeral]
     public async Task<IResult> PostHere()
     {
         var commandProxy = commandContext.GetCommandProxy();
@@ -34,7 +34,7 @@ public class StarboardCommandGroup(ICommandContext commandContext,
         return Result.FromSuccess();
     }
     
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("do-not-post-here"), Description("Configure an option for the bot"), Ephemeral]
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("do-not-post-here"), Description("Unconfigures this channel as a default starboard"), Ephemeral]
     public async Task<IResult> DoNotPostHere()
     {
         var commandProxy = commandContext.GetCommandProxy();
@@ -43,7 +43,7 @@ public class StarboardCommandGroup(ICommandContext commandContext,
         return await feedbackService.SendContextualAsync("Success! This channel is no longer a default starboard!");
     }
     
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-to"), Description("Configure an option for the bot"), Ephemeral]
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-to"), Description("Relay starred messages to the target starboard, rather than the default"), Ephemeral]
     public async Task<IResult> OnlyPostTo(IChannel starboardChannel)
     {
         var commandProxy = commandContext.GetCommandProxy();
@@ -58,7 +58,7 @@ public class StarboardCommandGroup(ICommandContext commandContext,
         return Result.FromSuccess();
     }
     
-    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-to-default"), Description("Configure an option for the bot"), Ephemeral]
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("post-to-default"), Description("Relay starred messages to the default starboard(s), if any"), Ephemeral]
     public async Task<IResult> RemoveOnlyPostTo()
     {
         var commandProxy = commandContext.GetCommandProxy();

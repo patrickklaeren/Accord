@@ -6,6 +6,7 @@ using Accord.Services.Starboard;
 using Accord.Services.UserBotMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
@@ -13,6 +14,7 @@ namespace Accord.Bot.Responders;
 
 public class ReactionResponder(IMediator mediator, 
     PermissionUserFactory permissionUserFactory,
+    IDiscordRestChannelAPI channelApi,
     StarboardEventQueue eventQueue) 
     : IResponder<IMessageReactionAdd>,
         IResponder<IMessageReactionRemove>
@@ -26,7 +28,7 @@ public class ReactionResponder(IMediator mediator,
             : emoji.IsAnimated is { HasValue: true, Value: true }
                 ? $"<a:{emoji.Name}:{emoji.ID.Value}>"
                 : $"<:{emoji.Name}:{emoji.ID.Value}>";
-
+        
         if (emojiString.Value is "❌" or "🗑️")
         {
             var permissionUser = await permissionUserFactory.FromId(gatewayEvent.UserID.Value);
@@ -34,9 +36,15 @@ public class ReactionResponder(IMediator mediator,
         }
         else if (StarboardConstants.Emojis.Contains(emojiString.Value))
         {
-            await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
-                gatewayEvent.ChannelID.Value, 
-                gatewayEvent.UserID.Value));    
+            var channel = await channelApi.GetChannelAsync(gatewayEvent.ChannelID, ct);
+
+            if (channel.IsSuccess)
+            {
+                await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
+                    gatewayEvent.ChannelID.Value,
+                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value!.Value.Value : null,
+                    gatewayEvent.UserID.Value));
+            }
         }
 
         return Result.FromSuccess();
@@ -54,9 +62,15 @@ public class ReactionResponder(IMediator mediator,
         
         if (StarboardConstants.Emojis.Contains(emojiString.Value))
         {
-            await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
-                gatewayEvent.ChannelID.Value, 
-                gatewayEvent.UserID.Value));    
+            var channel = await channelApi.GetChannelAsync(gatewayEvent.ChannelID, ct);
+
+            if (channel.IsSuccess)
+            {
+                await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
+                    gatewayEvent.ChannelID.Value,
+                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value!.Value.Value : null,
+                    gatewayEvent.UserID.Value));
+            }    
         }
         
         return Result.FromSuccess();
