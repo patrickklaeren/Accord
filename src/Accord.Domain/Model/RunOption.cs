@@ -5,6 +5,7 @@ namespace Accord.Domain.Model;
 
 public class RunOption
 {
+    public RunOptionKey Key { get; set; }
     public RunOptionType Type { get; set; }
     public string Value { get; set; } = null!;
 }
@@ -14,55 +15,51 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
     public void Configure(EntityTypeBuilder<RunOption> builder)
     {
         builder
-            .HasKey(x => x.Type);
+            .HasKey(x => x.Key);
 
         builder.HasData(new RunOption()
             {
-                Type = RunOptionType.RaidModeEnabled,
+                Key = RunOptionKey.IsInRaidMode,
+                Type= RunOptionType.Boolean,
                 Value = "False"
             }, new RunOption()
             {
-                Type = RunOptionType.AutoRaidModeEnabled,
+                Key = RunOptionKey.AutoRaidModeEnabled,
+                Type= RunOptionType.Boolean,
                 Value = "False"
             }, new RunOption()
             {
-                Type = RunOptionType.SequentialJoinsToTriggerRaidMode,
+                Key = RunOptionKey.SequentialJoinsToTriggerRaidMode,
+                Type= RunOptionType.Integer,
                 Value = "10"
             }, new RunOption()
             {
-                Type = RunOptionType.UserReportsEnabled,
-                Value = "False"
+                Key = RunOptionKey.AccountCreationSimilarityJoinsToTriggerRaidMode,
+                Type= RunOptionType.Integer,
+                Value = "3"
             }, new RunOption()
             {
-                Type = RunOptionType.UserReportsOutboxCategoryId,
-                Value = ""
-            }, new RunOption()
-            {
-                Type = RunOptionType.UserReportsInboxCategoryId,
-                Value = ""
-            }, new RunOption()
-            {
-                Type = RunOptionType.UserReportsAgentRoleId,
-                Value = ""
-            }, new RunOption()
-            {
-                Type = RunOptionType.AccountCreationSimilarityJoinsToTriggerRaidMode,
+                Key = RunOptionKey.NumberOfReactionsForStarboardEntry,
+                Type= RunOptionType.Integer,
                 Value = "3"
             }
         );
     }
 }
 
-public enum RunOptionType
+public enum RunOptionKey
 {
-    RaidModeEnabled = 0,
+    IsInRaidMode = 0,
     AutoRaidModeEnabled = 1,
     SequentialJoinsToTriggerRaidMode = 2,
-
-    UserReportsEnabled = 3,
-    UserReportsOutboxCategoryId = 4,
-    UserReportsInboxCategoryId = 5,
-    UserReportsAgentRoleId = 6,
-        
     AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
+    NumberOfReactionsForStarboardEntry = 8,
+}
+public enum RunOptionType
+{
+    String,
+    Integer,
+    ULong,
+    Boolean,
+    DateTime,
 }

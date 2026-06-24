@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -9,10 +7,8 @@ using Accord.Services;
 using Accord.Services.UserBotMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Extensions.Embeds;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -20,9 +16,9 @@ using Remora.Results;
 namespace Accord.Bot.Responders;
 
 public partial class LinkedMessageResponder(
-    JumpLinkHelper jumpLinkHelper,
     DiscordConfiguration discordConfiguration,
-    ThumbnailHelper thumbnailHelper,
+    JumpLinkHelper jumpLinkHelper,
+    EmbedFactory embedFactory,
     IDiscordRestChannelAPI channelApi,
     IMediator mediator) : IResponder<IMessageCreate>
 {
@@ -79,11 +75,20 @@ public partial class LinkedMessageResponder(
                 if (message.Entity.Embeds.Any(d => d.Fields.HasValue && d.Fields.Value.Any(c => c.Name == "Quoted by")))
                     continue;
 
-                var embed = BuildEmbed(channel.Entity, message.Entity, gatewayEvent.Author);
+                var embedBuilder = embedFactory.FromMessage(message.Entity);
+                
+                var jumpLink = jumpLinkHelper.FromMessage(message.Entity);
+                var markdownLink = $"#{channel.Entity.Name} [(click here)]({jumpLink})";
+                embedBuilder.AddField(new EmbedField("Quoted by", $"{gatewayEvent.Author.ID.ToUserMention()} from **{markdownLink}**"));
+                
+                var resultEmbed = embedBuilder.Build();
 
+                if (!resultEmbed.IsSuccess)
+                    continue;
+                
                 var embedMessage = await channelApi.CreateMessageAsync(
                     gatewayEvent.ChannelID,
-                    embeds: new[] { embed },
+                    embeds: new[] { resultEmbed.Entity },
                     allowedMentions: new AllowedMentions(MentionRepliedUser: false),
                     messageReference: gatewayEvent.MessageReference,
                     ct: ct);
@@ -109,124 +114,5 @@ public partial class LinkedMessageResponder(
         }
 
         return Result.FromSuccess();
-    }
-
-    private Embed BuildEmbed(IChannel channel, IMessage message, IUser executingUser)
-    {
-        var richEmbed = TryBuildEmbedFromRichEmbed(channel, message, executingUser);
-        
-        if(richEmbed is not null)
-            return richEmbed;
-
-        var builder = new EmbedBuilder();
-        string? imageUrl = null;
-
-        const string DISCORD_SPOILER_FILE_NAME = "SPOILER_";
-        if (message.Attachments.Any(x => x.Filename.StartsWith(DISCORD_SPOILER_FILE_NAME))
-            || message.Embeds.Any() && DiscordFormatter.ContainsSpoiler(message.Content))
-        {
-            builder.AddField(new EmbedField("Spoiler warning", "The quoted message contains spoilered content."));
-        }
-        else if(!TryGetAttachmentUrl(message, out imageUrl))
-        {
-            if (!TryGetImageUrl(message, out imageUrl))
-            {
-                TryGetFallbackFileUrl(message, out imageUrl);
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(imageUrl))
-        {
-            builder.WithImageUrl(imageUrl);
-        }
-
-        if (message.Embeds.Any())
-        {
-            var firstEmbed = message.Embeds.First();
-            builder.AddField(new EmbedField("Embed Type", firstEmbed.Type.Value.ToString()));
-        }
-
-        if (message.Activity.HasValue)
-        {
-            builder.AddField(new EmbedField("Invite Type", message.Activity.Value.Type.ToString()));
-            builder.AddField(new EmbedField("Party Id", message.Activity.Value.PartyID.Value));
-        }
-        
-        var jumpLink = jumpLinkHelper.FromMessage(message);
-        var markdownLink = $"#{channel.Name} [(click here)]({jumpLink})";
-        builder.AddField(new EmbedField("Quoted by", $"{executingUser.ID.ToUserMention()} from **{markdownLink}**"));
-
-        var originalAuthorAvatar = thumbnailHelper.GetAvatar(message.Author);
-
-        if (!string.IsNullOrWhiteSpace(message.Content))
-        {
-            builder.WithDescription(message.Content);
-        }
-
-        builder
-            .WithAuthor(message.Author.Username, iconUrl: originalAuthorAvatar.Url)
-            .WithTimestamp(message.Timestamp);
-
-        var embed = builder.Build();
-        return embed.Entity;
-    }
-
-    private Embed? TryBuildEmbedFromRichEmbed(IChannel channel, IMessage message, IUser executingUser)
-    {
-        var firstEmbed = message.Embeds.FirstOrDefault();
-
-        if (firstEmbed?.Type != EmbedType.Rich)
-            return null;
-
-        var fields = new List<IEmbedField>();
-
-        if (firstEmbed.Fields.HasValue)
-        {
-            fields.AddRange(firstEmbed.Fields.Value.ToList());    
-        }
-
-        var jumpLink = jumpLinkHelper.FromMessage(message);
-        var markdownLink = $"#{channel.Name} [(click here)]({jumpLink})";
-        fields.Add(new EmbedField("Quoted by", $"{executingUser.ID.ToUserMention()} from **{markdownLink}**"));
-
-        return new Embed(Title: firstEmbed.Title, 
-            Description: firstEmbed.Description, 
-            Image: firstEmbed.Image,
-            Footer: firstEmbed.Footer,
-            Type: firstEmbed.Type,
-            Url: firstEmbed.Url,
-            Timestamp: firstEmbed.Timestamp,
-            Colour: firstEmbed.Colour,
-            Thumbnail: firstEmbed.Thumbnail,
-            Video: firstEmbed.Video,
-            Provider: firstEmbed.Provider,
-            Author: firstEmbed.Author,
-            Fields: fields);
-    }
-    
-    private static bool TryGetAttachmentUrl(IMessage message, out string? url)
-    {
-        var firstAttachment = message.Attachments.FirstOrDefault();
-        url = firstAttachment?.Height is null ? null : firstAttachment.Url;
-        return url is not null;
-    }
-    
-    private static bool TryGetImageUrl(IMessage message, out string? url)
-    {
-        var firstImage = message
-            .Attachments
-            .FirstOrDefault(x => x.ContentType.Value.Contains("image", StringComparison.OrdinalIgnoreCase));
-        
-        url = firstImage?.Url;
-        return url is not null;
-    }
-    
-    private static void TryGetFallbackFileUrl(IMessage message, out string? url)
-    {
-        var firstAttachment = message
-            .Attachments
-            .FirstOrDefault();
-        
-        url = firstAttachment?.Url;
     }
 }

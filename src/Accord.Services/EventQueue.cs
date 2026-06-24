@@ -11,7 +11,6 @@ public interface IEventQueue
     ValueTask<IRequest> Dequeue(CancellationToken cancellationToken);
 }
 
-[RegisterSingleton]
 public class EventQueue : IEventQueue
 {
     private const int QUEUE_CAPACITY = 1000;

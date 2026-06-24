@@ -10,7 +10,7 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class VoiceStateResponder(IEventQueue eventQueue) : IResponder<IVoiceStateUpdate>
+public class VoiceStateResponder(CoreEventQueue eventQueue) : IResponder<IVoiceStateUpdate>
 {
     public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
