@@ -60,6 +60,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<TagCommandGroup>()
             .WithCommandGroup<GodboltCommandGroup>()
             .WithCommandGroup<LinkShortnerCommandGroup>()
+            .WithCommandGroup<StarboardCommandGroup>()
             .WithCommandGroup<HelpCommandGroup>()
             .WithCommandGroup<LookupCommandGroup>();
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Accord.Bot.Infrastructure;
 using Accord.Services;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;

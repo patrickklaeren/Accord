@@ -132,7 +132,9 @@ public class RelayToDiscordHandler(
         
         foreach (var channelId in channelIds)
         {
-            await channelApi.CreateMessageAsync(new Snowflake(channelId), embeds: new[] { embed }, ct: cancellationToken);   
+            await channelApi.CreateMessageAsync(new Snowflake(channelId),
+                embeds: new[] { embed }, 
+                ct: cancellationToken);
         }
     }
 }

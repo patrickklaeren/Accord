@@ -7,11 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Accord.Services;
+namespace Accord.Services.Starboard;
 
-public class EventQueueProcessor(ILogger<EventQueueProcessor> logger, IServiceScopeFactory serviceScopeFactory, IEventQueue eventQueue) : BackgroundService
+public class StarboardEventQueueProcessor(ILogger<StarboardEventQueueProcessor> logger, 
+    IServiceScopeFactory serviceScopeFactory, 
+    StarboardEventQueue eventQueue) 
+    : BackgroundService
 {
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -43,7 +45,7 @@ public class EventQueueProcessor(ILogger<EventQueueProcessor> logger, IServiceSc
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Event queue processor is stopping.");
+        logger.LogInformation("Starboard event queue processor is stopping.");
         await base.StopAsync(stoppingToken);
     }
 }

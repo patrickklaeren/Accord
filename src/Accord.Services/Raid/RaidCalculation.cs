@@ -4,6 +4,7 @@ using Accord.Domain;
 using Accord.Domain.Model;
 using Accord.Services.Moderation;
 using Accord.Services.Permissions;
+using Accord.Services.RunOptions;
 using Accord.Services.Users;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,32 +20,27 @@ public sealed record RaidAlertRequest : IRequest;
 
 public class RaidCalculationHandler(
     RaidCalculator raidCalculator,
+    RunOptionService runOptionService,
     IMediator mediator,
-    AccordContext db,
     UserService userService)
     : IRequestHandler<RaidCalculationRequest>
 {
     public async Task Handle(RaidCalculationRequest request, CancellationToken cancellationToken)
     {
-        var sequentialLimit = await mediator.Send(new GetJoinLimitPerMinuteRequest(), cancellationToken);
-        var accountCreationLimit = await mediator.Send(new GetAccountCreationSimilarityLimitRequest(), cancellationToken);
+        var sequentialLimit = await runOptionService.GetOption<int>(RunOptionKey.SequentialJoinsToTriggerRaidMode);
+        var accountCreationLimit = await runOptionService.GetOption<int>(RunOptionKey.AccountCreationSimilarityJoinsToTriggerRaidMode);
 
-        var raidResult = raidCalculator.CalculateIsRaid(new UserJoin(request.User.Id, request.User.DiscordAvatarUrl, request.User.JoinedDateTime.DateTime), sequentialLimit,
-            accountCreationLimit);
+        var raidResult = raidCalculator
+            .CalculateIsRaid(new UserJoin(request.User.Id, request.User.DiscordAvatarUrl, request.User.JoinedDateTime.DateTime),
+                sequentialLimit,
+                accountCreationLimit);
 
-        var isAutoRaidModeEnabled = await mediator.Send(new GetIsAutoRaidModeEnabledRequest(), cancellationToken);
-        var isInExistingRaidMode = await mediator.Send(new GetIsInRaidModeRequest(), cancellationToken);
+        var isAutoRaidModeEnabled = await runOptionService.GetOption<bool>(RunOptionKey.AutoRaidModeEnabled);
+        var isInExistingRaidMode = await runOptionService.GetOption<bool>(RunOptionKey.IsInRaidMode);
 
         if (raidResult.IsRaid != isInExistingRaidMode)
         {
-            var runOption = await db.RunOptions
-                .SingleAsync(x => x.Type == RunOptionType.RaidModeEnabled, cancellationToken: cancellationToken);
-
-            runOption.Value = raidResult.IsRaid.ToString();
-
-            await db.SaveChangesAsync(cancellationToken);
-
-            await mediator.Send(new InvalidateGetIsInRaidModeRequest(), cancellationToken);
+            await runOptionService.UpdateOption(RunOptionKey.IsInRaidMode, true);
         }
 
         if (raidResult.IsRaid && !isInExistingRaidMode)

@@ -10,7 +10,7 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MessageCreateDeleteResponder(IEventQueue eventQueue) : IResponder<IMessageCreate>,
+public class MessageCreateDeleteResponder(CoreEventQueue eventQueue) : IResponder<IMessageCreate>,
     IResponder<IMessageDelete>,
     IResponder<IMessageDeleteBulk>
 {
