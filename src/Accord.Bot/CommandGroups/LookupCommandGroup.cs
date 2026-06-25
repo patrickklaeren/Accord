@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Accord.Bot.Autocomplete;
 using Accord.Services.Diagnostics;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -15,7 +17,7 @@ public class LookupCommandGroup(IMediator mediator,
 {
     [Command("lookup"), Description("Look up a C# diagnostic code")]
     public async Task<IResult> Lookup(
-        [Description("Diagnostic code to look up")] string code)
+        [Description("Diagnostic code to look up"), AutocompleteProvider(DiagnosticAutocompleteProvider.IDENTITY)] string code)
     {
         var matches = await mediator.Send(new SearchDiagnosticsRequest(code));
 
@@ -27,7 +29,7 @@ public class LookupCommandGroup(IMediator mediator,
         if (matches.Count > 1)
         {
             return await feedbackService.SendContextualAsync(
-                $"Multiple diagnostics match `{code}` — try a more specific code");
+                $"Multiple diagnostics match `{code}` — start typing and pick a suggestion");
         }
 
         return await feedbackService.SendContextualEmbedAsync(BuildEmbed(matches[0]));

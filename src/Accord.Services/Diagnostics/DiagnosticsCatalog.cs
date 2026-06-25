@@ -34,6 +34,30 @@ public class DiagnosticsCatalog
             .ToList();
     }
 
+    public IReadOnlyList<DiagnosticInfo> Suggest(string query, int limit)
+    {
+        var trimmed = query.Trim();
+
+        if (trimmed.Length == 0)
+        {
+            return [];
+        }
+
+        var catalog = _catalog.Value;
+
+        var prefixed = catalog.Codes
+            .Where(code => code.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase));
+
+        var contained = catalog.Codes
+            .Where(code => !code.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase)
+                && code.Contains(trimmed, StringComparison.OrdinalIgnoreCase));
+
+        return prefixed.Concat(contained)
+            .Take(limit)
+            .Select(code => catalog.ByCode[code])
+            .ToList();
+    }
+
     private static string Normalize(string query)
     {
         var trimmed = query.Trim().ToUpperInvariant();
