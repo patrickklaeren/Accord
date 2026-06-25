@@ -7,7 +7,7 @@ namespace Accord.Services.Permissions;
 
 public sealed record UserHasPermissionRequest(PermissionUser User, PermissionType Permission) : IRequest<bool>;
 
-public class UserHasPermission(UserPermissionService userPermissionService) 
+internal class UserHasPermission(UserPermissionService userPermissionService) 
     : IRequestHandler<UserHasPermissionRequest, bool>
 {
     public async Task<bool> Handle(UserHasPermissionRequest request, CancellationToken cancellationToken)

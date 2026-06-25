@@ -18,7 +18,7 @@ using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
-namespace Accord.Bot.CommandGroups.Histories;
+namespace Accord.Bot.CommandGroups;
 
 public class NoteCommandGroup(ICommandContext commandContext,
     IDiscordRestChannelAPI channelApi,

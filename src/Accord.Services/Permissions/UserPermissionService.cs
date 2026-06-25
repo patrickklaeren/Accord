@@ -13,6 +13,9 @@ public class UserPermissionService(AccordContext db)
 {
     public async Task<bool> HasPermission(PermissionUser user,  PermissionType permission)
     {
+        if (user.IsAdministrator)
+            return true;
+        
         var permissions = await GetPermissionsForUser(user);
         return permissions.Any(ownedPermission => ownedPermission == permission);
     }

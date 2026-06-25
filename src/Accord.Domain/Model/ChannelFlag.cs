@@ -19,7 +19,6 @@ public enum ChannelFlagType
     RaidLogs = 4,
     VoiceLogs = 6,
     BotLogs = 7,
-    TimeOutLogs = 8,
     IgnoreStarredMessages = 10
 }
 

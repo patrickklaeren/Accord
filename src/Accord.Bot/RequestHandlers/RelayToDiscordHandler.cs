@@ -23,6 +23,8 @@ public class RelayToDiscordHandler(
     : INotificationHandler<RelayKickToDiscordRequest>,
         INotificationHandler<RelayBanToDiscordRequest>,
         INotificationHandler<RelayUnbanToDiscordRequest>,
+        INotificationHandler<RelayMuteToDiscordRequest>,
+        INotificationHandler<RelayUnmuteToDiscordRequest>,
         INotificationHandler<RelayWarningToDiscordRequest>,
         INotificationHandler<RelayNoteToDiscordRequest>
 {
@@ -77,6 +79,42 @@ public class RelayToDiscordHandler(
 
         var title = $"{targetUser.Entity.Username} unbanned";
         var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) unbanned by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)} for {request.Reason}";
+        await PostEmbedToChannels(targetUser.Entity, title, description, channelsToPostTo, cancellationToken);
+    }
+
+    public async Task Handle(RelayMuteToDiscordRequest request, CancellationToken cancellationToken)
+    {
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
+
+        if (!channelsToPostTo.Any())
+            return;
+
+        var targetUser = await userApi.GetUserAsync(new Snowflake(request.TargetDiscordUserId),
+            cancellationToken);
+
+        if (!targetUser.IsSuccess)
+            return;
+
+        var title = $"🤐 {targetUser.Entity.Username} muted";
+        var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) {request.Reason} by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)}";
+        await PostEmbedToChannels(targetUser.Entity, title, description, channelsToPostTo, cancellationToken);
+    }
+
+    public async Task Handle(RelayUnmuteToDiscordRequest request, CancellationToken cancellationToken)
+    {
+        var channelsToPostTo = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.UserHistoryLogs), cancellationToken);
+
+        if (!channelsToPostTo.Any())
+            return;
+
+        var targetUser = await userApi.GetUserAsync(new Snowflake(request.TargetDiscordUserId),
+            cancellationToken);
+
+        if (!targetUser.IsSuccess)
+            return;
+
+        var title = $"{targetUser.Entity.Username} unmuted";
+        var description = $"{DiscordFormatter.UserIdToMention(request.TargetDiscordUserId)} ({request.TargetDiscordUserId}) {request.Reason} by {DiscordFormatter.UserIdToMention(request.ActingDiscordUserId)}";
         await PostEmbedToChannels(targetUser.Entity, title, description, channelsToPostTo, cancellationToken);
     }
 

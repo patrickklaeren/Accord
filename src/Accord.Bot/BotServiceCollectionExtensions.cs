@@ -1,7 +1,6 @@
 using System;
 using Accord.Bot.Autocomplete;
 using Accord.Bot.CommandGroups;
-using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.Infrastructure;
 using Accord.Bot.Responders;
 using Accord.Services.CodeEvaluation;
@@ -64,7 +63,9 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<LinkShortnerCommandGroup>()
             .WithCommandGroup<StarboardCommandGroup>()
             .WithCommandGroup<HelpCommandGroup>()
-            .WithCommandGroup<LookupCommandGroup>();
+            .WithCommandGroup<LookupCommandGroup>()
+            .WithCommandGroup<MuteCommandGroup>()
+            .WithCommandGroup<UnmuteCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()

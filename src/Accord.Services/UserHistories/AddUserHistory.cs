@@ -15,7 +15,7 @@ public sealed record AddUserHistoryRequest(ulong TargetDiscordUserId,
     UserHistoryType Type) 
     : IRequest<ServiceResponse<int>>;
 
-public class AddUserHistoryHandler(AccordContext db,
+internal class AddUserHistoryHandler(AccordContext db,
     IMediator mediator,
     UserService userService,
     UserPermissionService userPermissionService) 
@@ -55,6 +55,8 @@ public class AddUserHistoryHandler(AccordContext db,
             UserHistoryType.Unban => new RelayUnbanToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Kick => new RelayKickToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Warning => new RelayWarningToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
+            UserHistoryType.Mute => new RelayMuteToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
+            UserHistoryType.Unmute => new RelayUnmuteToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             UserHistoryType.Note => new RelayNoteToDiscordRequest(request.ActingDiscordUser.DiscordUserId, request.TargetDiscordUserId, request.Content),
             _ => null,
         };

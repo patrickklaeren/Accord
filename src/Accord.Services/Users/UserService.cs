@@ -33,7 +33,6 @@ public class UserService(AccordContext db, IAppCache appCache)
                     x.Nickname,
                     x.JoinedGuildDateTime,
                     x.FirstSeenDateTime,
-                    x.FirstSeenDateTime,
                     x.ParticipationRank,
                     x.ParticipationPoints,
                     x.ParticipationPercentile))
@@ -109,7 +108,6 @@ public sealed record UserDto(
     string? Nickname,
     DateTimeOffset? JoinedGuildDateTime,
     DateTimeOffset FirstSeenDateTime,
-    DateTimeOffset? TimedOutUntilDateTime,
     int ParticipationRank,
     int ParticipationPoints,
     double ParticipationPercentile);
