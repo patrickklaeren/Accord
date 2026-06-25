@@ -12,4 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Accord.Domain\Accord.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Diagnostics/diagnostics.json" />
+  </ItemGroup>
 </Project>

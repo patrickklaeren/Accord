@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using Accord.Bot.Autocomplete;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.CommandGroups.Histories;
 using Accord.Bot.Infrastructure;
@@ -42,7 +43,8 @@ public static class BotServiceCollectionExtensions
             })
             .AddDiscordCommands(true)
             .AddPostExecutionEvent<AfterCommandPostExecutionEvent>()
-            .AddParser<TimeSpanParser>();
+            .AddParser<TimeSpanParser>()
+            .AddAutocompleteProvider<DiagnosticAutocompleteProvider>();
 
         services
             .AddPagination()
@@ -61,7 +63,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<GodboltCommandGroup>()
             .WithCommandGroup<LinkShortnerCommandGroup>()
             .WithCommandGroup<StarboardCommandGroup>()
-            .WithCommandGroup<HelpCommandGroup>();
+            .WithCommandGroup<HelpCommandGroup>()
+            .WithCommandGroup<LookupCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()
