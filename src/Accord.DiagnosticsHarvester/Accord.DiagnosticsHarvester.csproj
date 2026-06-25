@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="analyzers" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="analyzers" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgMicrosoft_CodeAnalysis_NetAnalyzers)\analyzers\dotnet\**\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\netanalyzers" />
+    <None Include="$(PkgMicrosoft_CodeAnalysis_CSharp_CodeStyle)\analyzers\dotnet\**\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\codestyle" />
+  </ItemGroup>
+</Project>

@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="src/Accord.AppHost/Accord.AppHost.csproj" />
   <Project Path="src/Accord.Bot/Accord.Bot.csproj" />
+  <Project Path="src/Accord.DiagnosticsHarvester/Accord.DiagnosticsHarvester.csproj" />
   <Project Path="src/Accord.Domain/Accord.Domain.csproj" />
   <Project Path="src/Accord.Services/Accord.Services.csproj" />
   <Project Path="src/Accord.Web/Accord.Web.csproj" />
