@@ -35,7 +35,8 @@ public static class CompilerDiagnosticsSource
 
         foreach (var name in Enum.GetNames(errorCodeType))
         {
-            if (!HasDiagnosticPrefix(name))
+            var severity = GetSeverity(name);
+            if (severity is null)
             {
                 continue;
             }
@@ -55,16 +56,34 @@ public static class CompilerDiagnosticsSource
             }
 
             var code = $"CS{value:D4}";
-            diagnostics.Add(new DiagnosticRecord(code, message, HELP_URL_BASE + code.ToLowerInvariant()));
+            diagnostics.Add(new DiagnosticRecord(code, message, severity, "Compiler", HELP_URL_BASE + code.ToLowerInvariant(), Description: null));
         }
 
         return diagnostics;
     }
 
-    private static bool HasDiagnosticPrefix(string name) =>
-        name.StartsWith("ERR_", StringComparison.Ordinal)
-        || name.StartsWith("WRN_", StringComparison.Ordinal)
-        || name.StartsWith("INF_", StringComparison.Ordinal)
-        || name.StartsWith("HDN_", StringComparison.Ordinal)
-        || name.StartsWith("FTL_", StringComparison.Ordinal);
+    private static string? GetSeverity(string name)
+    {
+        if (name.StartsWith("ERR_", StringComparison.Ordinal) || name.StartsWith("FTL_", StringComparison.Ordinal))
+        {
+            return "Error";
+        }
+
+        if (name.StartsWith("WRN_", StringComparison.Ordinal))
+        {
+            return "Warning";
+        }
+
+        if (name.StartsWith("INF_", StringComparison.Ordinal))
+        {
+            return "Info";
+        }
+
+        if (name.StartsWith("HDN_", StringComparison.Ordinal))
+        {
+            return "Hidden";
+        }
+
+        return null;
+    }
 }

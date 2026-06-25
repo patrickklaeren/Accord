@@ -47,7 +47,10 @@ public static partial class AnalyzerDiagnosticsSource
                 byCode[descriptor.Id] = new DiagnosticRecord(
                     descriptor.Id,
                     message,
-                    string.IsNullOrWhiteSpace(descriptor.HelpLinkUri) ? null : descriptor.HelpLinkUri);
+                    descriptor.DefaultSeverity.ToString(),
+                    descriptor.Category,
+                    string.IsNullOrWhiteSpace(descriptor.HelpLinkUri) ? null : descriptor.HelpLinkUri,
+                    Describe(descriptor.Description));
             }
         }
 
@@ -123,6 +126,12 @@ public static partial class AnalyzerDiagnosticsSource
         }
 
         return text;
+    }
+
+    private static string? Describe(LocalizableString description)
+    {
+        var text = description.ToString(CultureInfo.InvariantCulture);
+        return string.IsNullOrWhiteSpace(text) ? null : text;
     }
 
     [GeneratedRegex(@"^[A-Za-z]+[0-9]+$")]
