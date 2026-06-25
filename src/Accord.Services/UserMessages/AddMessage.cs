@@ -10,9 +10,8 @@ namespace Accord.Services.UserMessages;
 public sealed record AddMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, ulong DiscordChannelId, DateTimeOffset SentDateTime)
     : IRequest, IEnsureUserExistsRequest;
 
-public class AddMessageHandler(AccordContext db) : IRequestHandler<AddMessageRequest>
+internal class AddMessageHandler(AccordContext db) : IRequestHandler<AddMessageRequest>
 {
-
     public async Task Handle(AddMessageRequest request, CancellationToken cancellationToken)
     {
         var message = new UserMessage
@@ -23,7 +22,7 @@ public class AddMessageHandler(AccordContext db) : IRequestHandler<AddMessageReq
             SentDateTime = request.SentDateTime,
         };
 
-        db.Add(message);
+        db.UserMessages.Add(message);
 
         await db.SaveChangesAsync(cancellationToken);
     }

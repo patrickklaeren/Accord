@@ -34,7 +34,7 @@ public class ReactionResponder(IMediator mediator,
             var permissionUser = await permissionUserFactory.FromId(gatewayEvent.UserID.Value);
             await mediator.Publish(new DeleteUserBotMessageRequest(permissionUser, gatewayEvent.MessageID.Value), ct);
         }
-        else if (StarboardConstants.Emojis.Contains(emojiString.Value))
+        else if (emojiString.Value is StarboardConstants.EMOJI)
         {
             var channel = await channelApi.GetChannelAsync(gatewayEvent.ChannelID, ct);
 
@@ -42,7 +42,7 @@ public class ReactionResponder(IMediator mediator,
             {
                 await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
                     gatewayEvent.ChannelID.Value,
-                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value!.Value.Value : null,
+                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value?.Value : null,
                     gatewayEvent.UserID.Value));
             }
         }
@@ -60,7 +60,7 @@ public class ReactionResponder(IMediator mediator,
                 ? $"<a:{emoji.Name}:{emoji.ID.Value}>"
                 : $"<:{emoji.Name}:{emoji.ID.Value}>";
         
-        if (StarboardConstants.Emojis.Contains(emojiString.Value))
+        if (emojiString.Value is StarboardConstants.EMOJI)
         {
             var channel = await channelApi.GetChannelAsync(gatewayEvent.ChannelID, ct);
 
@@ -68,7 +68,7 @@ public class ReactionResponder(IMediator mediator,
             {
                 await eventQueue.Queue(new StarMessageRequest(gatewayEvent.MessageID.Value, 
                     gatewayEvent.ChannelID.Value,
-                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value!.Value.Value : null,
+                    channel.Entity.ParentID.HasValue ? channel.Entity.ParentID.Value?.Value : null,
                     gatewayEvent.UserID.Value));
             }    
         }

@@ -6,7 +6,7 @@ using Accord.Services.Helpers;
 namespace Accord.Services.Raid;
 
 [RegisterSingleton]
-public class RaidCalculator
+internal class RaidCalculator
 {
     private DateTime? _lastJoin;
     private int _joinsInLastRecordedCooldown;

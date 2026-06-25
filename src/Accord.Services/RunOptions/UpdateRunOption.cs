@@ -11,7 +11,7 @@ namespace Accord.Services.RunOptions;
 
 public sealed record UpdateRunOptionRequest(RunOptionKey Key, string RawValue) : IRequest<ServiceResponse>;
 
-public class UpdateRunOptionHandler(RunOptionService runOptionService) : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
+internal class UpdateRunOptionHandler(RunOptionService runOptionService) : IRequestHandler<UpdateRunOptionRequest, ServiceResponse>
 {
     public async Task<ServiceResponse> Handle(UpdateRunOptionRequest request, CancellationToken cancellationToken)
     {

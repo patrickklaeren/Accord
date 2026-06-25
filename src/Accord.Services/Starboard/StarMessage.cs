@@ -19,8 +19,9 @@ public sealed record StarMessageRequest(
     ulong? DiscordMessageChannelParentId,
     ulong DiscordMessageUserId) : IRequest;
 
-public class StarMessageHandler(
+internal class StarMessageHandler(
     AccordContext db,
+    StarboardService starboardService,
     ILogger<StarMessageHandler> logger,
     ChannelFlagService channelFlagService,
     RunOptionService runOptionService,
@@ -43,15 +44,19 @@ public class StarMessageHandler(
             || (request.DiscordMessageChannelParentId is not null && ignoredChannelIds.Contains(request.DiscordMessageChannelParentId.Value)))
             return;
 
-        var numberOfReactionsRequired = await runOptionService.GetOption<int>(RunOptionKey.NumberOfReactionsForStarboardEntry);
+        var numberOfReactionsRequired = await runOptionService.GetOption<int>(RunOptionKey.StarboardNumberOfReactionsRequired);
+        var allowSelfStarring = await runOptionService.GetOption<bool>(RunOptionKey.StarboardSelfStarring);
 
-        var reactions = await mediator
-            .Send(new GetDiscordMessageReactionsRequest(request.DiscordMessageChannelId, request.DiscordMessageId),
+        var message = await mediator
+            .Send(new GetStarredDiscordMessageRequest(request.DiscordMessageChannelId, request.DiscordMessageId),
                 cancellationToken);
 
-        var numberOfReactions = reactions
-            .Where(x => StarboardConstants.Emojis.Contains(x.EmojiName))
-            .Sum(x => x.Count);
+        if (message is null)
+            return;
+
+        var numberOfReactions = message
+            .StarredByUserIds
+            .Count(x => allowSelfStarring || x != message.AuthorId);
 
         var entry = await db
             .StarboardEntries
@@ -67,7 +72,7 @@ public class StarMessageHandler(
             }
             else
             {
-                await HandleDeleteStarboardEntry(entry, cancellationToken);
+                await starboardService.DeleteStarboardEntry(entry, cancellationToken);
             }
         }
         else if (numberOfReactions >= numberOfReactionsRequired)
@@ -185,28 +190,6 @@ public class StarMessageHandler(
         }
 
         entry.Stars = numberOfReactions;
-    }
-
-    private async Task HandleDeleteStarboardEntry(StarboardEntry entry, CancellationToken cancellationToken)
-    {
-        foreach (var output in entry.Outputs)
-        {
-            try
-            {
-                await mediator.Send(new DeleteStarboardEntryToDiscordRequest(output.DiscordMessageId, output.DiscordChannelId),
-                    cancellationToken);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Failed removing starboard message {MessageId} to flagged channel {ChannelId}",
-                    output.DiscordMessageId,
-                    output.DiscordChannelId);
-            }
-
-            db.StarboardEntryOutputs.Remove(output);
-        }
-
-        db.StarboardEntries.Remove(entry);
     }
 
     private static string GetEmojiForNumberOfReactions(int numberOfReactions)

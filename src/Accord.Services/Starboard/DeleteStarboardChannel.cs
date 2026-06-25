@@ -9,7 +9,7 @@ namespace Accord.Services.Starboard;
 
 public sealed record DeleteStarboardChannelRequest(ulong DiscordStarboardChannelId) : IRequest;
 
-public class DeleteStarboardChannelHandler(AccordContext db) 
+internal class DeleteStarboardChannelHandler(AccordContext db) 
     : IRequestHandler<DeleteStarboardChannelRequest>
 {
     public async Task Handle(DeleteStarboardChannelRequest request, CancellationToken cancellationToken)

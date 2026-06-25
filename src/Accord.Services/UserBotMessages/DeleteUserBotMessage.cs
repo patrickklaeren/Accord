@@ -10,9 +10,7 @@ namespace Accord.Services.UserBotMessages;
 
 public sealed record DeleteUserBotMessageRequest(PermissionUser User, ulong DiscordMessageId) : INotification;
 
-public sealed record DeleteDiscordMessageRequest(ulong DiscordMessageId, ulong DiscordChannelId) : IRequest<ServiceResponse>;
-
-public class DeleteUserBotMessage(AccordContext db, IMediator mediator) : INotificationHandler<DeleteUserBotMessageRequest>
+internal class DeleteUserBotMessageHandler(AccordContext db, IMediator mediator) : INotificationHandler<DeleteUserBotMessageRequest>
 {
     public async Task Handle(DeleteUserBotMessageRequest request, CancellationToken cancellationToken)
     {

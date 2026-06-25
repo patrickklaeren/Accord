@@ -9,9 +9,8 @@ namespace Accord.Services.GitHubChallenges;
 
 public sealed record GetGitHubChallengeRequest(string ChallengeReadMeUrl) : IRequest<ServiceResponse<GitHubChallengeDto>>;
 
-public class GetGitHubChallengeHandler(HttpClient httpClient) : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
+internal class GetGitHubChallengeHandler(HttpClient httpClient) : IRequestHandler<GetGitHubChallengeRequest, ServiceResponse<GitHubChallengeDto>>
 {
-
     public async Task<ServiceResponse<GitHubChallengeDto>> Handle(GetGitHubChallengeRequest request, CancellationToken cancellationToken)
     {
         if(!request.ChallengeReadMeUrl.StartsWith("https://raw.githubusercontent.com/discord-csharp/challenges/main/src/") || !request.ChallengeReadMeUrl.EndsWith("README.md"))

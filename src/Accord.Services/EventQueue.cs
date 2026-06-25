@@ -11,7 +11,7 @@ public interface IEventQueue
     ValueTask<IRequest> Dequeue(CancellationToken cancellationToken);
 }
 
-public class EventQueue : IEventQueue
+internal class EventQueue : IEventQueue
 {
     private const int QUEUE_CAPACITY = 1000;
     private readonly Channel<IRequest> _queue;

@@ -10,9 +10,9 @@ using Remora.Rest.Core;
 namespace Accord.Bot.Services;
 
 public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi) 
-    : IRequestHandler<GetDiscordMessageReactionsRequest, IReadOnlyCollection<MessageReactionDto>>
+    : IRequestHandler<GetStarredDiscordMessageRequest, StarredDiscordMessageDto?>
 {
-    public async Task<IReadOnlyCollection<MessageReactionDto>> Handle(GetDiscordMessageReactionsRequest request, CancellationToken cancellationToken)
+    public async Task<StarredDiscordMessageDto?> Handle(GetStarredDiscordMessageRequest request, CancellationToken cancellationToken)
     {
         var channelSnowflake = new Snowflake(request.DiscordChannelId);
         var messageSnowflake = new Snowflake(request.DiscordMessageId);
@@ -21,17 +21,29 @@ public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi)
             messageSnowflake,
             cancellationToken);
 
-        if (message is { Entity: { Reactions.HasValue: true } })
+        if (!message.IsSuccess)
+            return null;
+
+        List<ulong> reactionByUserIds = [];
+
+        if (message.Entity.Reactions.HasValue && message is { Entity.Reactions.Value.Count: > 0 })
         {
-            return message
-                .Entity
-                .Reactions
-                .Value
-                .Where(x => x.Emoji.Name.HasValue)
-                .Select(x => new MessageReactionDto(x.Emoji.Name.Value!, x.Count))
-                .ToList();
+            var discordReactions = await channelApi.GetReactionsAsync(channelSnowflake,
+                messageSnowflake,
+                StarboardConstants.EMOJI,
+                ct: cancellationToken);
+
+            if (discordReactions.IsSuccess)
+            {
+                reactionByUserIds = discordReactions
+                    .Entity
+                    .Select(x => x.ID.Value)
+                    .ToList();
+            }
         }
 
-        return [];
+        return new StarredDiscordMessageDto(message.Entity.ID.Value, 
+            message.Entity.Author.ID.Value,
+            reactionByUserIds);
     }
 }

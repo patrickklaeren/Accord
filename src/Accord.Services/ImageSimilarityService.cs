@@ -4,9 +4,9 @@ using ImageMagick;
 
 namespace Accord.Services;
 
-public class ImageSimilarityService
+internal static class ImageSimilarityService
 {
-    public static ulong ComputeDHash(Stream stream)
+    internal static ulong ComputeDHash(Stream stream)
     {
         using var image = new MagickImage(stream);
 
@@ -59,7 +59,7 @@ public class ImageSimilarityService
     /// </para>
     /// Thresholds should be tuned against real images from the application's domain.
     /// </returns>
-    public static int Distance(ulong first, ulong second) =>
+    internal static int Distance(ulong first, ulong second) =>
         BitOperations.PopCount(first ^ second);
 
     private static byte GetGray(IPixelCollection<byte> pixels, int x, int y) =>

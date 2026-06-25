@@ -2,7 +2,7 @@
 
 namespace Accord.Services.Raid;
 
-public class AccountCreationRange
+internal class AccountCreationRange
 {
     private readonly DateTime _lower;
     private readonly DateTime _upper;

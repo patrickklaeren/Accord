@@ -10,7 +10,7 @@ namespace Accord.Services.Starboard;
 
 public sealed record AddStarboardChannelRequest(ulong? DiscordChannelBeingStarredInId, ulong DiscordStarboardChannelId) : IRequest<ServiceResponse>;
 
-public class AddStarboardChannelHandler(AccordContext db) 
+internal class AddStarboardChannelHandler(AccordContext db) 
     : IRequestHandler<AddStarboardChannelRequest, ServiceResponse>
 {
     public async Task<ServiceResponse> Handle(AddStarboardChannelRequest request, CancellationToken cancellationToken)

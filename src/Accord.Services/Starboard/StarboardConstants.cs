@@ -4,12 +4,12 @@ namespace Accord.Services.Starboard;
 
 public static class StarboardConstants
 {
-    public static readonly string[] Emojis = ["⭐", "🌟", "✨", "💫"];
+    public const string EMOJI = "⭐";
 
     public static readonly Dictionary<int, string> WeightedStars = new()
     {
         [1] = "⭐",
-        [10] = "🌟",
+        [6] = "🌟",
         [15] = "✨",
         [20] = "💫",
     };

@@ -18,7 +18,7 @@ public sealed record RaidCalculationRequest(ulong DiscordGuildId, GuildUserDto U
 
 public sealed record RaidAlertRequest : IRequest;
 
-public class RaidCalculationHandler(
+internal class RaidCalculationHandler(
     RaidCalculator raidCalculator,
     RunOptionService runOptionService,
     IMediator mediator,

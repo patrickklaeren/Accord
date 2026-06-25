@@ -39,9 +39,14 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
                 Value = "3"
             }, new RunOption()
             {
-                Key = RunOptionKey.NumberOfReactionsForStarboardEntry,
+                Key = RunOptionKey.StarboardNumberOfReactionsRequired,
                 Type= RunOptionType.Integer,
                 Value = "3"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.StarboardSelfStarring,
+                Type= RunOptionType.Boolean,
+                Value = "False"
             }
         );
     }
@@ -53,8 +58,10 @@ public enum RunOptionKey
     AutoRaidModeEnabled = 1,
     SequentialJoinsToTriggerRaidMode = 2,
     AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
-    NumberOfReactionsForStarboardEntry = 8,
+    StarboardNumberOfReactionsRequired = 8,
+    StarboardSelfStarring = 9,
 }
+
 public enum RunOptionType
 {
     String,

@@ -8,7 +8,7 @@ namespace Accord.Services.Godbolt;
 public sealed record ExecuteGodboltRequest(string Code, string Language, string Arguments)
     : IRequest<ServiceResponse<ExecuteGodboltResultDto>>;
 
-public class ExecuteGodboltHandler(GodboltApiService godboltApiService,
+internal class ExecuteGodboltHandler(GodboltApiService godboltApiService,
     PasteApiService pasteApiService)
     : IRequestHandler<ExecuteGodboltRequest, ServiceResponse<ExecuteGodboltResultDto>>
 {

@@ -8,7 +8,7 @@ namespace Accord.Services.UserBotMessages;
 
 public sealed record AddUserBotMessageRequest(ulong DiscordMessageId, ulong DiscordChannelId, ulong DiscordUserId) : INotification;
 
-public class AddUserBotMessageHandler(AccordContext db) : INotificationHandler<AddUserBotMessageRequest>
+internal class AddUserBotMessageHandler(AccordContext db) : INotificationHandler<AddUserBotMessageRequest>
 {
     public async Task Handle(AddUserBotMessageRequest request, CancellationToken cancellationToken)
     {

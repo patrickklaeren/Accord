@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.RunOptions;
 
 [RegisterScoped]
-public class RunOptionService(AccordContext db, IAppCache appCache)
+internal class RunOptionService(AccordContext db, IAppCache appCache)
 {
-    public async Task<T> GetOption<T>(RunOptionKey key)
+    internal async Task<T> GetOption<T>(RunOptionKey key)
     {
         return await appCache.GetOrAddAsync(
             BuildGetOptionCacheKey(key),
@@ -37,12 +37,12 @@ public class RunOptionService(AccordContext db, IAppCache appCache)
         return convertedValue;
     }
 
-    public Task UpdateOption<T>(RunOptionKey key, T? value)
+    internal Task UpdateOption<T>(RunOptionKey key, T? value)
     {
         return UpdateOption(key, value?.ToString());
     }
     
-    public async Task UpdateOption(RunOptionKey key, string? value)
+    internal async Task UpdateOption(RunOptionKey key, string? value)
     {
         var configuration = await db.RunOptions
             .Where(x => x.Key == key)

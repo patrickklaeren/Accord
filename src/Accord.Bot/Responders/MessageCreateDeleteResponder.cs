@@ -20,7 +20,7 @@ public class MessageCreateDeleteResponder(CoreEventQueue eventQueue) : IResponde
             return Result.FromSuccess();
 
         var fileUrls = gatewayEvent.Attachments
-            .Where(x => x.ContentType.HasValue && x.ContentType.Value.StartsWith("image/", StringComparison.InvariantCultureIgnoreCase))
+            .Where(x => x.ContentType.HasValue && x.ContentType.Value.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             .Select(d => d.Url)
             .ToList();
 
