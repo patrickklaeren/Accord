@@ -102,7 +102,6 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 {
     builder.Services
         .AddHostedService<BotHostedService>()
-        .AddHostedService<CleanUpHelpForumHostedService>()
         .AddHostedService<RemindersHostedService>();
 }
 

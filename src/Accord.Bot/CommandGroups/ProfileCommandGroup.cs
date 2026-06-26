@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.Helpers;
+using Accord.Services.UserBotMessages;
 using Accord.Services.Users;
 using Humanizer;
 using MediatR;
@@ -88,6 +89,11 @@ public class ProfileCommandGroup(IMediator mediator,
             builder.AppendLine($"First tracked: {trackedUser.FirstSeenDateTime.ToTimeMarkdown()}");
         }
         
+        if (trackedUser?.LeftGuildDateTime is not null)
+        {
+            builder.AppendLine($"Left: {trackedUser.LeftGuildDateTime.Value.ToTimeMarkdown()}");
+        }
+        
         builder.AppendLine($"Status: {status}");
         
         if (trackedUser is not null)
@@ -145,7 +151,14 @@ public class ProfileCommandGroup(IMediator mediator,
             Thumbnail: avatarImage,
             Description: builder.ToString());
 
-        return await feedbackService.SendContextualEmbedAsync(embed);
+        var message = await feedbackService.SendContextualEmbedAsync(embed);
+
+        if (message.IsSuccess)
+        {
+            await mediator.Send(new AddUserBotMessageRequest(message.Entity.ID.Value, message.Entity.ChannelID.Value, proxy.UserId.Value));   
+        }
+
+        return message;
     }
 
     private async Task<string> GetStatus(Snowflake guildSnowflake, 
@@ -156,6 +169,13 @@ public class ProfileCommandGroup(IMediator mediator,
 
         if (guildUser.IsSuccess)
         {
+            if (guildUser.Entity.CommunicationDisabledUntil.HasValue 
+                && guildUser.Entity.CommunicationDisabledUntil.Value > DateTimeOffset.Now)
+            {
+                var formatted = guildUser.Entity.CommunicationDisabledUntil.Value.Value.ToTimeMarkdown();
+                return $"Muted until {formatted}";
+            }
+            
             return "Active in guild";
         }
 

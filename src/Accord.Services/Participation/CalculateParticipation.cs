@@ -16,9 +16,8 @@ namespace Accord.Services.Participation;
 
 public sealed record CalculateParticipationRequest : IRequest;
 
-public class CalculateParticipation(IServiceScopeFactory serviceScopeFactory, IMediator mediator) : IRequestHandler<CalculateParticipationRequest>
+internal class CalculateParticipation(IServiceScopeFactory serviceScopeFactory, IMediator mediator) : IRequestHandler<CalculateParticipationRequest>
 {
-
     public Task Handle(CalculateParticipationRequest request, CancellationToken cancellationToken) => Calculate();
 
     private async Task Calculate()

@@ -72,19 +72,18 @@ public class MemberJoinLeaveResponder(IMediator mediator,
 
     public async Task<Result> RespondAsync(IGuildMemberRemove gatewayEvent, CancellationToken ct = new CancellationToken())
     {
+        await eventQueue.Queue(new UpdateUserAsLeftRequest(gatewayEvent.User.ID.Value, DateTimeOffset.UtcNow));
         var channels = await mediator.Send(new GetChannelsWithFlagRequest(ChannelFlagType.JoinLeaveLogs), ct);
 
         var image = thumbnailHelper.GetAvatar(gatewayEvent.User);
 
-        var user = gatewayEvent.User;
-
         var builder = new StringBuilder()
             .AppendLine("**User Information**")
-            .AppendLine($"ID: {user.ID.Value}")
-            .AppendLine($"Profile: {user.ID.ToUserMention()}")
-            .AppendLine($"Handle: {user.Username}");
+            .AppendLine($"ID: {gatewayEvent.User.ID.Value}")
+            .AppendLine($"Profile: {gatewayEvent.User.ID.ToUserMention()}")
+            .AppendLine($"Handle: {gatewayEvent.User.Username}");
 
-        var embed = new Embed(Title: $"{user.Username} left",
+        var embed = new Embed(Title: $"{gatewayEvent.User.Username} left",
             Description: builder.ToString(),
             Thumbnail: image,
             Footer: new EmbedFooter($"{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}"));

@@ -11,6 +11,8 @@ public class User
     public ulong Id { get; set; }
 
     public DateTimeOffset? JoinedGuildDateTime { get; set; }
+    public DateTimeOffset? LeftGuildDateTime { get; set; }
+    
     public string? Username { get; set; }
     public string? Nickname { get; set; }
 

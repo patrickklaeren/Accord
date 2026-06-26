@@ -7,8 +7,8 @@ on:
       - 'CONTRIBUTING.md'
       - 'ACKNOWLEDGMENTS.md'
       - 'branding/**'
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 env:
@@ -49,3 +49,18 @@ jobs:
         platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true

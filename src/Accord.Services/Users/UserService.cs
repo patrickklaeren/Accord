@@ -33,6 +33,7 @@ public class UserService(AccordContext db, IAppCache appCache)
                     x.Nickname,
                     x.JoinedGuildDateTime,
                     x.FirstSeenDateTime,
+                    x.LeftGuildDateTime,
                     x.ParticipationRank,
                     x.ParticipationPoints,
                     x.ParticipationPercentile))
@@ -85,6 +86,24 @@ public class UserService(AccordContext db, IAppCache appCache)
         InvalidateCache(discordUserId);
     }
 
+    public async Task UpdateUserAsLeft(ulong discordUserId,
+        DateTimeOffset leftAtDateTime,
+        CancellationToken cancellationToken)
+    {
+        var user = await db.Users
+            .SingleOrDefaultAsync(x => x.Id == discordUserId, cancellationToken);
+
+        if (user is null)
+            return;
+
+        user.LeftGuildDateTime = leftAtDateTime;
+        user.LastSeenDateTime = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        InvalidateCache(discordUserId);
+    }
+
     private void InvalidateCache(ulong discordUserId)
     {
         appCache.Remove(BuildUserExistsCacheKey(discordUserId));
@@ -108,6 +127,7 @@ public sealed record UserDto(
     string? Nickname,
     DateTimeOffset? JoinedGuildDateTime,
     DateTimeOffset FirstSeenDateTime,
+    DateTimeOffset? LeftGuildDateTime,
     int ParticipationRank,
     int ParticipationPoints,
     double ParticipationPercentile);
