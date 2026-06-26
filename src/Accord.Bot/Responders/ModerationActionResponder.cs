@@ -139,12 +139,18 @@ public class ModerationActionResponder(IMediator mediator,
 
                 if (isMuted)
                 {
-                    await mediator.Publish(new ScheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                    var autoUnmuteAtDateTime = await mediator.Send(new ScheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                    var content = "Permanently muted in voice";
+
+                    if (autoUnmuteAtDateTime is not null)
+                    {
+                        content = $"Muted in voice until {autoUnmuteAtDateTime.Value:dd/MM/yyyy HH:mm} ({autoUnmuteAtDateTime.Value.Humanize()})";
+                    }
                     
                     return new AddUserHistoryRequest(
                         targetUserId,
                         actingUser,
-                        "Permanently muted in voice",
+                        content,
                         UserHistoryType.Mute);   
                 }
 

@@ -110,12 +110,12 @@ internal class UserService(AccordContext db,
         InvalidateCache(discordUserId);
     }
 
-    public async Task ScheduleVoiceAutoUnmuteForUser(ulong discordUserId, CancellationToken cancellationToken)
+    public async Task<DateTimeOffset?> ScheduleVoiceAutoUnmuteForUser(ulong discordUserId, CancellationToken cancellationToken)
     {
         var isAutoUnmuteEnabled = await runOptionService.GetOption<bool>(RunOptionKey.VoiceAutoUnmuteEnabled);
 
         if (!isAutoUnmuteEnabled)
-            return;
+            return null;
         
         var minutes = await runOptionService.GetOption<int>(RunOptionKey.VoiceAutoUnmuteInMinutes);
         var autoUnmuteAtDateTime = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minutes);
@@ -127,6 +127,8 @@ internal class UserService(AccordContext db,
                 cancellationToken);
 
         InvalidateCache(discordUserId);
+
+        return autoUnmuteAtDateTime;
     }
 
     public async Task UnscheduleVoiceAutoUnmuteForUser(ulong discordUserId, CancellationToken cancellationToken)

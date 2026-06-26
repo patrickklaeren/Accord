@@ -1,15 +1,16 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
 namespace Accord.Services.Users;
 
-public sealed record ScheduleVoiceAutoUnmuteForUserRequest(ulong DiscordUserId) : INotification;
+public sealed record ScheduleVoiceAutoUnmuteForUserRequest(ulong DiscordUserId) : IRequest<DateTimeOffset?>;
 
-internal class ScheduleVoiceAutoUnmuteForUserHandler(UserService userService) : INotificationHandler<ScheduleVoiceAutoUnmuteForUserRequest>
+internal class ScheduleVoiceAutoUnmuteForUserHandler(UserService userService) : IRequestHandler<ScheduleVoiceAutoUnmuteForUserRequest, DateTimeOffset?>
 {
-    public async Task Handle(ScheduleVoiceAutoUnmuteForUserRequest request, CancellationToken cancellationToken)
+    public async Task<DateTimeOffset?> Handle(ScheduleVoiceAutoUnmuteForUserRequest request, CancellationToken cancellationToken)
     {
-        await userService.ScheduleVoiceAutoUnmuteForUser(request.DiscordUserId, cancellationToken);
+        return await userService.ScheduleVoiceAutoUnmuteForUser(request.DiscordUserId, cancellationToken);
     }
 }
