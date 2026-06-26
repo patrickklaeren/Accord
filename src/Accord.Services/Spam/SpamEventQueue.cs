@@ -1,11 +1,11 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Accord.Services.Starboard;
+namespace Accord.Services.Spam;
 
-[RegisterSingleton(typeof(StarboardEventQueue))]
-public class StarboardEventQueue
+[RegisterSingleton(typeof(SpamEventQueue))]
+public class SpamEventQueue
 {
     private readonly EventQueue _queue = new();
     public ValueTask Queue(IRequest queuedEvent) => _queue.Queue(queuedEvent);

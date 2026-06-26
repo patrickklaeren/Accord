@@ -10,6 +10,7 @@ using Accord.Services.Godbolt;
 using Accord.Services.Paste;
 using Accord.Services.Shlink;
 using Accord.Services.Starboard;
+using Accord.Services.Spam;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -107,6 +108,7 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 
 builder.Services.AddHostedService<CoreEventQueueProcessor>();
 builder.Services.AddHostedService<StarboardEventQueueProcessor>();
+builder.Services.AddHostedService<SpamEventQueueProcessor>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

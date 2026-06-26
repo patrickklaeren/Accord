@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Accord.Services;
 using Accord.Services.Permissions;
+using LazyCache;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
@@ -12,16 +13,25 @@ namespace Accord.Bot.Helpers;
 [RegisterScoped]
 public class PermissionUserFactory(IDiscordRestGuildAPI guildApi,
     DiscordCache discordCache,
-    DiscordConfiguration discordConfiguration)
+    DiscordConfiguration discordConfiguration,
+    IAppCache appCache)
 {
     public async Task<PermissionUser> FromId(ulong discordUserId)
+    {
+        return await appCache.GetOrAddAsync(
+            $"{nameof(PermissionUserFactory)}/{discordUserId}",
+            () => FromIdInternal(discordUserId),
+            TimeSpan.FromMinutes(2));
+    }
+
+    private async Task<PermissionUser> FromIdInternal(ulong discordUserId)
     {
         var selfUserSnowflake = discordCache.GetSelfSnowflake();
         var guildSnowflake = new Snowflake(discordConfiguration.GuildId);
         var userSnowflake = new Snowflake(discordUserId);
-        
+
         var isSelfUser = selfUserSnowflake == userSnowflake;
-        
+
         var guild = await guildApi.GetGuildAsync(guildSnowflake);
 
         if (!guild.IsSuccess)

@@ -5,7 +5,7 @@ using MediatR;
 namespace Accord.Services;
 
 [RegisterSingleton(typeof(CoreEventQueue))]
-public class CoreEventQueue : IEventQueue
+public class CoreEventQueue
 {
     private readonly EventQueue _queue = new();
     public ValueTask Queue(IRequest queuedEvent) => _queue.Queue(queuedEvent);

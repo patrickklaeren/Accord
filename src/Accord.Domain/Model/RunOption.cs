@@ -47,6 +47,26 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
                 Key = RunOptionKey.StarboardSelfStarring,
                 Type= RunOptionType.Boolean,
                 Value = "False"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.SpamMessageWindowInSeconds,
+                Type= RunOptionType.Integer,
+                Value = "30"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.SpamMessageThreshold,
+                Type= RunOptionType.Integer,
+                Value = "3"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.SpamMuteEnabled,
+                Type= RunOptionType.Boolean,
+                Value = "true"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.SpamTimeoutInSeconds,
+                Type= RunOptionType.Integer,
+                Value = "60"
             }
         );
     }
@@ -60,6 +80,10 @@ public enum RunOptionKey
     AccountCreationSimilarityJoinsToTriggerRaidMode = 7,
     StarboardNumberOfReactionsRequired = 8,
     StarboardSelfStarring = 9,
+    SpamMessageWindowInSeconds = 10,
+    SpamMessageThreshold = 11,
+    SpamMuteEnabled = 12,
+    SpamTimeoutInSeconds = 13,
 }
 
 public enum RunOptionType
