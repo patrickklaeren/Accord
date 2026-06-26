@@ -1,14 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- AD0001: 'Analyzer Failure'
+         Emitted by Microsoft.AspNetCore.App.Ref due to missing ASP runtime types (which we don't need). -->
+    <NoWarn>$(NoWarn);AD0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="analyzers" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="analyzers" />
+    <PackageReference Include="Microsoft.AspNetCore.App.Ref" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(PkgMicrosoft_CodeAnalysis_NetAnalyzers)\analyzers\dotnet\**\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\netanalyzers" />
     <None Include="$(PkgMicrosoft_CodeAnalysis_CSharp_CodeStyle)\analyzers\dotnet\**\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\codestyle" />
+    <!-- dotnet\**\*.dll would include localized resources, only use top-level analyzers (App.Analyzers, Components.Analyzers). -->
+    <None Include="$(PkgMicrosoft_AspNetCore_App_Ref)\analyzers\dotnet\cs\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\aspnetcore" />
+    <!-- MVC*/API* analyzers ship only in the Web SDK. The Web SDK is included with every .NET SDK. -->
+    <None Include="$(MSBuildSDKsPath)\Microsoft.NET.Sdk.Web\analyzers\cs\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\websdk" />
   </ItemGroup>
 </Project>
