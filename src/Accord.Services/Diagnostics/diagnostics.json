@@ -1,5 +1,53 @@
 [
   {
+    "code": "API1000",
+    "message": "Action returns undeclared status code",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "API1001",
+    "message": "Action returns undeclared success result",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "API1002",
+    "message": "Action documents status code that is not returned",
+    "severity": "Info",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "API1003",
+    "message": "Action methods on ApiController instances do not require explicit model validation check",
+    "severity": "Info",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "ASP0000",
+    "message": "Do not call \u0027IServiceCollection.BuildServiceProvider\u0027 in \u0027ConfigureServices\u0027",
+    "severity": "Warning",
+    "category": "Design",
+    "url": "https://aka.ms/AA5k895",
+    "description": null
+  },
+  {
+    "code": "ASP0001",
+    "message": "Authorization middleware is incorrectly configured",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/AA64fv1",
+    "description": null
+  },
+  {
     "code": "ASP0003",
     "message": "Do not use model binding attributes with route handlers",
     "severity": "Warning",
@@ -18981,6 +19029,62 @@
     "severity": "Hidden",
     "category": "Style",
     "url": "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide2006",
+    "description": null
+  },
+  {
+    "code": "MVC1000",
+    "message": "Use of IHtmlHelper.{0} should be avoided",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "MVC1001",
+    "message": "Filters cannot be applied to page handler methods",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "MVC1002",
+    "message": "Route attributes cannot be applied to page handler methods",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "MVC1003",
+    "message": "Route attributes cannot be applied to page models",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "MVC1004",
+    "message": "Rename model bound parameter",
+    "severity": "Warning",
+    "category": "Naming",
+    "url": "https://aka.ms/AA20pbc",
+    "description": null
+  },
+  {
+    "code": "MVC1005",
+    "message": "Cannot use UseMvc with Endpoint Routing",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/YJggeFn",
+    "description": null
+  },
+  {
+    "code": "MVC1006",
+    "message": "Methods containing TagHelpers must be async and return Task",
+    "severity": "Error",
+    "category": "Usage",
+    "url": null,
     "description": null
   }
 ]

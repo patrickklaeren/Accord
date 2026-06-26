@@ -16,5 +16,7 @@
     <None Include="$(PkgMicrosoft_CodeAnalysis_CSharp_CodeStyle)\analyzers\dotnet\**\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\codestyle" />
     <!-- dotnet\**\*.dll would include localized resources, only use top-level analyzers (App.Analyzers, Components.Analyzers). -->
     <None Include="$(PkgMicrosoft_AspNetCore_App_Ref)\analyzers\dotnet\cs\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\aspnetcore" />
+    <!-- MVC*/API* analyzers ship only in the Web SDK. The Web SDK is included with every .NET SDK. -->
+    <None Include="$(MSBuildSDKsPath)\Microsoft.NET.Sdk.Web\analyzers\cs\*.dll" CopyToOutputDirectory="PreserveNewest" LinkBase="analyzers\websdk" />
   </ItemGroup>
 </Project>
