@@ -1,5 +1,285 @@
 [
   {
+    "code": "ASP0003",
+    "message": "Do not use model binding attributes with route handlers",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0004",
+    "message": "Do not use action results with route handlers",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0005",
+    "message": "Do not place attribute on method called by route handler lambda",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0006",
+    "message": "Do not use non-literal sequence numbers",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0007",
+    "message": "Route parameter and argument optionality is mismatched",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0008",
+    "message": "Do not use ConfigureWebHost with WebApplicationBuilder.Host",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0009",
+    "message": "Do not use Configure with WebApplicationBuilder.WebHost",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0010",
+    "message": "Do not use UseStartup with WebApplicationBuilder.WebHost",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0011",
+    "message": "Suggest using builder.Logging over Host.ConfigureLogging or WebHost.ConfigureLogging",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0012",
+    "message": "Suggest using builder.Services over Host.ConfigureServices or WebHost.ConfigureServices",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0013",
+    "message": "Suggest switching from using Configure methods to WebApplicationBuilder.Configuration",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0014",
+    "message": "Suggest using top level route registrations",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0015",
+    "message": "Suggest using IHeaderDictionary properties",
+    "severity": "Info",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0016",
+    "message": "Do not return a value from RequestDelegate",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0017",
+    "message": "Invalid route pattern",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0018",
+    "message": "Unused route parameter",
+    "severity": "Info",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0019",
+    "message": "Suggest using IHeaderDictionary.Append or the indexer",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0020",
+    "message": "Complex types referenced by route parameters must be parsable",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0021",
+    "message": "When implementing BindAsync(...) method, the return type must be ValueTask\u003CT\u003E",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0022",
+    "message": "Route conflict detected between route handlers",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0023",
+    "message": "Route conflict detected between controller actions",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0024",
+    "message": "Route handler has multiple parameters with the [FromBody] attribute",
+    "severity": "Error",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0025",
+    "message": "Use AddAuthorizationBuilder",
+    "severity": "Info",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0026",
+    "message": "[Authorize] overridden by [AllowAnonymous] from farther away",
+    "severity": "Warning",
+    "category": "Security",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0027",
+    "message": "Unnecessary public Program class declaration",
+    "severity": "Info",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "ASP0028",
+    "message": "Consider using ListenAnyIP() instead of Listen(IPAddress.Any)",
+    "severity": "Info",
+    "category": "Usage",
+    "url": "https://aka.ms/aspnet/analyzers",
+    "description": null
+  },
+  {
+    "code": "BL0001",
+    "message": "Component parameter should have public setters.",
+    "severity": "Error",
+    "category": "Encapsulation",
+    "url": null,
+    "description": "Component parameters should have public setters."
+  },
+  {
+    "code": "BL0002",
+    "message": "Component has multiple CaptureUnmatchedValues parameters",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "Components may only define a single parameter with CaptureUnmatchedValues."
+  },
+  {
+    "code": "BL0003",
+    "message": "Component parameter with CaptureUnmatchedValues has the wrong type",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "Component parameters with CaptureUnmatchedValues must be a correct type."
+  },
+  {
+    "code": "BL0004",
+    "message": "Component parameter should be public.",
+    "severity": "Error",
+    "category": "Encapsulation",
+    "url": null,
+    "description": "Component parameters should be public."
+  },
+  {
+    "code": "BL0005",
+    "message": "Component parameter should not be set outside of its component.",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "Component parameters should not be set outside of their declared component. Doing so may result in unexpected behavior at runtime."
+  },
+  {
+    "code": "BL0006",
+    "message": "Do not use RenderTree types",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "The types in \u0027Microsoft.AspNetCore.Components.RenderTree\u0027 are not recommended for use outside of the Blazor framework. These  type definitions will change in future releases."
+  },
+  {
+    "code": "BL0007",
+    "message": "Component parameters should be auto properties",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": null
+  },
+  {
+    "code": "BL0008",
+    "message": "Property with [SupplyParameterFromForm] should not have initializer",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "The value of a property decorated with [SupplyParameterFromForm] and initialized with a property initializer can be overwritten with null when the component receives parameters. To ensure the initialized value is not overwritten, move the initialization to a component lifecycle method like OnInitialized or OnInitializedAsync"
+  },
+  {
+    "code": "BL0009",
+    "message": "Property with [PersistentState] should not have initializer",
+    "severity": "Warning",
+    "category": "Usage",
+    "url": null,
+    "description": "The value of a property decorated with [PersistentState] and initialized with a property initializer can be overwritten when the component receives parameters. To ensure the initialized value is not overwritten, move the initialization to a component lifecycle method like OnInitialized or OnInitializedAsync"
+  },
+  {
     "code": "CA1000",
     "message": "Do not declare static members on generic types",
     "severity": "Hidden",
