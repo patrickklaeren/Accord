@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Bot.Helpers;
 using Accord.Services;
+using Accord.Services.Spam;
 using Accord.Services.UserMessages;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
@@ -10,7 +12,10 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MessageCreateDeleteResponder(CoreEventQueue eventQueue) : IResponder<IMessageCreate>,
+public class MessageCreateDeleteResponder(CoreEventQueue eventQueue,
+    SpamEventQueue spamEventQueue,
+    PermissionUserFactory permissionUserFactory) 
+    : IResponder<IMessageCreate>,
     IResponder<IMessageDelete>,
     IResponder<IMessageDeleteBulk>
 {
@@ -33,6 +38,14 @@ public class MessageCreateDeleteResponder(CoreEventQueue eventQueue) : IResponde
             gatewayEvent.Author.ID.Value, 
             gatewayEvent.ChannelID.Value,
             gatewayEvent.Timestamp));
+        
+        var permissionUser = await permissionUserFactory.FromId(gatewayEvent.Author.ID.Value);
+
+        await spamEventQueue.Queue(new AddSpamCheckMessageRequest(
+            gatewayEvent.ID.Value,
+            gatewayEvent.ChannelID.Value,
+            gatewayEvent.Content,
+            permissionUser));
 
         return Result.FromSuccess();
     }

@@ -5,13 +5,7 @@ using System.Threading.Tasks;
 
 namespace Accord.Services;
 
-public interface IEventQueue
-{
-    ValueTask Queue(IRequest queuedEvent);
-    ValueTask<IRequest> Dequeue(CancellationToken cancellationToken);
-}
-
-internal class EventQueue : IEventQueue
+internal class EventQueue
 {
     private const int QUEUE_CAPACITY = 1000;
     private readonly Channel<IRequest> _queue;

@@ -27,7 +27,8 @@ public enum PermissionType
     AddHistories = 5,
     ManageTags = 6,
     CreateShortUrls = 7,
-    TemporaryMute = 8
+    TemporaryMute = 8,
+    BypassSpamCheck = 9
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
