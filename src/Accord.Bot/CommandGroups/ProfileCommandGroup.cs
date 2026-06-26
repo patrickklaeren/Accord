@@ -155,7 +155,7 @@ public class ProfileCommandGroup(IMediator mediator,
 
         if (message.IsSuccess)
         {
-            await mediator.Send(new AddUserBotMessageRequest(message.Entity.ID.Value, message.Entity.ChannelID.Value, proxy.UserId.Value));   
+            await mediator.Publish(new AddUserBotMessageRequest(message.Entity.ID.Value, message.Entity.ChannelID.Value, proxy.UserId.Value));   
         }
 
         return message;
