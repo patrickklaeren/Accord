@@ -5,7 +5,6 @@ using Accord.Domain.Model;
 using Accord.Services.Permissions;
 using Accord.Services.RunOptions;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace Accord.Services.Spam;
 
@@ -16,7 +15,7 @@ public sealed record AddSpamCheckMessageRequest(
     PermissionUser User
 ) : IRequest;
 
-internal class AddSpamCheckMessageHandler(ILogger<AddSpamCheckMessageHandler> logger,
+internal class AddSpamCheckMessageHandler(
     RunOptionService runOptionService,
     SpamAnalysisService spamAnalysis,
     UserPermissionService userPermissionService,
@@ -32,10 +31,10 @@ internal class AddSpamCheckMessageHandler(ILogger<AddSpamCheckMessageHandler> lo
             return;
         }
         
-        // if (await userPermissionService.HasPermission(request.User, PermissionType.BypassSpamCheck))
-        // {
-        //     return;
-        // }
+        if (await userPermissionService.HasPermission(request.User, PermissionType.BypassSpamCheck))
+        {
+            return;
+        }
 
         var spamMessageThreshold = await runOptionService.GetOption<int>(RunOptionKey.SpamMessageThreshold);
         var spamMessageWindowInSeconds = await runOptionService.GetOption<int>(RunOptionKey.SpamMessageWindowInSeconds);
