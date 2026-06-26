@@ -12,20 +12,20 @@ namespace Accord.Bot.RequestHandlers;
 public class CleanUpSpamHandler(DiscordConfiguration discordConfiguration, 
     IDiscordRestChannelAPI channelApi,
     IDiscordRestGuildAPI guildApi)
-    : INotificationHandler<CleanUpSpamRequest>
+    : INotificationHandler<CleanUpSpamInDiscordRequest>
 {
-    public async Task Handle(CleanUpSpamRequest request, CancellationToken cancellationToken)
+    public async Task Handle(CleanUpSpamInDiscordRequest inDiscordRequest, CancellationToken cancellationToken)
     {
-        var muteUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(request.TimeoutInSeconds);
+        var muteUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(inDiscordRequest.TimeoutInSeconds);
 
         await guildApi.ModifyGuildMemberAsync(
             new Snowflake(discordConfiguration.GuildId),
-            new Snowflake(request.DiscordUserId),
+            new Snowflake(inDiscordRequest.DiscordUserId),
             communicationDisabledUntil: muteUntil,
             reason: "Spam detected",
             ct: cancellationToken);
         
-        foreach (var message in request.Messages)
+        foreach (var message in inDiscordRequest.Messages)
         {
             await channelApi.DeleteMessageAsync(
                 new Snowflake(message.DiscordChannelId),

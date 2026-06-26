@@ -13,7 +13,7 @@ public sealed record UpdateUserRequest(
     string? DiscordAvatarUrl,
     DateTimeOffset? JoinedDateTime) : IRequest;
 
-public class UpdateUserHandler(UserService userService) : IRequestHandler<UpdateUserRequest>
+internal class UpdateUserHandler(UserService userService) : IRequestHandler<UpdateUserRequest>
 {
     public async Task Handle(UpdateUserRequest request, CancellationToken cancellationToken)
     {

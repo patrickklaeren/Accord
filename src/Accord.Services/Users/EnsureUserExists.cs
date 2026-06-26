@@ -6,7 +6,7 @@ namespace Accord.Services.Users;
 
 public sealed record EnsureUserExistsRequest(ulong DiscordUserId) : IRequest;
 
-public class EnsureUserExistsHandler(UserService userService) : IRequestHandler<EnsureUserExistsRequest>
+internal class EnsureUserExistsHandler(UserService userService) : IRequestHandler<EnsureUserExistsRequest>
 {
     public async Task Handle(EnsureUserExistsRequest request, CancellationToken cancellationToken)
     {

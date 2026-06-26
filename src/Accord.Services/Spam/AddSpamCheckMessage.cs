@@ -54,7 +54,7 @@ internal class AddSpamCheckMessageHandler(
                 .Append(new SpamMatch(request.DiscordMessageId, request.DiscordMessageChannelId))
                 .ToList();
 
-            await mediator.Publish(new CleanUpSpamRequest(request.User.DiscordUserId, allMessages, timeoutInSeconds), cancellationToken);
+            await mediator.Publish(new CleanUpSpamInDiscordRequest(request.User.DiscordUserId, allMessages, timeoutInSeconds), cancellationToken);
         }
     }
 }

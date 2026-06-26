@@ -13,7 +13,7 @@ public sealed record AddUserRequest(
     string? DiscordNickname,
     DateTimeOffset JoinedDateTime) : IRequest;
 
-public class AddUserHandler(UserService userService) : IRequestHandler<AddUserRequest>
+internal class AddUserHandler(UserService userService) : IRequestHandler<AddUserRequest>
 {
     public async Task Handle(AddUserRequest request, CancellationToken cancellationToken)
     {

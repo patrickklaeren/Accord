@@ -4,13 +4,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
+using Accord.Services.RunOptions;
 using LazyCache;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Users;
 
 [RegisterScoped]
-public class UserService(AccordContext db, IAppCache appCache)
+internal class UserService(AccordContext db, 
+    RunOptionService runOptionService, 
+    IAppCache appCache,
+    IMediator mediator)
 {
     public async Task<bool> UserExists(ulong discordUserId, CancellationToken cancellationToken)
     {
@@ -34,6 +39,7 @@ public class UserService(AccordContext db, IAppCache appCache)
                     x.JoinedGuildDateTime,
                     x.FirstSeenDateTime,
                     x.LeftGuildDateTime,
+                    x.VoiceAutoUnmuteAtDateTime,
                     x.ParticipationRank,
                     x.ParticipationPoints,
                     x.ParticipationPercentile))
@@ -104,6 +110,48 @@ public class UserService(AccordContext db, IAppCache appCache)
         InvalidateCache(discordUserId);
     }
 
+    public async Task<DateTimeOffset?> ScheduleVoiceAutoUnmuteForUser(ulong discordUserId, CancellationToken cancellationToken)
+    {
+        var isAutoUnmuteEnabled = await runOptionService.GetOption<bool>(RunOptionKey.VoiceAutoUnmuteEnabled);
+
+        if (!isAutoUnmuteEnabled)
+            return null;
+        
+        var minutes = await runOptionService.GetOption<int>(RunOptionKey.VoiceAutoUnmuteInMinutes);
+        var autoUnmuteAtDateTime = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minutes);
+
+        await db.Users
+            .Where(x => x.Id == discordUserId)
+            .ExecuteUpdateAsync(x => x
+                    .SetProperty(d => d.VoiceAutoUnmuteAtDateTime, autoUnmuteAtDateTime),
+                cancellationToken);
+
+        InvalidateCache(discordUserId);
+
+        return autoUnmuteAtDateTime;
+    }
+
+    public async Task UnscheduleVoiceAutoUnmuteForUser(ulong discordUserId, CancellationToken cancellationToken)
+    {
+        await db.Users
+            .Where(x => x.Id == discordUserId)
+            .ExecuteUpdateAsync(x => x
+                    .SetProperty(d => d.VoiceAutoUnmuteAtDateTime, (DateTimeOffset?)null),
+                cancellationToken);
+
+        InvalidateCache(discordUserId);
+    }
+
+    public async Task TryAutoVoiceUnmuteUser(ulong discordUserId, CancellationToken cancellationToken)
+    {
+        var user = await GetUser(discordUserId, cancellationToken);
+
+        if (user.AutoUnmuteAtDateTime is null || user.AutoUnmuteAtDateTime > DateTimeOffset.Now)
+            return;
+
+        await mediator.Publish(new VoiceUnmuteUserInDiscordRequest(discordUserId), cancellationToken);
+    }
+
     private void InvalidateCache(ulong discordUserId)
     {
         appCache.Remove(BuildUserExistsCacheKey(discordUserId));
@@ -128,6 +176,7 @@ public sealed record UserDto(
     DateTimeOffset? JoinedGuildDateTime,
     DateTimeOffset FirstSeenDateTime,
     DateTimeOffset? LeftGuildDateTime,
+    DateTimeOffset? AutoUnmuteAtDateTime,
     int ParticipationRank,
     int ParticipationPoints,
     double ParticipationPercentile);

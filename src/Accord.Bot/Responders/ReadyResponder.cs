@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Bot.Infrastructure;
 using Accord.Services;
+using Accord.Services.Users;
+using MediatR;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -17,18 +19,20 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class ReadyResponder(DiscordGatewayClient discordGatewayClient, DiscordCache discordCache, IDiscordRestGuildAPI guildApi, DiscordConfiguration discordConfiguration) : IResponder<IReady>
+public class ReadyResponder(DiscordGatewayClient discordGatewayClient, 
+    DiscordCache discordCache, 
+    IDiscordRestGuildAPI guildApi, 
+    DiscordConfiguration discordConfiguration,
+    IMediator mediator) : IResponder<IReady>
 {
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
+        await mediator.Send(new EnsureUserExistsRequest(gatewayEvent.User.ID.Value), ct);
+        
         discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
         await CacheGuild(gatewayEvent.User, ct);
 
-        var updateCommand = new UpdatePresence(UserStatus.Online, false, null, new IActivity[]
-        {
-            new Activity("for everything", ActivityType.Watching)
-        });
-
+        var updateCommand = new UpdatePresence(UserStatus.Online, false, null, [new Activity("for everything", ActivityType.Watching)]);
         discordGatewayClient.SubmitCommand(updateCommand);
 
         return Result.FromSuccess();

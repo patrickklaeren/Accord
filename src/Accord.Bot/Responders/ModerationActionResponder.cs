@@ -5,14 +5,13 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services;
-using Accord.Services.ChannelFlags;
 using Accord.Services.UserHistories;
+using Accord.Services.Users;
 using Humanizer;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -140,13 +139,23 @@ public class ModerationActionResponder(IMediator mediator,
 
                 if (isMuted)
                 {
+                    var autoUnmuteAtDateTime = await mediator.Send(new ScheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                    var content = "Permanently muted in voice";
+
+                    if (autoUnmuteAtDateTime is not null)
+                    {
+                        content = $"Muted in voice until {autoUnmuteAtDateTime.Value:dd/MM/yyyy HH:mm} ({autoUnmuteAtDateTime.Value.Humanize()})";
+                    }
+                    
                     return new AddUserHistoryRequest(
                         targetUserId,
                         actingUser,
-                        "Permanently muted in voice",
+                        content,
                         UserHistoryType.Mute);   
                 }
 
+                await mediator.Publish(new UnscheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                
                 return new AddUserHistoryRequest(
                     targetUserId,
                     actingUser,

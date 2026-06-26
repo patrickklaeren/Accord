@@ -67,6 +67,16 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
                 Key = RunOptionKey.SpamTimeoutInSeconds,
                 Type= RunOptionType.Integer,
                 Value = "60"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.VoiceAutoUnmuteEnabled,
+                Type= RunOptionType.Boolean,
+                Value = "true"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.VoiceAutoUnmuteInMinutes,
+                Type= RunOptionType.Integer,
+                Value = "1440"
             }
         );
     }
@@ -84,6 +94,8 @@ public enum RunOptionKey
     SpamMessageThreshold = 11,
     SpamMuteEnabled = 12,
     SpamTimeoutInSeconds = 13,
+    VoiceAutoUnmuteEnabled = 14,
+    VoiceAutoUnmuteInMinutes = 15,
 }
 
 public enum RunOptionType

@@ -13,7 +13,7 @@ namespace Accord.Services.Users;
 
 public sealed record GetUserRequest(ulong DiscordUserId) : IRequest<ServiceResponse<UserDto>>;
 
-public class GetUserHandler(UserService userService) 
+internal class GetUserHandler(UserService userService) 
     : IRequestHandler<GetUserRequest, ServiceResponse<UserDto>>
 {
     public async Task<ServiceResponse<UserDto>> Handle(GetUserRequest request, CancellationToken cancellationToken)
