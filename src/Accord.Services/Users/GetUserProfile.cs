@@ -6,7 +6,7 @@ namespace Accord.Services.Users;
 
 public sealed record GetUserProfileRequest(ulong DiscordUserId) : IRequest<GetUserProfileDto?>;
 
-public class GetUserProfileHandler(UserProfileService userProfileService) 
+internal class GetUserProfileHandler(UserProfileService userProfileService) 
     : IRequestHandler<GetUserProfileRequest, GetUserProfileDto?>
 {
     public async Task<GetUserProfileDto?> Handle(GetUserProfileRequest request, CancellationToken cancellationToken)

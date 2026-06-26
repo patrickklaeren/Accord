@@ -24,6 +24,7 @@ public class User
     public double ParticipationPercentile { get; set; }
 
     public DateTimeOffset? TimedOutUntil { get; set; }
+    public DateTimeOffset? VoiceAutoUnmuteAtDateTime { get; set; }
 
     public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
     public ICollection<UserHistory> Histories { get; set; } = new HashSet<UserHistory>();

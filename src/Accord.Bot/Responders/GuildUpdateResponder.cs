@@ -9,7 +9,6 @@ namespace Accord.Bot.Responders;
 
 public class GuildUpdateResponder(DiscordCache discordCache) : IResponder<IGuildUpdate>
 {
-
     public Task<Result> RespondAsync(IGuildUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
         discordCache.InvalidateGuildRoles();

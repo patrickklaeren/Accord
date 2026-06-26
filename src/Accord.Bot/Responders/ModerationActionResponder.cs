@@ -5,14 +5,13 @@ using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services;
-using Accord.Services.ChannelFlags;
 using Accord.Services.UserHistories;
+using Accord.Services.Users;
 using Humanizer;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -140,6 +139,8 @@ public class ModerationActionResponder(IMediator mediator,
 
                 if (isMuted)
                 {
+                    await mediator.Publish(new ScheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                    
                     return new AddUserHistoryRequest(
                         targetUserId,
                         actingUser,
@@ -147,6 +148,8 @@ public class ModerationActionResponder(IMediator mediator,
                         UserHistoryType.Mute);   
                 }
 
+                await mediator.Publish(new UnscheduleVoiceAutoUnmuteForUserRequest(targetUserId), cancellationToken);
+                
                 return new AddUserHistoryRequest(
                     targetUserId,
                     actingUser,

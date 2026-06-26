@@ -8,7 +8,7 @@ namespace Accord.Services.Reminder;
 
 public sealed record AddReminderRequest(ulong DiscordUserId, ulong DiscordChannelId, TimeSpan TimeSpan, string Message) : IRequest<ServiceResponse>;
 
-public class AddReminderHandler(UserService userService, UserReminderService userReminderService) : IRequestHandler<AddReminderRequest, ServiceResponse>
+internal class AddReminderHandler(UserService userService, UserReminderService userReminderService) : IRequestHandler<AddReminderRequest, ServiceResponse>
 {
     public async Task<ServiceResponse> Handle(AddReminderRequest request, CancellationToken cancellationToken)
     {

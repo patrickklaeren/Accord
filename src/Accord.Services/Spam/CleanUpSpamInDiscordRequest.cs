@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Accord.Services.Spam;
 
-public sealed record CleanUpSpamRequest(
+public sealed record CleanUpSpamInDiscordRequest(
     ulong DiscordUserId,
     IReadOnlyCollection<SpamMatch> Messages,
     int TimeoutInSeconds

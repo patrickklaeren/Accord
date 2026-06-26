@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.Users;
 
 [RegisterScoped]
-public class UserProfileService(AccordContext db, 
+internal class UserProfileService(AccordContext db, 
     UserService userService, 
     IAppCache appCache)
 {
