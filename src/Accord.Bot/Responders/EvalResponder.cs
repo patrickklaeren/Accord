@@ -8,6 +8,7 @@ using Accord.Bot.Helpers;
 using Accord.Services.CodeEvaluation;
 using Accord.Services.UserBotMessages;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -20,7 +21,8 @@ namespace Accord.Bot.Responders;
 public class EvalResponder(ThumbnailHelper thumbnailHelper,
     JumpLinkHelper jumpLinkHelper,
     IDiscordRestChannelAPI channelApi,
-    IMediator mediator) : IResponder<IMessageCreate>
+    IMediator mediator,
+    ILogger<EvalResponder> logger) : IResponder<IMessageCreate>
 {
     private const string COMMAND_ONE = "!eval";
     private const string COMMAND_TWO = "!exec";
@@ -61,6 +63,12 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
             allowedMentions: new AllowedMentions(MentionRepliedUser: false)
         );
 
+        if (!workingMessageResult.IsSuccess)
+        {
+            logger.LogError("Failed creating initial Eval embed, {Message}", workingMessageResult.Error.Message);
+            return;
+        }
+
         var workingMessage = workingMessageResult.Entity;
 
         await mediator.Publish(new AddUserBotMessageRequest(workingMessage.ID.Value,
@@ -75,12 +83,22 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         var expression = trimmed[prefix.Length..].Trim();
         var sanitised = DiscordFormatter.StripCodeBlocks(expression);
 
+        logger.LogInformation("Sending REPL request for code for user {UserId} in channel {ChannelId} with expression: {Code}",
+            executingUser.ID.Value,
+            message.ChannelID.Value,
+            sanitised);
+
         try
         {
             var replResult = await mediator.Send(new ExecuteEvalRequest(sanitised));
 
             if (!replResult.Success)
             {
+                logger.LogWarning("Eval failed for user {UserId} in channel {ChannelId}: {ErrorMessage}",
+                    executingUser.ID.Value,
+                    message.ChannelID.Value,
+                    replResult.ErrorMessage);
+                
                 await RespondWithErrorEmbed(replResult.ErrorMessage);
                 return;
             }
@@ -90,6 +108,11 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Failed executing eval for user {UserId} in channel {ChannelId}, expression: {ExpressionLength}",
+                executingUser.ID.Value, 
+                message.ChannelID.Value, 
+                sanitised);
+            
             await RespondWithErrorEmbed(ex.Message);
         }
 

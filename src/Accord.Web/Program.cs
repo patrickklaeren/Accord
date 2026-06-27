@@ -26,16 +26,19 @@ using MudBlazor.Services;
 using Polly;
 using Polly.Extensions.Http;
 
-var builder = WebApplication
-    .CreateBuilder(args);
-
-builder.WebHost.UseSentry();
+var builder = WebApplication.CreateBuilder(args);
 
 var accordConfiguration = new AccordConfiguration();
 builder.Configuration.Bind(accordConfiguration);
 
 var discordConfiguration = new DiscordConfiguration();
 builder.Configuration.GetSection("Discord").Bind(discordConfiguration);
+
+var seqUri = builder.Configuration["SEQ_URI"];
+if (!string.IsNullOrWhiteSpace(seqUri))
+{
+    builder.Logging.AddSeq(seqUri);
+}
 
 builder
     .Services
@@ -134,18 +137,6 @@ app.MapFallbackToPage("/_Host");
 
 app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
-
-app.MapGet("/debug/all-headers", (HttpContext context) =>
-    context.Request.Headers.ToDictionary(
-        x => x.Key,
-        x => x.Value.ToString()));
-
-app.MapGet("/debug/request", (HttpContext context) => new
-{
-    Scheme = context.Request.Scheme,
-    Host = context.Request.Host.ToString(),
-    RedirectUri = $"{context.Request.Scheme}://{context.Request.Host}/signin-discord"
-});
 
 using (var scope = app.Services.CreateScope())
 {

@@ -9,6 +9,7 @@
     <PackageReference Include="MediatR" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Sentry.AspNetCore" />
+    <PackageReference Include="Seq.Extensions.Logging" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Accord.Bot\Accord.Bot.csproj" />
