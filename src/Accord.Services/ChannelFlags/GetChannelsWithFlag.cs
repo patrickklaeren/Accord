@@ -8,7 +8,7 @@ namespace Accord.Services.ChannelFlags;
 
 public sealed record GetChannelsWithFlagRequest(ChannelFlagType Flag) : IRequest<List<ulong>>;
 
-public class GetChannelsWithFlagHandler(ChannelFlagService channelFlagService) 
+internal class GetChannelsWithFlagHandler(ChannelFlagService channelFlagService)
     : IRequestHandler<GetChannelsWithFlagRequest, List<ulong>>
 {
     public async Task<List<ulong>> Handle(GetChannelsWithFlagRequest request, CancellationToken cancellationToken)

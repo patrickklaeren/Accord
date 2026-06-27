@@ -15,7 +15,7 @@ public sealed record GetAllChannelFlagsResponse(IReadOnlyCollection<ChannelFlagD
 
 public sealed record ChannelFlagDto(ulong DiscordChannelId, ChannelFlagType Type);
 
-public class GetAllChannelFlagsHandler(AccordContext db)
+internal class GetAllChannelFlagsHandler(AccordContext db)
     : IRequestHandler<GetAllChannelFlagsRequest, GetAllChannelFlagsResponse>
 {
     public async Task<GetAllChannelFlagsResponse> Handle(GetAllChannelFlagsRequest request, CancellationToken ct)

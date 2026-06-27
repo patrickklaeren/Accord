@@ -61,7 +61,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<LookupCommandGroup>()
             .WithCommandGroup<MuteCommandGroup>()
             .WithCommandGroup<UnmuteCommandGroup>()
-            .WithCommandGroup<ChangelogCommandGroup>();
+            .WithCommandGroup<ChangelogCommandGroup>()
+            .WithCommandGroup<HelpForumCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()

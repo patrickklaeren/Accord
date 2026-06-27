@@ -11,7 +11,7 @@ namespace Accord.Services.ChannelFlags;
 public sealed record AddChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) 
     : IRequest<ServiceResponse>;
 
-public class AddChannelFlagHandler(UserPermissionService userPermissionService, 
+internal class AddChannelFlagHandler(UserPermissionService userPermissionService, 
     ChannelFlagService channelFlagService) : IRequestHandler<AddChannelFlagRequest, ServiceResponse>
 {
     public async Task<ServiceResponse> Handle(AddChannelFlagRequest request, CancellationToken cancellationToken)
