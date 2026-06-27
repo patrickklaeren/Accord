@@ -1,13 +1,9 @@
-using System;
 using Accord.Bot.Autocomplete;
 using Accord.Bot.CommandGroups;
 using Accord.Bot.Infrastructure;
 using Accord.Bot.Responders;
-using Accord.Services.CodeEvaluation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.Extensions.Http;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
@@ -65,6 +61,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<LookupCommandGroup>()
             .WithCommandGroup<MuteCommandGroup>()
             .WithCommandGroup<UnmuteCommandGroup>()
+            .WithCommandGroup<ChangelogCommandGroup>()
             .WithCommandGroup<HelpForumCommandGroup>();
 
         services
