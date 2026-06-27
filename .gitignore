@@ -356,3 +356,5 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+aspire-output/

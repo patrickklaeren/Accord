@@ -68,6 +68,8 @@ var postgres = builder
 var accordDatabase = postgres.AddDatabase("accord");
 var shlinkDatabase = postgres.AddDatabase("shlink");
 
+var seq = builder.AddSeq("seq");
+
 var repl = builder
     .AddContainer("repl-app", "ghcr.io/discord-csharp/csharprepl", "latest")
     .WithEnvironment("ASPNETCORE_URLS", "http://+:31337")
@@ -94,6 +96,7 @@ var shlink = builder
 builder
     .AddProject<Projects.Accord_Web>("app")
     .WithReference(accordDatabase)
+    .WithReference(seq)
     .WaitFor(accordDatabase)
     .WaitFor(paste)
     .WaitFor(repl)

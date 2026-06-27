@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting.Seq" Version="13.4.6" />
     <PackageVersion Include="AspNet.Security.OAuth.Discord" Version="10.0.0" />
     <PackageVersion Include="AutoRegisterInject" Version="2.0.2" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
@@ -30,6 +31,7 @@
     <PackageVersion Include="protobuf-net" Version="3.2.56" />
     <PackageVersion Include="Remora.Discord" Version="2026.1.0" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
+    <PackageVersion Include="Seq.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="TimeSpanParserUtil" Version="1.2.0" />
   </ItemGroup>
 </Project>
