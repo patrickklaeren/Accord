@@ -31,4 +31,6 @@ public class AccordContext : DbContext
     public DbSet<StarboardChannel> StarboardChannels { get; set; } = null!;
     public DbSet<StarboardEntry> StarboardEntries { get; set; } = null!;
     public DbSet<StarboardEntryOutput> StarboardEntryOutputs { get; set; } = null!;
+    public DbSet<RssFeed> RssFeeds { get; set; } = null!;
+    public DbSet<RssFeedPost> RssFeedPosts { get; set; } = null!;
 }

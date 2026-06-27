@@ -58,7 +58,7 @@ public class MuteCommandGroup(ICommandContext commandContext,
             return await feedbackService.SendContextualAsync("Temporary mutes can only last for a maximum of one day");
         }
 
-        var now = DateTimeOffset.Now;
+        var now = DateTimeOffset.UtcNow;
         var muteUntil = now + duration;
         
         var modifyReason = $"On behalf of {actingUser.DiscordUserId}";

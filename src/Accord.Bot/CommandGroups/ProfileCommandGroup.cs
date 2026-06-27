@@ -170,7 +170,7 @@ public class ProfileCommandGroup(IMediator mediator,
         if (guildUser.IsSuccess)
         {
             if (guildUser.Entity.CommunicationDisabledUntil.HasValue 
-                && guildUser.Entity.CommunicationDisabledUntil.Value > DateTimeOffset.Now)
+                && guildUser.Entity.CommunicationDisabledUntil.Value > DateTimeOffset.UtcNow)
             {
                 var formatted = guildUser.Entity.CommunicationDisabledUntil.Value.Value.ToTimeMarkdown();
                 return $"Muted until {formatted}";

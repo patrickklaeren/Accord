@@ -8,6 +8,7 @@ using Accord.Services;
 using Accord.Services.CodeEvaluation;
 using Accord.Services.Godbolt;
 using Accord.Services.Paste;
+using Accord.Services.Rss;
 using Accord.Services.Shlink;
 using Accord.Services.Starboard;
 using Accord.Services.Spam;
@@ -99,11 +100,18 @@ builder.Services.AddHttpClient<ShlinkApiService>(x =>
     })
     .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
 
+builder.Services.AddHttpClient<RssFeedReaderService>(x =>
+    {
+        x.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0");
+    })
+    .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError().WaitAndRetryAsync(2, _ => TimeSpan.FromSeconds(5)));
+
 if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 {
     builder.Services
         .AddHostedService<BotHostedService>()
-        .AddHostedService<RemindersHostedService>();
+        .AddHostedService<RemindersHostedService>()
+        .AddHostedService<RssPollingHostedService>();
 }
 
 builder.Services.AddHostedService<CoreEventQueueProcessor>();
