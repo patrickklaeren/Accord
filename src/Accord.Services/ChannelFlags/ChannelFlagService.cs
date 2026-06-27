@@ -13,6 +13,12 @@ namespace Accord.Services.ChannelFlags;
 [RegisterScoped]
 public class ChannelFlagService(AccordContext db, IAppCache appCache)
 {
+    public async Task<bool> ChannelHasFlag(ulong discordChannelId, ChannelFlagType flag, CancellationToken cancellationToken)
+    {
+        var channelFlags = await GetChannelIdsWithFlag(flag, cancellationToken);
+        return channelFlags.Contains(discordChannelId);
+    }
+    
     public async Task<List<ulong>> GetChannelIdsWithFlag(ChannelFlagType flag, CancellationToken cancellationToken)
     {
         return await appCache.GetOrAddAsync(BuildGetChannelsWithFlagKey(flag),

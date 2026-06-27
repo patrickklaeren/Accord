@@ -10,7 +10,7 @@ namespace Accord.Services.ChannelFlags;
 
 public sealed record DeleteChannelFlagRequest(PermissionUser User, ChannelFlagType Flag, ulong DiscordChannelId) : IRequest<ServiceResponse>;
 
-public class DeleteChannelFlagHandler(ChannelFlagService channelFlagService,
+internal class DeleteChannelFlagHandler(ChannelFlagService channelFlagService,
     UserPermissionService userPermissionService) 
     : IRequestHandler<DeleteChannelFlagRequest, ServiceResponse>
 {

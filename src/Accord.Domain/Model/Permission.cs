@@ -28,7 +28,8 @@ public enum PermissionType
     ManageTags = 6,
     CreateShortUrls = 7,
     TemporaryMute = 8,
-    BypassSpamCheck = 9
+    BypassSpamCheck = 9,
+    ForumHelper = 9,
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
