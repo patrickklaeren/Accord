@@ -146,7 +146,7 @@ internal class UserService(AccordContext db,
     {
         var user = await GetUser(discordUserId, cancellationToken);
 
-        if (user.AutoUnmuteAtDateTime is null || user.AutoUnmuteAtDateTime > DateTimeOffset.Now)
+        if (user.AutoUnmuteAtDateTime is null || user.AutoUnmuteAtDateTime > DateTimeOffset.UtcNow)
             return;
 
         await mediator.Publish(new VoiceUnmuteUserInDiscordRequest(discordUserId), cancellationToken);

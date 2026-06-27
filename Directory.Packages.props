@@ -30,6 +30,7 @@
     <PackageVersion Include="protobuf-net" Version="3.2.56" />
     <PackageVersion Include="Remora.Discord" Version="2026.1.0" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
+    <PackageVersion Include="System.ServiceModel.Syndication" Version="10.0.0" />
     <PackageVersion Include="TimeSpanParserUtil" Version="1.2.0" />
   </ItemGroup>
 </Project>
