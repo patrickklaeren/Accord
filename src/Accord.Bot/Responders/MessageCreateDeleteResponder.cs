@@ -12,12 +12,14 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class MessageCreateDeleteResponder(CoreEventQueue eventQueue,
+public class MessageCreateDeleteResponder(
+    CoreEventQueue eventQueue,
     SpamEventQueue spamEventQueue,
-    PermissionUserFactory permissionUserFactory) 
+    PermissionUserFactory permissionUserFactory)
     : IResponder<IMessageCreate>,
-    IResponder<IMessageDelete>,
-    IResponder<IMessageDeleteBulk>
+        IResponder<IMessageUpdate>,
+        IResponder<IMessageDelete>,
+        IResponder<IMessageDeleteBulk>
 {
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
@@ -35,10 +37,12 @@ public class MessageCreateDeleteResponder(CoreEventQueue eventQueue,
         }
 
         await eventQueue.Queue(new AddMessageRequest(gatewayEvent.ID.Value,
-            gatewayEvent.Author.ID.Value, 
+            gatewayEvent.Author.ID.Value,
             gatewayEvent.ChannelID.Value,
+            gatewayEvent.Content,
+            gatewayEvent.Attachments.Select(x => x.Filename).ToList(),
             gatewayEvent.Timestamp));
-        
+
         var permissionUser = await permissionUserFactory.FromId(gatewayEvent.Author.ID.Value);
 
         await spamEventQueue.Queue(new AddSpamCheckMessageRequest(
@@ -47,6 +51,12 @@ public class MessageCreateDeleteResponder(CoreEventQueue eventQueue,
             gatewayEvent.Content,
             permissionUser));
 
+        return Result.FromSuccess();
+    }
+
+    public async Task<Result> RespondAsync(IMessageUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
+    {
+        await eventQueue.Queue(new UpdateMessageRequest(gatewayEvent.ID.Value, gatewayEvent.Author.ID.Value, gatewayEvent.Content));
         return Result.FromSuccess();
     }
 

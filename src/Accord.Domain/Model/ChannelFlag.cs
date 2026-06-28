@@ -21,6 +21,7 @@ public enum ChannelFlagType
     BotLogs = 7,
     IgnoreStarredMessages = 10,
     HelpForum = 11,
+    MessageLogs = 12,
 }
 
 public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>

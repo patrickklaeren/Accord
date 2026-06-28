@@ -8,6 +8,9 @@ public class UserMessage
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public ulong Id { get; set; }
+    
+    public string? Content { get; set; }
+    public string? AttachmentsDetail { get; set; }
 
     public ulong UserId { get; set; }
     public User? User { get; set; }

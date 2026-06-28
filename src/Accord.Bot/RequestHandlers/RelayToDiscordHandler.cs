@@ -7,6 +7,8 @@ using Accord.Bot.Helpers;
 using Accord.Domain.Model;
 using Accord.Services;
 using Accord.Services.ChannelFlags;
+using Accord.Services.UserHistories;
+using Accord.Services.UserMessages;
 using MediatR;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;

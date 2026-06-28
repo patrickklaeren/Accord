@@ -7,5 +7,6 @@ namespace Accord.Bot.Helpers;
 public class JumpLinkHelper(DiscordConfiguration discordConfiguration)
 {
     private const string JUMP_URL = "https://discord.com/channels/{0}/{1}/{2}";
-    public string FromMessage(IMessage message) => string.Format(JUMP_URL, discordConfiguration.GuildId, message.ChannelID.Value, message.ID.Value);
+    public string FromMessage(IMessage message) => FromIds(message.ChannelID.Value, message.ID.Value);
+    public string FromIds(ulong channelId, ulong messageId) => string.Format(JUMP_URL, discordConfiguration.GuildId, channelId, messageId);
 }

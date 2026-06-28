@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Accord.Services;
+namespace Accord.Services.UserHistories;
 
 public sealed record RelayKickToDiscordRequest(ulong ActingDiscordUserId, ulong TargetDiscordUserId, string? Reason) : INotification;
 public sealed record RelayBanToDiscordRequest(ulong ActingDiscordUserId, ulong TargetDiscordUserId, string? Reason) : INotification;
