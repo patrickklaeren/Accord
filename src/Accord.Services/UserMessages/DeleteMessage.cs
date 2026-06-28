@@ -2,6 +2,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Domain.Model;
+using Accord.Services.ChannelFlags;
 using Accord.Services.Starboard;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,7 @@ public sealed record DeleteMessageRequest(ulong DiscordMessageId) : IRequest;
 internal class DeleteMessageHandler(
     AccordContext db,
     StarboardService starboardService,
+    ChannelFlagService channelFlagService,
     IMediator mediator) : IRequestHandler<DeleteMessageRequest>
 {
     public async Task Handle(DeleteMessageRequest request, CancellationToken cancellationToken)
@@ -25,12 +28,15 @@ internal class DeleteMessageHandler(
             return;
         }
 
-        await mediator.Publish(new RelayMessageDeleteToDiscord(request.DiscordMessageId,
-                message.DiscordChannelId,
-                message.UserId,
-                message.Content,
-                message.AttachmentsDetail),
-            cancellationToken);
+        if (!await channelFlagService.ChannelHasFlag(message.DiscordChannelId, ChannelFlagType.DoNotLogMessages, cancellationToken))
+        {
+            await mediator.Publish(new RelayMessageDeleteToDiscord(request.DiscordMessageId,
+                    message.DiscordChannelId,
+                    message.UserId,
+                    message.Content,
+                    message.AttachmentsDetail),
+                cancellationToken);
+        }
 
         db.UserMessages.Remove(message);
         await db.SaveChangesAsync(cancellationToken);

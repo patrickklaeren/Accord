@@ -2,6 +2,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
+using Accord.Domain.Model;
+using Accord.Services.ChannelFlags;
 using Accord.Services.Starboard;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ namespace Accord.Services.UserMessages;
 public sealed record UpdateMessageRequest(ulong DiscordMessageId, ulong DiscordUserId, string? NewContent) : IRequest, IEnsureUserExistsRequest;
 
 internal class UpdateMessageHandler(AccordContext db,
+    ChannelFlagService channelFlagService,
     StarboardService starboardService,
     IMediator mediator) : IRequestHandler<UpdateMessageRequest>
 {
@@ -29,12 +32,15 @@ internal class UpdateMessageHandler(AccordContext db,
 
         await db.SaveChangesAsync(cancellationToken);
 
-        await mediator.Publish(new RelayMessageUpdateToDiscord(request.DiscordMessageId,
-                message.DiscordChannelId,
-                request.DiscordUserId,
-                oldContent,
-                request.NewContent),
-            cancellationToken);
+        if (!await channelFlagService.ChannelHasFlag(message.DiscordChannelId, ChannelFlagType.DoNotLogMessages, cancellationToken))
+        {
+            await mediator.Publish(new RelayMessageUpdateToDiscord(request.DiscordMessageId,
+                    message.DiscordChannelId,
+                    request.DiscordUserId,
+                    oldContent,
+                    request.NewContent),
+                cancellationToken);
+        }
         
         await starboardService.MessageUpdateForStarboard(request.DiscordUserId, request.DiscordMessageId, request.DiscordUserId, cancellationToken);
     }
