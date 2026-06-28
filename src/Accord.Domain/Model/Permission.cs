@@ -29,7 +29,7 @@ public enum PermissionType
     CreateShortUrls = 7,
     TemporaryMute = 8,
     BypassSpamCheck = 9,
-    ForumHelper = 9,
+    ForumHelper = 10,
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
