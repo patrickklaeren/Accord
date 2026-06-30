@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Services;
 using Accord.Services.Starboard;
 using MediatR;
 using Remora.Discord.API.Abstractions.Rest;
@@ -10,9 +11,9 @@ using Remora.Rest.Core;
 namespace Accord.Bot.Services;
 
 public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi) 
-    : IRequestHandler<GetStarredDiscordMessageRequest, StarredDiscordMessageDto?>
+    : IRequestHandler<GetDiscordMessageReactionsRequest, ReactedDiscordMessageDto?>
 {
-    public async Task<StarredDiscordMessageDto?> Handle(GetStarredDiscordMessageRequest request, CancellationToken cancellationToken)
+    public async Task<ReactedDiscordMessageDto?> Handle(GetDiscordMessageReactionsRequest request, CancellationToken cancellationToken)
     {
         var channelSnowflake = new Snowflake(request.DiscordChannelId);
         var messageSnowflake = new Snowflake(request.DiscordMessageId);
@@ -30,7 +31,7 @@ public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi)
         {
             var discordReactions = await channelApi.GetReactionsAsync(channelSnowflake,
                 messageSnowflake,
-                StarboardConstants.EMOJI,
+                request.Emoji,
                 ct: cancellationToken);
 
             if (discordReactions.IsSuccess)
@@ -42,7 +43,7 @@ public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi)
             }
         }
 
-        return new StarredDiscordMessageDto(message.Entity.ID.Value, 
+        return new ReactedDiscordMessageDto(message.Entity.ID.Value, 
             message.Entity.Author.ID.Value,
             reactionByUserIds);
     }

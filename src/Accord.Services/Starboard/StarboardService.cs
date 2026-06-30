@@ -44,14 +44,14 @@ internal class StarboardService(IMediator mediator,
         var allowSelfStarring = await runOptionService.GetOption<bool>(RunOptionKey.StarboardSelfStarring);
 
         var message = await mediator
-            .Send(new GetStarredDiscordMessageRequest(channelId, messageId),
+            .Send(new GetDiscordMessageReactionsRequest(channelId, messageId, StarboardConstants.EMOJI),
                 cancellationToken);
 
         if (message is null)
             return;
 
         var numberOfReactions = message
-            .StarredByUserIds
+            .ReactedByUserIds
             .Count(x => allowSelfStarring || x != message.AuthorId);
 
         var entry = await db

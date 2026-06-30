@@ -21,6 +21,8 @@ public static partial class DiscordFormatter
     public static string ToChannelMention(this Snowflake snowflake) => ChannelIdToMention(snowflake.Value);
     public static string ToTimeMarkdown(this DateTime dateTime, TimeToMentionType type = TimeToMentionType.ShortDateTime) => TimeToMarkdown(dateTime, type);
     public static string ToTimeMarkdown(this DateTimeOffset dateTimeOffset, TimeToMentionType type = TimeToMentionType.ShortDateTime) => TimeToMarkdown(dateTimeOffset, type);
+
+    public static string ToSmallMarkdown(string input) => $"-# {input}";
     
     [GeneratedRegex(@"```([^\s]*)", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex CodeBlockStripperRegex();

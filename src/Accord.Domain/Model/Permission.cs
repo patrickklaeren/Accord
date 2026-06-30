@@ -30,6 +30,7 @@ public enum PermissionType
     TemporaryMute = 8,
     BypassSpamCheck = 9,
     ForumHelper = 10,
+    BypassDownVotes = 11
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>
