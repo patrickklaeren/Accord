@@ -7,7 +7,7 @@ public class RunOption
 {
     public RunOptionKey Key { get; set; }
     public RunOptionType Type { get; set; }
-    public string Value { get; set; } = null!;
+    public required string Value { get; set; }
 }
 
 public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOption>
@@ -77,6 +77,16 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
                 Key = RunOptionKey.VoiceAutoUnmuteInMinutes,
                 Type= RunOptionType.Integer,
                 Value = "1440"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.DemocraticDownVotingEnabled,
+                Type= RunOptionType.Boolean,
+                Value = "false"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.DemocraticDownVotesRequired,
+                Type= RunOptionType.Integer,
+                Value = "5"
             }
         );
     }
@@ -96,6 +106,8 @@ public enum RunOptionKey
     SpamTimeoutInSeconds = 13,
     VoiceAutoUnmuteEnabled = 14,
     VoiceAutoUnmuteInMinutes = 15,
+    DemocraticDownVotingEnabled = 16,
+    DemocraticDownVotesRequired = 17,
 }
 
 public enum RunOptionType

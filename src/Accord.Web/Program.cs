@@ -6,6 +6,7 @@ using Accord.Bot.HostedServices;
 using Accord.Domain;
 using Accord.Services;
 using Accord.Services.CodeEvaluation;
+using Accord.Services.DemocraticDownVoting;
 using Accord.Services.Godbolt;
 using Accord.Services.Paste;
 using Accord.Services.Rss;
@@ -117,6 +118,7 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
 builder.Services.AddHostedService<CoreEventQueueProcessor>();
 builder.Services.AddHostedService<StarboardEventQueueProcessor>();
 builder.Services.AddHostedService<SpamEventQueueProcessor>();
+builder.Services.AddHostedService<DemocraticDownVotingEventQueueProcessor>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
