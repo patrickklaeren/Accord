@@ -17,18 +17,13 @@ namespace Accord.Bot.CommandGroups;
 public class RunOptionCommandGroup(IMediator mediator, FeedbackService feedbackService) : AccordCommandGroup
 {
     [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure"), Description("Configure an option for the bot"), Ephemeral]
-    public async Task<IResult> Configure(string type, string value)
+    public async Task<IResult> Configure(RunOptionKey type, string value)
     {
-        if (!Enum.TryParse<RunOptionKey>(type, out var actualRunOptionType) || !Enum.IsDefined(actualRunOptionType))
-        {
-            return await feedbackService.SendContextualAsync("Configuration is not found");
-        }
-
-        var response = await mediator.Send(new UpdateRunOptionRequest(actualRunOptionType, value));
+        var response = await mediator.Send(new UpdateRunOptionRequest(type, value));
 
         if (response.Success)
         {
-            return await feedbackService.SendContextualAsync($"{actualRunOptionType} configuration updated to {value}");
+            return await feedbackService.SendContextualAsync($"{type} configuration updated to {value}");
         }
 
         return await feedbackService.SendContextualAsync(response.ErrorMessage);

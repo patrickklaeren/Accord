@@ -10,11 +10,6 @@ internal class EnsureUserExistsHandler(UserService userService) : IRequestHandle
 {
     public async Task Handle(EnsureUserExistsRequest request, CancellationToken cancellationToken)
     {
-        var userExists = await userService.UserExists(request.DiscordUserId, cancellationToken);
-
-        if (userExists)
-            return;
-        
-        await userService.AddUser(request.DiscordUserId, cancellationToken);
+        await userService.EnsureUserExists(request.DiscordUserId, cancellationToken);
     }
 }

@@ -33,4 +33,7 @@ public class AccordContext : DbContext
     public DbSet<StarboardEntryOutput> StarboardEntryOutputs { get; set; } = null!;
     public DbSet<RssFeed> RssFeeds { get; set; } = null!;
     public DbSet<RssFeedPost> RssFeedPosts { get; set; } = null!;
+    public DbSet<PromotionCampaign> PromotionCampaigns { get; set; } = null!;
+    public DbSet<PromotionCampaignOutput> PromotionCampaignOutputs { get; set; } = null!;
+    public DbSet<PromotionCampaignVote> PromotionCampaignVotes { get; set; } = null!;
 }

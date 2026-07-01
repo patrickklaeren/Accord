@@ -20,6 +20,12 @@ public class UserPermissionService(AccordContext db)
         return permissions.Any(ownedPermission => ownedPermission == permission);
     }
 
+    public async Task<bool> RoleHasPermission(ulong discordRoleId, PermissionType permission, CancellationToken cancellationToken)
+    {
+        return await db.RolePermissions
+            .AnyAsync(x => x.RoleId == discordRoleId && x.Type == permission, cancellationToken);
+    }
+
     public async Task AddPermissionToUser(ulong discordUserId, PermissionType permission, CancellationToken cancellationToken)
     {
         if (await db.UserPermissions.AnyAsync(x => x.UserId == discordUserId

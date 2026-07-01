@@ -12,11 +12,21 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.Users;
 
 [RegisterScoped]
-internal class UserService(AccordContext db, 
+public class UserService(AccordContext db, 
     RunOptionService runOptionService, 
     IAppCache appCache,
     IMediator mediator)
 {
+    public async Task EnsureUserExists(ulong userId, CancellationToken cancellationToken)
+    {
+        var userExists = await UserExists(userId, cancellationToken);
+
+        if (userExists)
+            return;
+        
+        await AddUser(userId, cancellationToken);
+    }
+    
     public async Task<bool> UserExists(ulong discordUserId, CancellationToken cancellationToken)
     {
         return await appCache
