@@ -33,4 +33,5 @@ public class PromotionCampaign
     public User? ClosedByUser { get; set; }
 
     public ICollection<PromotionCampaignVote> Votes { get; set; } = new HashSet<PromotionCampaignVote>();
+    public ICollection<PromotionCampaignOutput> Outputs { get; set; } = new HashSet<PromotionCampaignOutput>();
 }

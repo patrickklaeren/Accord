@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Accord.Services.RunOptions;
 
 [RegisterScoped]
-internal class RunOptionService(AccordContext db, IAppCache appCache)
+public class RunOptionService(AccordContext db, IAppCache appCache)
 {
     internal async Task<T> GetOption<T>(RunOptionKey key)
     {
