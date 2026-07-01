@@ -35,8 +35,10 @@ public class ReactionResponder(
 
         if ((emojiString.Value is "❌" or "🗑️") && gatewayEvent.MessageAuthorID.HasValue)
         {
+            var selfSnowflake =  await discordCache.GetSelfSnowflake();
+            
             if (gatewayEvent.MessageAuthorID.HasValue
-                && gatewayEvent.MessageAuthorID.Value == discordCache.GetSelfSnowflake())
+                && gatewayEvent.MessageAuthorID.Value == selfSnowflake)
             {
                 var permissionUser = await permissionUserFactory.FromId(gatewayEvent.UserID.Value);
                 await mediator.Publish(new DeleteUserBotMessageRequest(permissionUser, gatewayEvent.MessageID.Value), ct);

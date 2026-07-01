@@ -12,7 +12,8 @@ using Remora.Results;
 namespace Accord.Bot.Helpers;
 
 [RegisterSingleton]
-public class DiscordCache(IDiscordRestGuildAPI guildApi, 
+public class DiscordCache(IDiscordRestGuildAPI guildApi,
+    IDiscordRestUserAPI userApi,
     IAppCache appCache, 
     DiscordConfiguration discordConfiguration)
 {
@@ -21,8 +22,16 @@ public class DiscordCache(IDiscordRestGuildAPI guildApi,
         Priority = CacheItemPriority.NeverRemove
     };
 
-    public Snowflake GetSelfSnowflake() => appCache.Get<Snowflake>($"{nameof(DiscordCache)}/SelfSnowflake");
-    public void SetSelfSnowflake(Snowflake snowflake) => appCache.Add($"{nameof(DiscordCache)}/SelfSnowflake", snowflake);
+    public async Task<Snowflake> GetSelfSnowflake()
+    {
+        return await appCache.GetOrAddAsync($"{nameof(DiscordCache)}/SelfSnowflake", Get, _neverExpireCacheEntryOptions);
+
+        async Task<Snowflake> Get()
+        {
+            var currentUser = await userApi.GetCurrentUserAsync();
+            return currentUser.Entity.ID;
+        }
+    }
 
     public IGuildMember GetGuildSelfMember() => appCache.Get<IGuildMember>($"{nameof(DiscordCache)}/SelfMember");
     public void SetGuildSelfMember(IGuildMember guildMember) => appCache.Add($"{nameof(DiscordCache)}/SelfMember", guildMember, _neverExpireCacheEntryOptions);
