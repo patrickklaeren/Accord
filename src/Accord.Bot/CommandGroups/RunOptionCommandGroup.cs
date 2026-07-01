@@ -28,4 +28,11 @@ public class RunOptionCommandGroup(IMediator mediator, FeedbackService feedbackS
 
         return await feedbackService.SendContextualAsync(response.ErrorMessage);
     }
+    
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("configure-query"), Description("Query configuration for its current value"), Ephemeral]
+    public async Task<IResult> Query(RunOptionKey type)
+    {
+        var response = await mediator.Send(new GetRunOptionRequest(type));
+        return await feedbackService.SendContextualAsync($"{type}: {response}");
+    }
 }

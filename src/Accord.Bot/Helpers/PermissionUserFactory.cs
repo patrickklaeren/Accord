@@ -21,12 +21,12 @@ public class PermissionUserFactory(IDiscordRestGuildAPI guildApi,
         return await appCache.GetOrAddAsync(
             $"{nameof(PermissionUserFactory)}/{discordUserId}",
             () => FromIdInternal(discordUserId),
-            TimeSpan.FromMinutes(2));
+            TimeSpan.FromMinutes(1));
     }
 
     private async Task<PermissionUser> FromIdInternal(ulong discordUserId)
     {
-        var selfUserSnowflake = discordCache.GetSelfSnowflake();
+        var selfUserSnowflake = await discordCache.GetSelfSnowflake();
         var guildSnowflake = new Snowflake(discordConfiguration.GuildId);
         var userSnowflake = new Snowflake(discordUserId);
 
@@ -40,7 +40,7 @@ public class PermissionUserFactory(IDiscordRestGuildAPI guildApi,
         }
 
         var member = await guildApi.GetGuildMemberAsync(guildSnowflake, userSnowflake);
-
+        
         if (member.Entity is null)
         {
             throw new InvalidOperationException("Cannot get user when they do not exist in guild");

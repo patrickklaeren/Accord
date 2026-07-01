@@ -28,8 +28,6 @@ public class ReadyResponder(DiscordGatewayClient discordGatewayClient,
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
         await mediator.Send(new EnsureUserExistsRequest(gatewayEvent.User.ID.Value), ct);
-        
-        discordCache.SetSelfSnowflake(gatewayEvent.User.ID);
         await CacheGuild(gatewayEvent.User, ct);
 
         var updateCommand = new UpdatePresence(UserStatus.Online, false, null, [new Activity("for everything", ActivityType.Watching)]);
