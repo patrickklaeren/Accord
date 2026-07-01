@@ -45,7 +45,6 @@ public static class BotServiceCollectionExtensions
             .AddPagination()
             .AddCommandTree()
             .WithCommandGroup<ParticipationCommandGroup>()
-            .WithCommandGroup<GitHubChallengesCommandGroup>()
             .WithCommandGroup<ChannelFlagCommandGroup>()
             .WithCommandGroup<PermissionCommandGroup>()
             .WithCommandGroup<RunOptionCommandGroup>()
