@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,8 @@ namespace Accord.Bot.RequestHandlers;
 
 public class RelayPromotionCampaignToDiscordHandler(IDiscordRestChannelAPI channelApi, IDiscordRestUserAPI userApi, PromotionCampaignMessageFactory promotionCampaignMessageFactory) 
     : IRequestHandler<RelayNewPromotionCampaignToDiscordRequest, ulong?>,
-        IRequestHandler<RelayExistingPromotionCampaignToDiscordRequest>
+        IRequestHandler<RelayExistingPromotionCampaignToDiscordRequest>,
+        IRequestHandler<RelayApprovedPromotionCampaignToDiscordRequest>
 {
     public async Task<ulong?> Handle(RelayNewPromotionCampaignToDiscordRequest request, CancellationToken cancellationToken)
     {
@@ -49,7 +49,7 @@ public class RelayPromotionCampaignToDiscordHandler(IDiscordRestChannelAPI chann
 
         IReadOnlyCollection<IMessageComponent> components = [];
 
-        if (request.Campaign.EndDateTime > DateTimeOffset.Now)
+        if (request.Campaign.EndDateTime > DateTimeOffset.UtcNow && request.Campaign.ClosedDateTime is null)
         {
             components = promotionCampaignMessageFactory.CreateComponents(request.Campaign.Id);   
         }
@@ -62,42 +62,13 @@ public class RelayPromotionCampaignToDiscordHandler(IDiscordRestChannelAPI chann
             allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
             ct: cancellationToken);
     }
-}
 
-[RegisterScoped]
-public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
-{
-    public const string VOTE_CUSTOM_ID_PREFIX = "promotion-campaign-vote:";
-
-    public Embed CreateEmbed(IUser user, PromotionCampaignDto campaign)
+    public async Task Handle(RelayApprovedPromotionCampaignToDiscordRequest request, CancellationToken cancellationToken)
     {
-        var avatar = thumbnailHelper.GetAvatar(user);
-        var formattedTime = DiscordFormatter.TimeToMarkdown(campaign.EndDateTime);
-        
-        return new Embed(
-            Title: $"{user.Username} is campaigning",
-            Thumbnail: avatar,
-            Description: $"{DiscordFormatter.UserIdToMention(campaign.ForUserId)} is campaigning for <@&{campaign.ToDiscordRoleId}> until {formattedTime}. Support their campaign by pressing 👍!",
-            Colour: Color.DodgerBlue,
-            Fields: new[]
-            {
-                new EmbedField("Required votes", campaign.VoteThresholdRequired.ToString(), true),
-                new EmbedField("Obtained votes", $"{campaign.VoteProgress}", true),
-            },
-            Footer: new EmbedFooter($"Campaign #{campaign.Id} - Achieving the obtained votes does not guarantee promotion!"));
-    }
-
-    public IReadOnlyCollection<IMessageComponent> CreateComponents(int campaignId)
-    {
-        return
-        [
-            new ActionRowComponent([
-                new ButtonComponent(
-                    ButtonComponentStyle.Success,
-                    "👍",
-                    default,
-                    $"{VOTE_CUSTOM_ID_PREFIX}{campaignId}")
-            ])
-        ];
+        await channelApi.CreateMessageAsync(
+            new Snowflake(request.DiscordChannelId),
+            $"{DiscordFormatter.UserIdToMention(request.Campaign.ForUserId)} your campaign was successful! You now have the {DiscordFormatter.RoleIdToMention(request.Campaign.ToDiscordRoleId)} role!",
+            allowedMentions: new AllowedMentions(Parse: new[] { MentionType.Users }),
+            ct: cancellationToken);
     }
 }

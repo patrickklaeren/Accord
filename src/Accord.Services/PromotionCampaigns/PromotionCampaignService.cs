@@ -41,13 +41,23 @@ public class PromotionCampaignService(AccordContext db,
             return ServiceResponse.Fail<PromotionCampaignDto>("Role cannot be campaigned for");
         }
 
+        var hasExistingCampaign = await db.PromotionCampaigns
+            .Where(x => x.ClosedDateTime == null)
+            .Where(x => x.ForUserId == forUser.DiscordUserId)
+            .AnyAsync(cancellationToken: cancellationToken);
+
+        if (hasExistingCampaign)
+        {
+            return ServiceResponse.Fail<PromotionCampaignDto>("Campaigning user has an open campaign, close that one first");
+        }
+
         foreach (var userId in new[] { forUser.DiscordUserId, byUser.DiscordUserId, vouchedForByUser.DiscordUserId }.Distinct())
         {
             await userService.EnsureUserExists(userId, cancellationToken);
         }
 
         var now = DateTimeOffset.UtcNow;
-        var threshold = CalculateThreshold();
+        var threshold = await CalculateThreshold(forUser.DiscordUserId, cancellationToken);
 
         var campaign = new PromotionCampaign
         {
@@ -97,34 +107,27 @@ public class PromotionCampaignService(AccordContext db,
             .Include(x => x.Votes)
             .SingleAsync(x => x.Id == promotionCampaignId, cancellationToken);
 
-        if (campaign.ForUserId == votingUserId)
+        if (campaign.ForUserId != votingUserId 
+            && campaign.EndDateTime > DateTimeOffset.UtcNow 
+            && campaign.ClosedDateTime is null)
         {
-            return ServiceResponse.Fail<PromotionCampaignDto>("You cannot vote on your own promotion campaign");
-        }
-
-        if (campaign.EndDateTime <= DateTimeOffset.UtcNow 
-            || campaign.ClosedDateTime is not null)
-        {
-            return ServiceResponse.Fail<PromotionCampaignDto>("Campaign is not accepting votes");
-        }
-
-        await userService.EnsureUserExists(votingUserId, cancellationToken);
-
-        var existingVote = campaign.Votes.SingleOrDefault(x => x.VotingUserId == votingUserId);
+            await userService.EnsureUserExists(votingUserId, cancellationToken);
+            var existingVote = campaign.Votes.SingleOrDefault(x => x.VotingUserId == votingUserId);
         
-        if (existingVote is null)
-        {
-            var vote = new PromotionCampaignVote
+            if (existingVote is null)
             {
-                PromotionCampaignId = promotionCampaignId,
-                VotingUserId = votingUserId,
-                Vote = 1,
-                AtDateTime = DateTimeOffset.UtcNow,
-            };
+                var vote = new PromotionCampaignVote
+                {
+                    PromotionCampaignId = promotionCampaignId,
+                    VotingUserId = votingUserId,
+                    Vote = 1,
+                    AtDateTime = DateTimeOffset.UtcNow,
+                };
             
-            campaign.Votes.Add(vote);
-            db.PromotionCampaignVotes.Add(vote);
-            await db.SaveChangesAsync(cancellationToken);
+                campaign.Votes.Add(vote);
+                db.PromotionCampaignVotes.Add(vote);
+                await db.SaveChangesAsync(cancellationToken);
+            }
         }
 
         var dto = ToDto(campaign);
@@ -144,40 +147,165 @@ public class PromotionCampaignService(AccordContext db,
             .Select(x => new PromotionCampaignDto(
                 x.Id,
                 x.ForUserId,
-                x.ByUserId,
-                x.VouchedForByUserId,
-                x.ToDiscordRoleId!.Value,
+                x.ToDiscordRoleId,
                 x.VoteThresholdRequired,
                 x.Votes.Sum(v => v.Vote),
-                x.StartDateTime,
-                x.EndDateTime))
+                x.EndDateTime,
+                x.ClosedDateTime,
+                x.IsApproved))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    private static int CalculateThreshold() => 1;
+    public async Task<ServiceResponse<PromotionCampaignDto>> CloseCampaign(
+        int promotionCampaignId,
+        ulong closedByUserId,
+        CancellationToken cancellationToken)
+    {
+        var campaign = await db.PromotionCampaigns
+            .Include(x => x.Outputs)
+            .Include(x => x.Votes)
+            .SingleOrDefaultAsync(x => x.Id == promotionCampaignId, cancellationToken);
+
+        if (campaign is null)
+        {
+            return ServiceResponse.Fail<PromotionCampaignDto>("Campaign not found");
+        }
+
+        return await CloseLoadedCampaign(campaign, closedByUserId, cancellationToken);
+    }
+
+    public async Task<ServiceResponse<PromotionCampaignDto>> ApproveCampaign(
+        int promotionCampaignId,
+        ulong approvedByUserId,
+        CancellationToken cancellationToken)
+    {
+        var campaign = await db.PromotionCampaigns
+            .Include(x => x.Outputs)
+            .Include(x => x.Votes)
+            .SingleOrDefaultAsync(x => x.Id == promotionCampaignId, cancellationToken);
+
+        if (campaign is null)
+        {
+            return ServiceResponse.Fail<PromotionCampaignDto>("Campaign not found");
+        }
+
+        if (campaign.ClosedDateTime is not null)
+        {
+            return ServiceResponse.Fail<PromotionCampaignDto>("Campaign is not open");
+        }
+
+        var applyRoleResponse = await mediator.Send(new ApplyPromotionCampaignRoleToDiscordRequest(
+            campaign.Id,
+            campaign.ForUserId,
+            campaign.ToDiscordRoleId,
+            approvedByUserId), cancellationToken);
+
+        if (!applyRoleResponse)
+        {
+            return ServiceResponse.Fail<PromotionCampaignDto>("Failed promoting user");
+        }
+
+        campaign.IsApproved = true;
+
+        var response = await CloseLoadedCampaign(campaign, approvedByUserId, cancellationToken);
+
+        if (response.Success)
+        {
+            foreach (var output in campaign.Outputs)
+            {
+                await mediator.Send(new RelayApprovedPromotionCampaignToDiscordRequest(output.DiscordChannelId, response.Value!), cancellationToken);
+            }
+        }
+
+        return response;
+    }
+
+    private async Task<ServiceResponse<PromotionCampaignDto>> CloseLoadedCampaign(
+        PromotionCampaign campaign,
+        ulong closedByUserId,
+        CancellationToken cancellationToken)
+    {
+        campaign.ClosedDateTime ??= DateTimeOffset.UtcNow;
+        campaign.ClosedByUserId ??= closedByUserId;
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var dto = ToDto(campaign);
+
+        foreach (var output in campaign.Outputs)
+        {
+            await mediator.Send(new RelayExistingPromotionCampaignToDiscordRequest(output.DiscordChannelId,
+                output.DiscordMessageId,
+                dto), 
+                cancellationToken);
+        }
+
+        return ServiceResponse.Ok(dto);
+    }
+
+    private async Task<int> CalculateThreshold(ulong discordUserId, CancellationToken cancellationToken)
+    {
+        const int MINIMUM_THRESHOLD = 5;
+        const int MAXIMUM_THRESHOLD = 20;
+        
+        var userStatistics = await db.Users
+            .Where(x => x.Id == discordUserId)
+            .Select(x => new
+            {
+                x.FirstSeenDateTime,
+                x.JoinedGuildDateTime,
+                x.ParticipationRank,
+            }).SingleAsync(cancellationToken);
+
+        var dateToUseForThreshold = userStatistics.JoinedGuildDateTime 
+                                     ?? userStatistics.FirstSeenDateTime;
+
+        var daysInGuild = Math.Max(0, (DateTimeOffset.UtcNow - dateToUseForThreshold).TotalDays);
+        
+        var tenureDiscount = daysInGuild switch
+        {
+            >= 730 => 4,
+            >= 365 => 3,
+            >= 180 => 2,
+            >= 90 => 1,
+            _ => 0,
+        };
+
+        var participationDiscount = userStatistics.ParticipationRank switch
+        {
+            <= 0 => 0,
+            <= 10 => 4,
+            <= 25 => 3,
+            <= 50 => 2,
+            <= 100 => 1,
+            _ => 0,
+        };
+
+        return Math.Clamp(MAXIMUM_THRESHOLD - tenureDiscount - participationDiscount,
+            MINIMUM_THRESHOLD,
+            MAXIMUM_THRESHOLD);
+    }
 
     private static PromotionCampaignDto ToDto(PromotionCampaign campaign)
     {
         return new PromotionCampaignDto(
             campaign.Id,
             campaign.ForUserId,
-            campaign.ByUserId,
-            campaign.VouchedForByUserId,
-            campaign.ToDiscordRoleId!.Value,
+            campaign.ToDiscordRoleId,
             campaign.VoteThresholdRequired,
             campaign.Votes.Sum(v => v.Vote),
-            campaign.StartDateTime,
-            campaign.EndDateTime);
+            campaign.EndDateTime,
+            campaign.ClosedDateTime,
+            campaign.IsApproved);
     }
 }
 
 public sealed record PromotionCampaignDto(
     int Id,
     ulong ForUserId,
-    ulong ByUserId,
-    ulong VouchedForByUserId,
     ulong ToDiscordRoleId,
     int VoteThresholdRequired,
     int VoteProgress,
-    DateTimeOffset StartDateTime,
-    DateTimeOffset EndDateTime);
+    DateTimeOffset EndDateTime,
+    DateTimeOffset? ClosedDateTime,
+    bool IsApproved);

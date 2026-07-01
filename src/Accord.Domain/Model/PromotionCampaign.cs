@@ -20,17 +20,17 @@ public class PromotionCampaign
     [InverseProperty(nameof(User.PromotionCampaignsVouchedForByUser))]
     public User? VouchedByUser { get; set; }
     
-    public ulong? ToDiscordRoleId { get; set; }
+    public ulong ToDiscordRoleId { get; set; }
     
     public DateTimeOffset StartDateTime { get; set; }
     public DateTimeOffset EndDateTime { get; set; }
     public DateTimeOffset? ClosedDateTime { get; set; }
-    
-    public int VoteThresholdRequired { get; set; }
-    
     public ulong? ClosedByUserId { get; set; }
     [InverseProperty(nameof(User.PromotionCampaignsClosedByUser))]
     public User? ClosedByUser { get; set; }
+    public bool IsApproved { get; set; }
+    
+    public int VoteThresholdRequired { get; set; }
 
     public ICollection<PromotionCampaignVote> Votes { get; set; } = new HashSet<PromotionCampaignVote>();
     public ICollection<PromotionCampaignOutput> Outputs { get; set; } = new HashSet<PromotionCampaignOutput>();

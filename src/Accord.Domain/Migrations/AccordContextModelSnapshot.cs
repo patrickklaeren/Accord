@@ -92,10 +92,13 @@ namespace Accord.Domain.Migrations
                     b.Property<decimal>("ForUserId")
                         .HasColumnType("numeric(20,0)");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset>("StartDateTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal?>("ToDiscordRoleId")
+                    b.Property<decimal>("ToDiscordRoleId")
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("VoteThresholdRequired")

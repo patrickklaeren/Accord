@@ -22,12 +22,13 @@ namespace Accord.Domain.Migrations
                     ByUserId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     VouchedForByUserId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     VouchedByUserId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
-                    ToDiscordRoleId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
+                    ToDiscordRoleId = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     StartDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     EndDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     ClosedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    VoteThresholdRequired = table.Column<int>(type: "integer", nullable: false),
-                    ClosedByUserId = table.Column<decimal>(type: "numeric(20,0)", nullable: true)
+                    ClosedByUserId = table.Column<decimal>(type: "numeric(20,0)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "boolean", nullable: false),
+                    VoteThresholdRequired = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

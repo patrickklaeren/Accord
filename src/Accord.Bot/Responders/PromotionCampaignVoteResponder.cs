@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Accord.Bot.RequestHandlers;
+using Accord.Bot.Helpers;
 using Accord.Services.PromotionCampaigns;
 using MediatR;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -10,6 +10,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Accord.Bot.Responders;
@@ -17,6 +18,7 @@ namespace Accord.Bot.Responders;
 public class PromotionCampaignVoteResponder(
     IMediator mediator,
     IDiscordRestInteractionAPI interactionApi,
+    IDiscordRestUserAPI userApi,
     PromotionCampaignMessageFactory promotionCampaignMessageFactory) : IResponder<IInteractionCreate>
 {
     public async Task<Result> RespondAsync(IInteractionCreate gatewayEvent, CancellationToken ct)
@@ -66,7 +68,8 @@ public class PromotionCampaignVoteResponder(
         }
 
         var campaign = response.Value!;
-        var embed = promotionCampaignMessageFactory.CreateEmbed(gatewayEvent.User.Value, campaign);
+        var user = await userApi.GetUserAsync(new Snowflake(campaign.ForUserId), ct);
+        var embed = promotionCampaignMessageFactory.CreateEmbed(user.Entity, campaign);
         var components = promotionCampaignMessageFactory.CreateComponents(campaign.Id);
         
         var update = new InteractionMessageCallbackData(

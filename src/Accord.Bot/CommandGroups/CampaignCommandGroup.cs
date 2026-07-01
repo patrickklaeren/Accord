@@ -6,6 +6,7 @@ using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
@@ -62,6 +63,32 @@ public class CampaignCommandGroup(
 
         await response.GetAction(
             async () => await feedbackService.SendContextualAsync("Campaign started!"),
+            async () => await feedbackService.SendContextualAsync(response.ErrorMessage));
+
+        return Result.FromSuccess();
+    }
+
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("close"), Description("Close a promotion campaign without promoting the user"), Ephemeral]
+    public async Task<IResult> Close(int campaignId)
+    {
+        var user = commandContext.GetExecutingUser();
+        var response = await mediator.Send(new ClosePromotionCampaignRequest(campaignId, user.ID.Value));
+
+        await response.GetAction(
+            async () => await feedbackService.SendContextualAsync($"Campaign #{campaignId} closed!"),
+            async () => await feedbackService.SendContextualAsync(response.ErrorMessage));
+
+        return Result.FromSuccess();
+    }
+
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("approve"), Description("Approve a promotion campaign and apply the role"), Ephemeral]
+    public async Task<IResult> Approve(int campaignId)
+    {
+        var user = commandContext.GetExecutingUser();
+        var response = await mediator.Send(new ApprovePromotionCampaignRequest(campaignId, user.ID.Value));
+
+        await response.GetAction(
+            async () => await feedbackService.SendContextualAsync($"Campaign #{campaignId} approved"),
             async () => await feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();

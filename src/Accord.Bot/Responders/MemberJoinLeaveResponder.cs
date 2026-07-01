@@ -39,7 +39,7 @@ public class MemberJoinLeaveResponder(IMediator mediator,
             user.Discriminator,
             user.Avatar?.Value,
             user.Avatar?.HasGif == true);
-
+        
         await eventQueue.Queue(new AddUserRequest(user.ID.Value, user.Username, avatarUrl, null, gatewayEvent.JoinedAt));
         await eventQueue.Queue(new RaidCalculationRequest(gatewayEvent.GuildID.Value, new GuildUserDto(user.ID.Value, user.Username, avatarUrl, gatewayEvent.JoinedAt)));
 

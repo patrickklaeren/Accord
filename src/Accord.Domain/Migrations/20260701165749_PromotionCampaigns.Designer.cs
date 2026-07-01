@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    [Migration("20260701115505_PromotionCampaigns")]
+    [Migration("20260701165749_PromotionCampaigns")]
     partial class PromotionCampaigns
     {
         /// <inheritdoc />
@@ -95,10 +95,13 @@ namespace Accord.Domain.Migrations
                     b.Property<decimal>("ForUserId")
                         .HasColumnType("numeric(20,0)");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset>("StartDateTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal?>("ToDiscordRoleId")
+                    b.Property<decimal>("ToDiscordRoleId")
                         .HasColumnType("numeric(20,0)");
 
                     b.Property<int>("VoteThresholdRequired")
