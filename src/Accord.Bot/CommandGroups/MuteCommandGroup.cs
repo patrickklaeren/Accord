@@ -40,8 +40,10 @@ public class MuteCommandGroup(ICommandContext commandContext,
         {
             return await feedbackService.SendContextualAsync("Missing permission");
         }
+        
+        var selfSnowflake = await discordCache.GetSelfSnowflake();
 
-        if (user.ID == discordCache.GetSelfSnowflake())
+        if (user.ID == selfSnowflake)
         {
             return await feedbackService.SendContextualAsync("Cannot mute the bot");   
         }
