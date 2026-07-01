@@ -98,9 +98,10 @@ public class PromotionCampaignService(AccordContext db,
         return ServiceResponse.Ok(dto);
     }
 
-    public async Task<ServiceResponse<PromotionCampaignDto>> AddPositiveVote(
+    public async Task<ServiceResponse<PromotionCampaignDto>> AddVote(
         int promotionCampaignId,
         ulong votingUserId,
+        int vote,
         CancellationToken cancellationToken)
     {
         var campaign = await db.PromotionCampaigns
@@ -113,22 +114,24 @@ public class PromotionCampaignService(AccordContext db,
             && campaign.ClosedDateTime is null)
         {
             await userService.EnsureUserExists(votingUserId, cancellationToken);
-            var existingVote = campaign.Votes.SingleOrDefault(x => x.VotingUserId == votingUserId);
-        
-            if (existingVote is null)
+            var campaignVote = campaign.Votes.SingleOrDefault(x => x.VotingUserId == votingUserId);
+
+            if (campaignVote is null)
             {
-                var vote = new PromotionCampaignVote
+                campaignVote = new PromotionCampaignVote
                 {
                     PromotionCampaignId = promotionCampaignId,
                     VotingUserId = votingUserId,
-                    Vote = 1,
-                    AtDateTime = DateTimeOffset.UtcNow,
                 };
             
-                campaign.Votes.Add(vote);
-                db.PromotionCampaignVotes.Add(vote);
-                await db.SaveChangesAsync(cancellationToken);
+                campaign.Votes.Add(campaignVote);
+                db.PromotionCampaignVotes.Add(campaignVote);
             }
+
+            campaignVote.Vote = vote;
+            campaignVote.AtDateTime = DateTimeOffset.UtcNow;
+            
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         var dto = ToDto(campaign);
@@ -310,7 +313,7 @@ public class PromotionCampaignService(AccordContext db,
             campaign.ForUserId,
             campaign.ToDiscordRoleId,
             campaign.VoteThresholdRequired,
-            campaign.Votes.Sum(v => v.Vote),
+            campaign.Votes.Count,
             campaign.EndDateTime,
             campaign.ClosedDateTime,
             campaign.IsApproved);
@@ -322,7 +325,7 @@ public sealed record PromotionCampaignDto(
     ulong ForUserId,
     ulong ToDiscordRoleId,
     int VoteThresholdRequired,
-    int VoteProgress,
+    int TotalVotes,
     DateTimeOffset EndDateTime,
     DateTimeOffset? ClosedDateTime,
     bool IsApproved);

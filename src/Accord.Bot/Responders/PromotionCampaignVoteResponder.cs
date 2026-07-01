@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -44,14 +45,35 @@ public class PromotionCampaignVoteResponder(
             return Result.FromSuccess();
         }
 
-        var idValue = componentData.CustomID.Replace(PromotionCampaignMessageFactory.VOTE_CUSTOM_ID_PREFIX, string.Empty);
-        if (!int.TryParse(idValue, out var campaignId))
+        var voteCommand = componentData.CustomID.Replace(PromotionCampaignMessageFactory.VOTE_CUSTOM_ID_PREFIX, string.Empty);
+        var split = voteCommand.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
+        var vote = 1;
+        int campaignId;
+        
+        // Legacy switchover can be removed once everything is migrated
+        if (split.Length is 2)
         {
-            return Result.FromSuccess();
+            if (!int.TryParse(split[0], out vote))
+            {
+                return Result.FromSuccess();   
+            }
+        
+            if (!int.TryParse(split[1], out campaignId))
+            {
+                return Result.FromSuccess();
+            }
+        }
+        else
+        {
+            if (!int.TryParse(split[0], out campaignId))
+            {
+                return Result.FromSuccess();
+            }
         }
 
         var votingUserId = gatewayEvent.Member.Value.User.Value.ID.Value;
-        var response = await mediator.Send(new VoteOnPromotionCampaignRequest(campaignId, votingUserId), ct);
+        var response = await mediator.Send(new VoteOnPromotionCampaignRequest(campaignId, votingUserId, vote), ct);
 
         if (!response.Success)
         {

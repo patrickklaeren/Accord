@@ -48,7 +48,7 @@ public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
             Fields: new[]
             {
                 new EmbedField("Required votes", campaign.VoteThresholdRequired.ToString(), true),
-                new EmbedField("Obtained votes", $"{campaign.VoteProgress}", true),
+                new EmbedField("Total votes", $"{campaign.TotalVotes}", true),
             },
             Footer: new EmbedFooter($"#{campaign.Id} - Achieving required votes does not guarantee promotion!"));
     }
@@ -61,8 +61,13 @@ public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
                 new ButtonComponent(
                     ButtonComponentStyle.Success,
                     "+1",
-                    default,
-                    $"{VOTE_CUSTOM_ID_PREFIX}{campaignId}")
+                    Emoji: new PartialEmoji(Name: "👍"),
+                    $"{VOTE_CUSTOM_ID_PREFIX}1:{campaignId}"),
+                new ButtonComponent(
+                    ButtonComponentStyle.Danger,
+                    "-1",
+                    Emoji: new PartialEmoji(Name: "👎"),
+                    $"{VOTE_CUSTOM_ID_PREFIX}-1:{campaignId}")
             ])
         ];
     }
