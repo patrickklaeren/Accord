@@ -1,10 +1,13 @@
 using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services.PromotionCampaigns;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
@@ -92,5 +95,33 @@ public class CampaignCommandGroup(
             async () => await feedbackService.SendContextualAsync(response.ErrorMessage));
 
         return Result.FromSuccess();
+    }
+
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("list"), Description("List active promotion campaigns"), Ephemeral]
+    public async Task<IResult> List()
+    {
+        var campaigns = await mediator.Send(new GetActivePromotionCampaignsRequest());
+
+        if (!campaigns.Any())
+        {
+            return await feedbackService.SendContextualEmbedAsync(new Embed(
+                Title: "Active Promotion Campaigns",
+                Description: "No active campaigns."));
+        }
+
+        var description = new StringBuilder();
+
+        foreach (var campaign in campaigns)
+        {
+            description.AppendLine($"**#{campaign.Id}** {DiscordFormatter.UserIdToMention(campaign.ForUserId)} for {DiscordFormatter.RoleIdToMention(campaign.ToDiscordRoleId)}");
+            description.AppendLine($"Started by {DiscordFormatter.UserIdToMention(campaign.ByUserId)} · vouched by {DiscordFormatter.UserIdToMention(campaign.VouchedForByUserId)} · closes {DiscordFormatter.TimeToMarkdown(campaign.EndDateTime, TimeToMentionType.RelativeTime)}");
+            description.AppendLine();
+        }
+
+        var embed = new Embed(
+            Title: "Active Promotion Campaigns",
+            Description: description.ToString());
+
+        return await feedbackService.SendContextualEmbedAsync(embed);
     }
 }

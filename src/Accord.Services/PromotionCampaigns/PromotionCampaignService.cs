@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,6 +157,22 @@ public class PromotionCampaignService(AccordContext db,
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ActivePromotionCampaignDto>> GetActiveCampaigns(CancellationToken cancellationToken)
+    {
+        return await db.PromotionCampaigns
+            .Where(x => x.ClosedDateTime == null)
+            .Where(x => x.EndDateTime > DateTimeOffset.UtcNow)
+            .OrderBy(x => x.EndDateTime)
+            .Select(x => new ActivePromotionCampaignDto(
+                x.Id,
+                x.ForUserId,
+                x.ToDiscordRoleId,
+                x.ByUserId,
+                x.VouchedForByUserId,
+                x.EndDateTime))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<ServiceResponse<PromotionCampaignDto>> CloseCampaign(
         int promotionCampaignId,
         ulong closedByUserId,
@@ -309,3 +326,11 @@ public sealed record PromotionCampaignDto(
     DateTimeOffset EndDateTime,
     DateTimeOffset? ClosedDateTime,
     bool IsApproved);
+
+public sealed record ActivePromotionCampaignDto(
+    int Id,
+    ulong ForUserId,
+    ulong ToDiscordRoleId,
+    ulong ByUserId,
+    ulong VouchedForByUserId,
+    DateTimeOffset EndDateTime);
