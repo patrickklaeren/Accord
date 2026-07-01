@@ -29,4 +29,10 @@ public class User
     public ICollection<UserMessage> Messages { get; set; } = new HashSet<UserMessage>();
     public ICollection<UserHistory> Histories { get; set; } = new HashSet<UserHistory>();
     public ICollection<UserHistory> HistoriesAddedByUser { get; set; } = new HashSet<UserHistory>();
+    
+    public ICollection<PromotionCampaign> PromotionCampaignsForUser { get; set; } = new HashSet<PromotionCampaign>();
+    public ICollection<PromotionCampaign> PromotionCampaignsByUser { get; set; } = new HashSet<PromotionCampaign>();
+    public ICollection<PromotionCampaign> PromotionCampaignsVouchedForByUser { get; set; } = new HashSet<PromotionCampaign>();
+    public ICollection<PromotionCampaign> PromotionCampaignsClosedByUser { get; set; } = new HashSet<PromotionCampaign>();
+    public ICollection<PromotionCampaignVote> PromotionCampaignsVotes { get; set; } = new HashSet<PromotionCampaignVote>();
 }

@@ -23,6 +23,7 @@ public enum ChannelFlagType
     HelpForum = 11,
     MessageLogs = 12,
     DoNotLogMessages = 13,
+    PromotionCampaigns = 14
 }
 
 public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>
