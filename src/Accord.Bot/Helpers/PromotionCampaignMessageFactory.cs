@@ -54,7 +54,7 @@ public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
             Footer: new EmbedFooter($"#{campaign.Id} - Achieving required votes does not guarantee promotion!"));
     }
 
-    public IReadOnlyCollection<IMessageComponent> CreateComponents(int campaignId)
+    public IReadOnlyCollection<IMessageComponent> CreateComponents(int campaignId, ulong campaignUserId)
     {
         return
         [
@@ -78,10 +78,10 @@ public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
                     $"{VOTE_CUSTOM_ID_PREFIX}0:{campaignId}"),
 
                 new ButtonComponent(
-                    ButtonComponentStyle.Link,
-                    "View profile",
+                    ButtonComponentStyle.Secondary,
+                    "Profile",
                     Emoji: new PartialEmoji(Name: "👀"),
-                    $"{VOTE_CUSTOM_ID_PREFIX}0:{campaignId}")
+                    $"{VOTE_INFO_CUSTOM_ID_PREFIX}{campaignUserId}")
             ])
         ];
     }

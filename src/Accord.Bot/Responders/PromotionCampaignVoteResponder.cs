@@ -20,7 +20,8 @@ public class PromotionCampaignVoteResponder(
     IMediator mediator,
     IDiscordRestInteractionAPI interactionApi,
     IDiscordRestUserAPI userApi,
-    PromotionCampaignMessageFactory promotionCampaignMessageFactory) : IResponder<IInteractionCreate>
+    PromotionCampaignMessageFactory promotionCampaignMessageFactory,
+    ProfileEmbedFactory profileEmbedFactory) : IResponder<IInteractionCreate>
 {
     public async Task<Result> RespondAsync(IInteractionCreate gatewayEvent, CancellationToken ct)
     {
@@ -35,12 +36,17 @@ public class PromotionCampaignVoteResponder(
         }
 
         var componentData = gatewayEvent.Data.Value.AsT1;
-        if (!componentData.CustomID.StartsWith(PromotionCampaignMessageFactory.VOTE_CUSTOM_ID_PREFIX))
+        if (!gatewayEvent.Member.HasValue || !gatewayEvent.Member.Value.User.HasValue)
         {
             return Result.FromSuccess();
         }
 
-        if (!gatewayEvent.Member.HasValue || !gatewayEvent.Member.Value.User.HasValue)
+        if (componentData.CustomID.StartsWith(PromotionCampaignMessageFactory.VOTE_INFO_CUSTOM_ID_PREFIX))
+        {
+            return await RespondWithProfile(componentData.CustomID, gatewayEvent, ct);
+        }
+
+        if (!componentData.CustomID.StartsWith(PromotionCampaignMessageFactory.VOTE_CUSTOM_ID_PREFIX))
         {
             return Result.FromSuccess();
         }
@@ -105,7 +111,7 @@ public class PromotionCampaignVoteResponder(
         var campaign = response.Value!;
         var user = await userApi.GetUserAsync(new Snowflake(campaign.ForUserId), ct);
         var embed = promotionCampaignMessageFactory.CreateEmbed(user.Entity, campaign);
-        var components = promotionCampaignMessageFactory.CreateComponents(campaign.Id);
+        var components = promotionCampaignMessageFactory.CreateComponents(campaign.Id, campaign.ForUserId);
         
         var editResult = await interactionApi.EditOriginalInteractionResponseAsync(
             appId,
@@ -137,5 +143,76 @@ public class PromotionCampaignVoteResponder(
             ct: ct);
 
         return (Result)confirmationResult;
+    }
+
+    private async Task<Result> RespondWithProfile(string customId, IInteractionCreate gatewayEvent, CancellationToken ct)
+    {
+        if (!gatewayEvent.GuildID.HasValue)
+        {
+            return Result.FromSuccess();
+        }
+
+        var profileUserIdValue = customId.Replace(PromotionCampaignMessageFactory.VOTE_INFO_CUSTOM_ID_PREFIX, string.Empty);
+
+        if (!ulong.TryParse(profileUserIdValue, out var profileUserId))
+        {
+            return Result.FromSuccess();
+        }
+
+        if (profileUserId <= int.MaxValue)
+        {
+            var campaign = await mediator.Send(new GetPromotionCampaignRequest((int)profileUserId), ct);
+
+            if (campaign is null)
+            {
+                return await RespondWithEphemeralMessage(gatewayEvent, "Could not retrieve promotion campaign.", ct);
+            }
+
+            profileUserId = campaign.ForUserId;
+        }
+
+        var deferResult = await interactionApi.CreateInteractionResponseAsync(
+            gatewayEvent.ID,
+            gatewayEvent.Token,
+            new InteractionResponse(
+                InteractionCallbackType.DeferredChannelMessageWithSource,
+                new(new InteractionMessageCallbackData(Flags: MessageFlags.Ephemeral))),
+            ct: ct);
+
+        if (!deferResult.IsSuccess)
+        {
+            return deferResult;
+        }
+
+        var embed = await profileEmbedFactory.Create(gatewayEvent.GuildID.Value, new Snowflake(profileUserId), ct);
+
+        var editResult = embed is null
+            ? await interactionApi.EditOriginalInteractionResponseAsync(
+                gatewayEvent.ApplicationID,
+                gatewayEvent.Token,
+                "Could not retrieve user via Discord API",
+                ct: ct)
+            : await interactionApi.EditOriginalInteractionResponseAsync(
+                gatewayEvent.ApplicationID,
+                gatewayEvent.Token,
+                embeds: new[] { embed },
+                allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
+                ct: ct);
+
+        return (Result)editResult;
+    }
+
+    private async Task<Result> RespondWithEphemeralMessage(IInteractionCreate gatewayEvent, string message, CancellationToken ct)
+    {
+        var callback = new InteractionMessageCallbackData(
+            Content: message,
+            Flags: MessageFlags.Ephemeral,
+            AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()));
+
+        return await interactionApi.CreateInteractionResponseAsync(
+            gatewayEvent.ID,
+            gatewayEvent.Token,
+            new InteractionResponse(InteractionCallbackType.ChannelMessageWithSource, new(callback)),
+            ct: ct);
     }
 }

@@ -26,7 +26,7 @@ public class RelayPromotionCampaignToDiscordHandler(IDiscordRestChannelAPI chann
             return null;
         
         var embed = promotionCampaignMessageFactory.CreateEmbed(user.Entity, request.Campaign);
-        var components = promotionCampaignMessageFactory.CreateComponents(request.Campaign.Id);
+        var components = promotionCampaignMessageFactory.CreateComponents(request.Campaign.Id, request.Campaign.ForUserId);
 
         var messageResponse = await channelApi.CreateMessageAsync(
             new Snowflake(request.DiscordChannelId),
@@ -51,7 +51,7 @@ public class RelayPromotionCampaignToDiscordHandler(IDiscordRestChannelAPI chann
 
         if (request.Campaign.EndDateTime > DateTimeOffset.UtcNow && request.Campaign.ClosedDateTime is null)
         {
-            components = promotionCampaignMessageFactory.CreateComponents(request.Campaign.Id);   
+            components = promotionCampaignMessageFactory.CreateComponents(request.Campaign.Id, request.Campaign.ForUserId);
         }
 
         await channelApi.EditMessageAsync(
