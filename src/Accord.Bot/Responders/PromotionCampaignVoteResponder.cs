@@ -47,18 +47,18 @@ public class PromotionCampaignVoteResponder(
 
         var voteCommand = componentData.CustomID.Replace(PromotionCampaignMessageFactory.VOTE_CUSTOM_ID_PREFIX, string.Empty);
         var split = voteCommand.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        
+
         var vote = 1;
         int campaignId;
-        
+
         // Legacy switchover can be removed once everything is migrated
         if (split.Length is 2)
         {
             if (!int.TryParse(split[0], out vote))
             {
-                return Result.FromSuccess();   
+                return Result.FromSuccess();
             }
-        
+
             if (!int.TryParse(split[1], out campaignId))
             {
                 return Result.FromSuccess();
@@ -72,21 +72,34 @@ public class PromotionCampaignVoteResponder(
             }
         }
 
+        var appId = gatewayEvent.ApplicationID;
+        var token = gatewayEvent.Token;
+
+        var deferResult = await interactionApi.CreateInteractionResponseAsync(
+            gatewayEvent.ID,
+            token,
+            new InteractionResponse(InteractionCallbackType.DeferredUpdateMessage),
+            ct: ct);
+
+        if (!deferResult.IsSuccess)
+        {
+            return deferResult;
+        }
+
         var votingUserId = gatewayEvent.Member.Value.User.Value.ID.Value;
         var response = await mediator.Send(new VoteOnPromotionCampaignRequest(campaignId, votingUserId, vote), ct);
 
         if (!response.Success)
         {
-            var callback = new InteractionMessageCallbackData(
-                Content: response.ErrorMessage,
-                Flags: MessageFlags.Ephemeral,
-                AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()));
-
-            return await interactionApi.CreateInteractionResponseAsync(
-                gatewayEvent.ID,
-                gatewayEvent.Token,
-                new InteractionResponse(InteractionCallbackType.ChannelMessageWithSource, new(callback)),
+            var followupResult = await interactionApi.CreateFollowupMessageAsync(
+                appId,
+                token,
+                response.ErrorMessage,
+                flags: MessageFlags.Ephemeral,
+                allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
                 ct: ct);
+
+            return (Result)followupResult;
         }
 
         var campaign = response.Value!;
@@ -94,15 +107,35 @@ public class PromotionCampaignVoteResponder(
         var embed = promotionCampaignMessageFactory.CreateEmbed(user.Entity, campaign);
         var components = promotionCampaignMessageFactory.CreateComponents(campaign.Id);
         
-        var update = new InteractionMessageCallbackData(
-            Embeds: new[] { embed },
-            Components: components.ToList(),
-            AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()));
-
-        return await interactionApi.CreateInteractionResponseAsync(
-            gatewayEvent.ID,
-            gatewayEvent.Token,
-            new InteractionResponse(InteractionCallbackType.UpdateMessage, new(update)),
+        var editResult = await interactionApi.EditOriginalInteractionResponseAsync(
+            appId,
+            token,
+            embeds: new[] { embed },
+            components: components.ToList(),
+            allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
             ct: ct);
+
+        if (!editResult.IsSuccess)
+        {
+            return (Result)editResult;
+        }
+
+        var voteText = vote switch
+        {
+            -1 => $"You voted against promoting {user.Entity.Username}! (-1)",
+            0 => $"You abstained from {user.Entity.Username}'s campaign!",
+            1 => $"You voted in favour of promoting {user.Entity.Username}! (+1)",
+            _ => throw new NotImplementedException()
+        };
+
+        var confirmationResult = await interactionApi.CreateFollowupMessageAsync(
+            appId,
+            token,
+            voteText,
+            flags: MessageFlags.Ephemeral,
+            allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
+            ct: ct);
+
+        return (Result)confirmationResult;
     }
 }

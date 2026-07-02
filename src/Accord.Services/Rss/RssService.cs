@@ -51,7 +51,6 @@ public class RssService(AccordContext db, RssFeedReaderService rssFeedReaderServ
                 var hasBeenPosted = await db.RssFeedPosts
                     .Where(x => x.Url == postInFeed.Url)
                     .Where(x => x.Title == postInFeed.Title)
-                    .Where(x => x.PublishedAtDateTime == postInFeed.PublishedAt)
                     .AnyAsync(cancellationToken: cancellationToken);
 
                 if (hasBeenPosted)

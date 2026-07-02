@@ -10,6 +10,7 @@ namespace Accord.Bot.Helpers;
 public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
 {
     public const string VOTE_CUSTOM_ID_PREFIX = "promotion-campaign-vote:";
+    public const string VOTE_INFO_CUSTOM_ID_PREFIX = "promotion-campaign-info:";
 
     public Embed CreateEmbed(IUser user, PromotionCampaignDto campaign)
     {
@@ -63,11 +64,24 @@ public class PromotionCampaignMessageFactory(ThumbnailHelper thumbnailHelper)
                     "+1",
                     Emoji: new PartialEmoji(Name: "👍"),
                     $"{VOTE_CUSTOM_ID_PREFIX}1:{campaignId}"),
+
                 new ButtonComponent(
                     ButtonComponentStyle.Danger,
                     "-1",
                     Emoji: new PartialEmoji(Name: "👎"),
-                    $"{VOTE_CUSTOM_ID_PREFIX}-1:{campaignId}")
+                    $"{VOTE_CUSTOM_ID_PREFIX}-1:{campaignId}"),
+
+                new ButtonComponent(
+                    ButtonComponentStyle.Secondary,
+                    "Abstain",
+                    Emoji: new PartialEmoji(Name: "🤷"),
+                    $"{VOTE_CUSTOM_ID_PREFIX}0:{campaignId}"),
+
+                new ButtonComponent(
+                    ButtonComponentStyle.Link,
+                    "View profile",
+                    Emoji: new PartialEmoji(Name: "👀"),
+                    $"{VOTE_CUSTOM_ID_PREFIX}0:{campaignId}")
             ])
         ];
     }

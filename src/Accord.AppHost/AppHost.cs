@@ -35,10 +35,6 @@ var discordGuildId = builder.AddParameter(
     name: "discord-guild-id",
     secret: false);
 
-var discordHelpForumChannelId = builder.AddParameter(
-    name: "discord-help-forum-channel-id",
-    secret: false);
-
 var discordCdnBaseUrl = builder.AddParameter(
     name: "discord-cdn-base-url",
     secret: false,
@@ -104,7 +100,6 @@ builder
     .WithEnvironment("Discord__ClientId", discordClientId)
     .WithEnvironment("Discord__ClientSecret", discordClientSecret)
     .WithEnvironment("Discord__GuildId", discordGuildId)
-    .WithEnvironment("Discord__HelpForumChannelId", discordHelpForumChannelId)
     .WithEnvironment("Discord__CdnBaseUrl", discordCdnBaseUrl)
     .WithEnvironment("AppBaseUrl", appBaseUrl)
     .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
