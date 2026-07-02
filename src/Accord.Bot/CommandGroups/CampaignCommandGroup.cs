@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -123,5 +124,69 @@ public class CampaignCommandGroup(
             Description: description.ToString());
 
         return await feedbackService.SendContextualEmbedAsync(embed);
+    }
+
+    [RequireDiscordPermission(DiscordPermission.Administrator), Command("details"), Description("Show promotion campaign details and votes"), Ephemeral]
+    public async Task<IResult> Details(int campaignId)
+    {
+        var campaign = await mediator.Send(new GetPromotionCampaignDetailsRequest(campaignId));
+
+        if (campaign is null)
+        {
+            return await feedbackService.SendContextualAsync($"Campaign #{campaignId} not found.");
+        }
+
+        var description = new StringBuilder()
+            .AppendLine($"Campaign for {DiscordFormatter.UserIdToMention(campaign.ForUserId)} to receive {DiscordFormatter.RoleIdToMention(campaign.ToDiscordRoleId)}")
+            .AppendLine($"Created by {DiscordFormatter.UserIdToMention(campaign.ByUserId)}")
+            .AppendLine($"Vouched by {DiscordFormatter.UserIdToMention(campaign.VouchedForByUserId)}")
+            .AppendLine($"Started {DiscordFormatter.TimeToMarkdown(campaign.StartDateTime)}")
+            .AppendLine($"Ends {DiscordFormatter.TimeToMarkdown(campaign.EndDateTime)}")
+            .AppendLine($"Required vote score: {campaign.VoteThresholdRequired}")
+            .AppendLine($"Current vote score: {campaign.TotalVoteScore}");
+
+        if (campaign.ClosedDateTime is not null)
+        {
+            description.AppendLine($"Closed {DiscordFormatter.TimeToMarkdown(campaign.ClosedDateTime.Value)}");
+        }
+
+        if (campaign.ClosedByUserId is not null)
+        {
+            description.AppendLine($"Closed by {DiscordFormatter.UserIdToMention(campaign.ClosedByUserId.Value)}");
+        }
+
+        description.AppendLine($"Status: {GetCampaignStatus(campaign)}");
+
+        var embed = new Embed(
+            Title: $"Promotion Campaign #{campaign.Id}",
+            Description: description.ToString(),
+            Fields: new[]
+            {
+                CreateVoteField("For (+1)", campaign.Votes.Where(x => x.Vote > 0)),
+                CreateVoteField("Against (-1)", campaign.Votes.Where(x => x.Vote < 0)),
+                CreateVoteField("Abstaining (0)", campaign.Votes.Where(x => x.Vote == 0))
+            });
+
+        return await feedbackService.SendContextualEmbedAsync(embed);
+    }
+
+    private static string GetCampaignStatus(PromotionCampaignDetailsDto campaign)
+    {
+        if (campaign.ClosedDateTime is null)
+        {
+            return campaign.EndDateTime > System.DateTimeOffset.UtcNow ? "Open" : "Expired";
+        }
+
+        return campaign.IsApproved ? "Approved" : "Closed";
+    }
+
+    private static EmbedField CreateVoteField(string name, IEnumerable<PromotionCampaignVoteDetailsDto> votes)
+    {
+        var voteList = votes.ToList();
+        var value = voteList.Any()
+            ? string.Join("\n", voteList.Select(x => $"{DiscordFormatter.UserIdToMention(x.VotingUserId)} · {DiscordFormatter.TimeToMarkdown(x.AtDateTime, TimeToMentionType.RelativeTime)}"))
+            : "No votes";
+
+        return new EmbedField($"{name} ({voteList.Count})", value, false);
     }
 }

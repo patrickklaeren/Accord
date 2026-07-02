@@ -160,6 +160,30 @@ public class PromotionCampaignService(AccordContext db,
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<PromotionCampaignDetailsDto?> GetCampaignDetails(int promotionCampaignId, CancellationToken cancellationToken)
+    {
+        return await db.PromotionCampaigns
+            .Where(x => x.Id == promotionCampaignId)
+            .Select(x => new PromotionCampaignDetailsDto(
+                x.Id,
+                x.ForUserId,
+                x.ByUserId,
+                x.VouchedForByUserId,
+                x.ToDiscordRoleId,
+                x.StartDateTime,
+                x.EndDateTime,
+                x.ClosedDateTime,
+                x.ClosedByUserId,
+                x.IsApproved,
+                x.VoteThresholdRequired,
+                x.Votes.Sum(v => v.Vote),
+                x.Votes
+                    .OrderByDescending(v => v.AtDateTime)
+                    .Select(v => new PromotionCampaignVoteDetailsDto(v.VotingUserId, v.Vote, v.AtDateTime))
+                    .ToList()))
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<ActivePromotionCampaignDto>> GetActiveCampaigns(CancellationToken cancellationToken)
     {
         return await db.PromotionCampaigns
@@ -337,3 +361,23 @@ public sealed record ActivePromotionCampaignDto(
     ulong ByUserId,
     ulong VouchedForByUserId,
     DateTimeOffset EndDateTime);
+
+public sealed record PromotionCampaignDetailsDto(
+    int Id,
+    ulong ForUserId,
+    ulong ByUserId,
+    ulong VouchedForByUserId,
+    ulong ToDiscordRoleId,
+    DateTimeOffset StartDateTime,
+    DateTimeOffset EndDateTime,
+    DateTimeOffset? ClosedDateTime,
+    ulong? ClosedByUserId,
+    bool IsApproved,
+    int VoteThresholdRequired,
+    int TotalVoteScore,
+    IReadOnlyList<PromotionCampaignVoteDetailsDto> Votes);
+
+public sealed record PromotionCampaignVoteDetailsDto(
+    ulong VotingUserId,
+    int Vote,
+    DateTimeOffset AtDateTime);
