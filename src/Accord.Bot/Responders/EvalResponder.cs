@@ -58,7 +58,8 @@ public class EvalResponder(ThumbnailHelper thumbnailHelper,
         var workingMessageResult = await channelApi.CreateMessageAsync(
             message.ChannelID,
             embeds: new[] { embed },
-            allowedMentions: new AllowedMentions(MentionRepliedUser: false)
+            allowedMentions: new AllowedMentions(MentionRepliedUser: false),
+            messageReference: message.MessageReference
         );
 
         var workingMessage = workingMessageResult.Entity;
