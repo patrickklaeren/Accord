@@ -59,6 +59,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<StarboardCommandGroup>()
             .WithCommandGroup<HelpCommandGroup>()
             .WithCommandGroup<LookupCommandGroup>()
+            .WithCommandGroup<AiQuoteCommandGroup>()
             .WithCommandGroup<MuteCommandGroup>()
             .WithCommandGroup<UnmuteCommandGroup>()
             .WithCommandGroup<ChangelogCommandGroup>()
