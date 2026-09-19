@@ -87,6 +87,11 @@ public class RunOptionEntityTypeConfiguration : IEntityTypeConfiguration<RunOpti
                 Key = RunOptionKey.DemocraticDownVotesRequired,
                 Type= RunOptionType.Integer,
                 Value = "5"
+            }, new RunOption()
+            {
+                Key = RunOptionKey.MaxRepliedTagsPerMessage,
+                Type= RunOptionType.Integer,
+                Value = "2"
             }
         );
     }
@@ -108,6 +113,7 @@ public enum RunOptionKey
     VoiceAutoUnmuteInMinutes = 15,
     DemocraticDownVotingEnabled = 16,
     DemocraticDownVotesRequired = 17,
+    MaxRepliedTagsPerMessage = 18
 }
 
 public enum RunOptionType

@@ -20,13 +20,18 @@ public class TagResponder(TagHelper tagHelper, IDiscordRestChannelAPI channelApi
         if (gatewayEvent.Author.IsBot.HasValue || gatewayEvent.Author.IsSystem.HasValue)
             return Result.FromSuccess();
 
-        var tag = await tagHelper.TryGetTag(gatewayEvent.Content);
+        var tags = await tagHelper.TryGetTags(gatewayEvent.Content);
 
-        if (tag is not null)
+        if (tags.Length <= 0)
+        {
+            return Result.FromSuccess();
+        }
+        
+        for (var i = 0; i < tags.Length; i++)
         {
             var reply = await channelApi.CreateMessageAsync(gatewayEvent.ChannelID,
-                tag,
-                messageReference: gatewayEvent.MessageReference,
+                tags[i],
+                messageReference: i == 0 ? gatewayEvent.MessageReference : default,
                 allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
                 ct: ct);
 

@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Accord.Bot.Extensions;
 using Accord.Services.Tags;
@@ -11,15 +13,15 @@ public partial class TagHelper(IMediator mediator)
 {
     [GeneratedRegex(@"\$(\S+)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private partial Regex InlineTagRegex();
-    
+
     [GeneratedRegex("^>.*$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled)]
     private partial Regex MessageQuoteRegex();
 
-    public async Task<string?> TryGetTag(string content)
+    public async Task<string[]> TryGetTags(string content)
     {
         if (string.IsNullOrWhiteSpace(content))
-            return null;
-        
+            return [];
+
         var sanitised = content
             .Trim()
             .SanitiseDiscordContent();
@@ -28,15 +30,14 @@ public partial class TagHelper(IMediator mediator)
         sanitised = MessageQuoteRegex().Replace(sanitised, string.Empty);
 
         if (string.IsNullOrWhiteSpace(sanitised))
-            return null;
+            return [];
 
-        var matches = InlineTagRegex().Match(sanitised);
+        var matches = InlineTagRegex().Matches(sanitised);
 
-        if (!matches.Success)
-            return null;
+        if (matches.Count == 0)
+            return [];
 
-        var tagName = matches.Groups[1].Value;
-
-        return await mediator.Send(new GetTagContentRequest(tagName));
+        var tagNames = matches.Select(m => m.Groups[1].Value).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        return await mediator.Send(new GetTagsContentsRequest(tagNames));
     }
 }

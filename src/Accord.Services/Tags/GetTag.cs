@@ -10,6 +10,6 @@ public class GetTagHandler(TagService tagService) : IRequestHandler<GetTagReques
 {
     public async Task<TagDto?> Handle(GetTagRequest request, CancellationToken cancellationToken)
     {
-        return await tagService.GetTag(request.Name);
+        return await tagService.GetTagByName(request.Name);
     }
 }
