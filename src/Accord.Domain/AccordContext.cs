@@ -36,4 +36,5 @@ public class AccordContext : DbContext
     public DbSet<PromotionCampaign> PromotionCampaigns { get; set; } = null!;
     public DbSet<PromotionCampaignOutput> PromotionCampaignOutputs { get; set; } = null!;
     public DbSet<PromotionCampaignVote> PromotionCampaignVotes { get; set; } = null!;
+    public DbSet<VoiceChannelLease> VoiceChannelLeases { get; set; } = null!;
 }

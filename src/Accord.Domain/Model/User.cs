@@ -35,4 +35,7 @@ public class User
     public ICollection<PromotionCampaign> PromotionCampaignsVouchedForByUser { get; set; } = new HashSet<PromotionCampaign>();
     public ICollection<PromotionCampaign> PromotionCampaignsClosedByUser { get; set; } = new HashSet<PromotionCampaign>();
     public ICollection<PromotionCampaignVote> PromotionCampaignsVotes { get; set; } = new HashSet<PromotionCampaignVote>();
+    
+    public ICollection<VoiceChannelLease> VoiceChannelLeasesOwned { get; set; } = new HashSet<VoiceChannelLease>();
+    public ICollection<VoiceChannelLease> VoiceChannelLeasesClosedByUser { get; set; } = new HashSet<VoiceChannelLease>();
 }

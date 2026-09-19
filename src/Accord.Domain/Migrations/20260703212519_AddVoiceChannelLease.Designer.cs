@@ -3,6 +3,7 @@ using System;
 using Accord.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Accord.Domain.Migrations
 {
     [DbContext(typeof(AccordContext))]
-    partial class AccordContextModelSnapshot : ModelSnapshot
+    [Migration("20260703212519_AddVoiceChannelLease")]
+    partial class AddVoiceChannelLease
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -610,6 +613,9 @@ namespace Accord.Domain.Migrations
                     b.Property<string>("ChannelName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int?>("CloseReason")
+                        .HasColumnType("integer");
 
                     b.Property<decimal?>("ClosedByUserId")
                         .HasColumnType("numeric(20,0)");

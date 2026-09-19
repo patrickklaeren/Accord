@@ -63,7 +63,8 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<UnmuteCommandGroup>()
             .WithCommandGroup<ChangelogCommandGroup>()
             .WithCommandGroup<HelpForumCommandGroup>()
-            .WithCommandGroup<RssCommandGroup>();
+            .WithCommandGroup<RssCommandGroup>()
+            .WithCommandGroup<VoiceChannelLeasingCommandGroup>();
 
         services
             .AddResponder<ChannelUpdateResponder>()
@@ -79,6 +80,7 @@ public static class BotServiceCollectionExtensions
             .AddResponder<TagModalSubmitResponder>()
             .AddResponder<TagResponder>()
             .AddResponder<VoiceStateResponder>()
+            .AddResponder<VoiceChannelLeaseSeedResponder>()
             .AddResponder<EvalResponder>()
             .AddResponder<GodboltModalSubmitResponder>()
             .AddResponder<LinkedMessageResponder>()

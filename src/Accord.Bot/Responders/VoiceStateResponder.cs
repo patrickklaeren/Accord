@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Accord.Bot.Helpers;
 using Accord.Services;
 using Accord.Services.VoiceSessions;
 using MediatR;
@@ -10,7 +11,8 @@ using Remora.Results;
 
 namespace Accord.Bot.Responders;
 
-public class VoiceStateResponder(CoreEventQueue eventQueue) : IResponder<IVoiceStateUpdate>
+public class VoiceStateResponder(CoreEventQueue eventQueue,
+    VoiceChannelLeaseOccupancyTracker occupancyTracker) : IResponder<IVoiceStateUpdate>
 {
     public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
     {
@@ -20,6 +22,8 @@ public class VoiceStateResponder(CoreEventQueue eventQueue) : IResponder<IVoiceS
 
         if (gatewayEvent.Member.Value.User.Value.IsBot == true)
             return Result.FromSuccess();
+
+        occupancyTracker.ApplyVoiceState(gatewayEvent.UserID.Value, gatewayEvent.ChannelID?.Value);
 
         IRequest type = gatewayEvent.ChannelID.HasValue
             ? new StartVoiceSessionRequest(gatewayEvent.GuildID.Value.Value,

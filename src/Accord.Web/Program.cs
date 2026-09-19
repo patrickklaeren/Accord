@@ -112,7 +112,8 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
     builder.Services
         .AddHostedService<BotHostedService>()
         .AddHostedService<RemindersHostedService>()
-        .AddHostedService<RssPollingHostedService>();
+        .AddHostedService<RssPollingHostedService>()
+        .AddHostedService<VoiceChannelLeaseCleanupHostedService>();
 }
 
 builder.Services.AddHostedService<CoreEventQueueProcessor>();
