@@ -5,28 +5,28 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.4.6" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.4.6" />
+    <PackageVersion Include="Aspire.Hosting.Docker" Version="13.5.4" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.5.4" />
     <PackageVersion Include="AspNet.Security.OAuth.Discord" Version="10.0.0" />
     <PackageVersion Include="AutoRegisterInject" Version="2.0.2" />
     <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
     <PackageVersion Include="LazyCache" Version="2.4.0" />
     <PackageVersion Include="LazyCache.AspNetCore" Version="2.4.0" />
-    <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.14.0" />
+    <PackageVersion Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
     <PackageVersion Include="MediatR" Version="12.5.0" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Ref" Version="10.0.9" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.301" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
     <PackageVersion Include="MudBlazor" Version="9.5.0" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="protobuf-net" Version="3.2.56" />
     <PackageVersion Include="Remora.Discord" Version="2026.1.0" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.6.0" />
