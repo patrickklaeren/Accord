@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
@@ -22,16 +23,11 @@ public class TagResponder(TagHelper tagHelper, IDiscordRestChannelAPI channelApi
 
         var tags = await tagHelper.TryGetTags(gatewayEvent.Content);
 
-        if (tags.Length <= 0)
-        {
-            return Result.FromSuccess();
-        }
-        
-        for (var i = 0; i < tags.Length; i++)
+        foreach (var tag in tags)
         {
             var reply = await channelApi.CreateMessageAsync(gatewayEvent.ChannelID,
-                tags[i],
-                messageReference: i == 0 ? gatewayEvent.MessageReference : default,
+                tag,
+                messageReference: gatewayEvent.MessageReference,
                 allowedMentions: new AllowedMentions(Parse: new List<MentionType>()),
                 ct: ct);
 

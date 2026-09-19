@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ public partial class TagHelper(IMediator mediator)
     [GeneratedRegex("^>.*$", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled)]
     private partial Regex MessageQuoteRegex();
 
-    public async Task<string[]> TryGetTags(string content)
+    public async Task<IReadOnlyCollection<string>> TryGetTags(string content)
     {
         if (string.IsNullOrWhiteSpace(content))
             return [];

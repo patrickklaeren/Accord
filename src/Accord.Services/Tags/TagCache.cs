@@ -1,51 +1,41 @@
-
+using System.Linq;
+using System.Threading.Tasks;
+using Accord.Domain;
 using LazyCache;
+using Microsoft.EntityFrameworkCore;
 
 namespace Accord.Services.Tags;
 
-public static class TagCache
+[RegisterScoped]
+public class TagCache(AccordContext db, IAppCache appCache)
 {
+    public async Task<TagDto?> GetTagByName(string name)
+    {
+        return await appCache.GetOrAddAsync(BuildTagAliasCacheKey(name), GetData);
+
+        async Task<TagDto?> GetData()
+        {
+            return await db.Tags
+                .Where(x => x.Aliases.Any(d => d.Name == name))
+                .Select(x => new TagDto
+                (
+                    x.Id,
+                    x.Aliases.Select(d => d.Name).ToList(),
+                    x.Uses,
+                    x.Content,
+                    x.AddedDateTime,
+                    x.AddedByUserId
+                )).SingleOrDefaultAsync();
+        }
+    }
+
+    public void UncacheTag(string name)
+    {
+        appCache.Remove(BuildTagAliasCacheKey(name));
+    }
+
     private static string BuildTagAliasCacheKey(string name)
     {
         return $"{nameof(TagCache)}/{nameof(TagService)}/{name.ToLowerInvariant()}";
-    }
-
-    private static string BuildTagIdCacheKey(int id)
-    {
-        return $"{nameof(TagCache)}/{nameof(TagService)}/{id}";
-    }
-
-    extension(IAppCache appCache)
-    {
-        public TagDto? GetTagById(int id)
-        {
-            return appCache.Get<TagDto?>(BuildTagIdCacheKey(id));
-        }
-
-        public TagDto? GetTagByName(string name)
-        {
-            var cached = appCache.Get<int?>(BuildTagAliasCacheKey(name));
-            return cached is not null ? appCache.GetTagById(cached.Value) : null;
-        }
-
-        public void StoreTagAlias(string name, int id)
-        {
-            appCache.Add(BuildTagAliasCacheKey(name), id);
-        }
-
-        public void StoreTag(TagDto tagDto)
-        {
-            appCache.Add(BuildTagIdCacheKey(tagDto.Id), tagDto);
-        }
-
-        public void RemoveTagIdByName(string name)
-        {
-            appCache.Remove(BuildTagAliasCacheKey(name));
-        }
-
-        public void RemoveTagById(int id)
-        {
-            appCache.Remove(BuildTagIdCacheKey(id));
-        }
     }
 }
