@@ -11,12 +11,12 @@ namespace Accord.Services.DemocraticDownVoting;
 
 public sealed record DownVoteMessageRequest(PermissionUser UserBeingDownVoted,
     DateTimeOffset DiscordMessageSentAtDateTime,
-    ulong DiscordMessageId, 
+    ulong DiscordMessageId,
     ulong DiscordChannelId) : IRequest;
 
-internal class DownVoteMessageHandler(UserPermissionService userPermissionService, 
+internal class DownVoteMessageHandler(UserPermissionService userPermissionService,
     RunOptionService runOptionService,
-    IMediator mediator) 
+    IMediator mediator)
     : IRequestHandler<DownVoteMessageRequest>
 {
     public async Task Handle(DownVoteMessageRequest request, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ internal class DownVoteMessageHandler(UserPermissionService userPermissionServic
         {
             return;
         }
-        
+
         if (request.UserBeingDownVoted.IsAdministrator || request.UserBeingDownVoted.IsBotSelf)
         {
             return;
@@ -57,7 +57,7 @@ internal class DownVoteMessageHandler(UserPermissionService userPermissionServic
             .ReactedByUserIds
             .Where(userId => userId != request.UserBeingDownVoted.DiscordUserId)
             .ToList();
-        
+
         var numberOfReactions = downvotedByUserIds.Count;
 
         if (numberOfReactions < numberOfReactionsRequired)
