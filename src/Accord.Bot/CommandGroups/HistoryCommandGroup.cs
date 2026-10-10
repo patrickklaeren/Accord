@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
+using Accord.Services.UserBotMessages;
 using Accord.Services.UserHistories;
 using Humanizer;
 using MediatR;
@@ -14,6 +15,7 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Pagination;
 using Remora.Discord.Pagination.Extensions;
 using Remora.Results;
 
@@ -34,7 +36,7 @@ public class HistoryCommandGroup(ICommandContext commandContext,
 
         if (history is null)
         {
-            return await feedbackService.SendContextualAsync($"Record #{noteId:0000} not found");
+            return await SendHistoryMessageAsync([new Embed(Description: $"Record #{noteId:0000} not found")]);
         }
         
         var addedByMention = DiscordFormatter.UserIdToMention(history.AddedByUserId);
@@ -53,10 +55,7 @@ public class HistoryCommandGroup(ICommandContext commandContext,
             Fields: fields
         );
 
-        await feedbackService.SendContextualAsync(embeds: new[] { embed },
-            options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>())));
-
-        return Result.FromSuccess();
+        return await SendHistoryMessageAsync([embed]);
     }
     
     [Command("delete"), Description("Delete a note from history")]
@@ -81,18 +80,36 @@ public class HistoryCommandGroup(ICommandContext commandContext,
 
         if (!response.Any())
         {
-            return await feedbackService.SendContextualAsync("No history notes for this user");
+            return await SendHistoryMessageAsync([new Embed(Description: "No history notes for this user")]);
         }
 
         var pages = BuildPages(response, user);
 
+        return await SendHistoryMessageAsync(pages);
+    }
+
+    private async Task<IResult> SendHistoryMessageAsync(IReadOnlyList<Embed> pages)
+    {
         var proxy = commandContext.GetCommandProxy();
 
-        return await feedbackService.SendContextualPaginatedMessageAsync(
+        var message = await feedbackService.SendContextualPaginatedMessageAsync(
             proxy.UserId,
-            pages, 
+            pages,
+            appearance: PaginatedAppearanceOptions.Default with
+            {
+                Close = new ButtonComponent(ButtonComponentStyle.Danger, Label: "Close"),
+                Help = null
+            },
             options: new FeedbackMessageOptions(AllowedMentions: new AllowedMentions(Parse: new List<MentionType>()))
         );
+
+        if (message.IsSuccess)
+        {
+            await mediator.Publish(new AddUserBotMessageRequest(message.Entity.ID.Value,
+                message.Entity.ChannelID.Value, proxy.UserId.Value));
+        }
+
+        return message;
     }
 
     private IReadOnlyList<Embed> BuildPages(IReadOnlyCollection<UserHistoryDto> histories, IUser user)
