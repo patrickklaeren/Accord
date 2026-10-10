@@ -21,7 +21,7 @@ internal class DownVoteMessageHandler(UserPermissionService userPermissionServic
 {
     public async Task Handle(DownVoteMessageRequest request, CancellationToken cancellationToken)
     {
-        const int THRESHOLD_IN_MINUTES = 5;
+        const int THRESHOLD_IN_MINUTES = 60;
         var threshold = DateTimeOffset.Now.AddMinutes(-THRESHOLD_IN_MINUTES);
 
         if (request.DiscordMessageSentAtDateTime < threshold)
