@@ -80,6 +80,16 @@ Accord also has a link shortening service via https://github.com/shlinkio/shlink
 
 This bot is intended for **single-guild** usage.
 
+## Timed requested roles
+
+Administrators can enable a role with `/permission add-role` by selecting the role and the `CanBeRequested` permission, or through the website's role permissions settings. The bot needs permission to manage that role.
+
+Users run `/get-role` and select a role, then type the displayed C# keyword exactly in the modal. The role ID and expected keyword are carried in the modal's custom ID; pending challenges are not stored. An incorrect answer requires running `/get-role` again. Only roles with a `CanBeRequested` role permission can be granted; user permissions do not enable a role. Roles the user already owns are rejected.
+
+Successful grants are stored in `TimedRoles` with the Discord user ID, role ID, and UTC expiry. The bot checks for expired grants every five seconds, including after a restart, and attempts to remove roles after 30 minutes. It logs revocation success or failure and deletes the grant record after either outcome, including when the user has left the server.
+
+Create an Entity Framework migration for the new `TimedRoles` table before deploying this feature. No migration is included.
+
 ## Credits
 
 Notable dependencies for this project include:

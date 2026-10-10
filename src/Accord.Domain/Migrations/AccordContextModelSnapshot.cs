@@ -17,7 +17,7 @@ namespace Accord.Domain.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -451,6 +451,24 @@ namespace Accord.Domain.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("TagAliases");
+                });
+
+            modelBuilder.Entity("Accord.Domain.Model.TimedRole", b =>
+                {
+                    b.Property<decimal>("DiscordUserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("DiscordRoleId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("DiscordUserId", "DiscordRoleId");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("TimedRoles");
                 });
 
             modelBuilder.Entity("Accord.Domain.Model.User", b =>

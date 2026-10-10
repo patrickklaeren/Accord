@@ -112,6 +112,7 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Discord:BotToken"]))
     builder.Services
         .AddHostedService<BotHostedService>()
         .AddHostedService<RemindersHostedService>()
+        .AddHostedService<TimedRolesHostedService>()
         .AddHostedService<RssPollingHostedService>();
 }
 

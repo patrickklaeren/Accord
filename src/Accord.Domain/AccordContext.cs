@@ -20,6 +20,7 @@ public class AccordContext : DbContext
     public DbSet<Permission> Permissions { get; set; } = null!;
     public DbSet<UserPermission> UserPermissions { get; set; } = null!;
     public DbSet<RolePermission> RolePermissions { get; set; } = null!;
+    public DbSet<TimedRole> TimedRoles { get; set; } = null!;
     public DbSet<VoiceSession> VoiceConnections { get; set; } = null!;
     public DbSet<RunOption> RunOptions { get; set; } = null!;
     public DbSet<UserHistory> UserHistories { get; set; } = null!;
