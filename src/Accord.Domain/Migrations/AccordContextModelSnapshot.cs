@@ -605,6 +605,51 @@ namespace Accord.Domain.Migrations
                     b.ToTable("UserReminders");
                 });
 
+            modelBuilder.Entity("Accord.Domain.Model.VoiceChannelLease", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChannelName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("ClosedByUserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<DateTimeOffset?>("ClosedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DiscordCategoryId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("DiscordChannelId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("DiscordGuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int?>("MaxUsers")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("OwnerUserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClosedByUserId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.ToTable("VoiceChannelLeases");
+                });
+
             modelBuilder.Entity("Accord.Domain.Model.VoiceSession", b =>
                 {
                     b.Property<int>("Id")
@@ -844,6 +889,23 @@ namespace Accord.Domain.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Accord.Domain.Model.VoiceChannelLease", b =>
+                {
+                    b.HasOne("Accord.Domain.Model.User", "ClosedByUser")
+                        .WithMany("VoiceChannelLeasesClosedByUser")
+                        .HasForeignKey("ClosedByUserId");
+
+                    b.HasOne("Accord.Domain.Model.User", "OwnerUser")
+                        .WithMany("VoiceChannelLeasesOwned")
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClosedByUser");
+
+                    b.Navigation("OwnerUser");
+                });
+
             modelBuilder.Entity("Accord.Domain.Model.VoiceSession", b =>
                 {
                     b.HasOne("Accord.Domain.Model.User", "User")
@@ -905,6 +967,10 @@ namespace Accord.Domain.Migrations
                     b.Navigation("PromotionCampaignsVotes");
 
                     b.Navigation("PromotionCampaignsVouchedForByUser");
+
+                    b.Navigation("VoiceChannelLeasesClosedByUser");
+
+                    b.Navigation("VoiceChannelLeasesOwned");
                 });
 #pragma warning restore 612, 618
         }

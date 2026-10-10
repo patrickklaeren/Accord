@@ -32,6 +32,7 @@ public enum PermissionType
     ForumHelper = 10,
     BypassDownVotes = 11,
     RoleCanBeCampaignedFor = 12,
+    CanLeaseVoiceChannels = 13
 }
 
 public class UserPermissionEntityTypeConfiguration : IEntityTypeConfiguration<UserPermission>

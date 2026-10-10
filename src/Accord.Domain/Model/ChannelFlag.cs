@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Accord.Domain.Model;
@@ -23,7 +23,8 @@ public enum ChannelFlagType
     HelpForum = 11,
     MessageLogs = 12,
     DoNotLogMessages = 13,
-    PromotionCampaigns = 14
+    PromotionCampaigns = 14,
+    VoiceLeaseCategory = 15
 }
 
 public class ChannelFlagEntityTypeConfiguration : IEntityTypeConfiguration<ChannelFlag>
