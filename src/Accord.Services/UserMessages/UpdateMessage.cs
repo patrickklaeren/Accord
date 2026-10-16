@@ -24,7 +24,7 @@ internal class UpdateMessageHandler(AccordContext db,
             .Where(x => x.UserId == request.DiscordUserId)
             .SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
-        if (message is null)
+        if (message is null || message.Content == request.NewContent)
             return;
 
         var oldContent = message.Content;
