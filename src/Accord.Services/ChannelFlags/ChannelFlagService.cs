@@ -57,7 +57,9 @@ public class ChannelFlagService(AccordContext db, IAppCache appCache)
             .Where(x => x.DiscordChannelId == discordChannelId)
             .Where(x => x.Type == requestFlag)
             .ExecuteDeleteAsync();
-        
+
+        InvalidateCache(requestFlag);
+
         return ServiceResponse.Ok();
     }
 

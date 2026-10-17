@@ -42,7 +42,7 @@ Start via `Accord.AppHost`. This will apply migrations automatically via Entity 
 
 ## Architecture
 
-Accord is a self-hosted, single-guild Discord bot built with .NET. It combines a Remora-based Discord bot, application workflows handled through MediatR, EF Core persistence, and a small Blazor web frontend.
+Accord is a self-hosted, single-guild Discord bot built with .NET. It combines a Remora-based Discord bot, application workflows handled through MediatR, EF Core persistence, and an ASP.NET Core MVC web frontend.
 
 Core goal: keep Discord transport concerns thin and replaceable. Bot code adapts Discord events and commands into application requests. Business workflows live behind MediatR request handlers. Services are not directly invoked from Discord responders or command groups when crossing project boundaries.
 
@@ -60,6 +60,16 @@ It owns ASP.NET Core startup and composition:
 - Runs `EventQueueProcessor`, which drains queued requests.
 
 Web-specific Discord code is limited to web authentication and UI support. It should not become the place where bot workflows live.
+
+### Website styling and interactions
+
+`src/Accord.Web/wwwroot/css/site.css` is Accord's shared semantic stylesheet. Native headings, buttons, inputs, tables, articles, details, and dialogs are styled by default, following [Pico CSS](https://picocss.com/)'s semantic approach. Its visual style uses neutral surfaces, thin borders, compact controls, and restrained Accord green accents, with [Vercel's Geist](https://vercel.com/geist/introduction) as a reference. Start with semantic HTML rather than introducing page-specific styles or utility classes. Use the `--accord-*` custom properties for theme values. Dark mode follows the operating system preference.
+
+Geist and Geist Mono variable fonts (v1.8.1) are self hosted in `wwwroot/fonts/geist/` with their SIL Open Font License. Font loading does not depend on a third-party service. Keep page titles and descriptions factual; avoid decorative slogans, tinted card grids, and unnecessary visual effects.
+
+Layout classes include `container`, `grid`, `actions`, `toolbar`, `inline-form`, and `table-scroll`. Button variants are `secondary` and `danger`; ordinary buttons need no class. Tables that can exceed the viewport should sit in a `table-scroll` region with a label and `tabindex="0"`.
+
+[Alpine.js](https://alpinejs.dev/) enhances tag and command search, native tag dialogs, and settings forms. Reusable components are in `wwwroot/js/site.js`. Prefer `x-on:` and `x-bind:` syntax in Razor views to avoid conflicts with Razor's `@` syntax. Keep user content in encoded Razor output or `x-text`, and keep Discord snowflakes as strings in JavaScript.
 
 #### `Accord.Bot`
 

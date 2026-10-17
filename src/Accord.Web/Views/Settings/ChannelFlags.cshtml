@@ -1,0 +1,62 @@
+@model ChannelFlagsViewModel
+@{
+    ViewData["Title"] = "Channel flags";
+    var flags = Model.Flags.Select(flag => (flag.DiscordChannelId, flag.Type)).ToHashSet();
+}
+<header class="page-heading"><p class="breadcrumb"><a asp-controller="Settings" asp-action="Index">Settings</a><span>/</span>Channel flags</p><h1>Channel flags</h1><p>Configure logging and bot behaviour for each channel.</p></header>
+<article>
+    <header><h2>Channels</h2><p>Channels with assigned flags appear automatically. Add a channel to configure it.</p></header>
+    <form asp-action="ChannelFlags" method="get" class="inline-form">
+        <label for="channel-id">Discord channel ID<input id="channel-id" type="text" inputmode="numeric" pattern="[0-9]{1,20}" name="channelId" required placeholder="123456789012345678" /></label>
+        <button type="submit">Add channel</button>
+    </form>
+    @if (Model.Channels.Count == 0)
+    {
+        <p>Add a channel ID above to view and manage its flags.</p>
+    }
+    else
+    {
+        <p>Changes save as you switch.</p>
+        <noscript><p>Choose a flag, then select Save to apply it.</p></noscript>
+        <div class="table-scroll" role="region" aria-label="Channel flags" tabindex="0">
+            <table class="matrix"><thead><tr><th scope="col">Flag</th>@foreach (var channel in Model.Channels) { <th scope="col">#@channel.Name</th> }</tr></thead><tbody>
+                @foreach (var flag in Model.Types)
+                {
+                    <tr><th scope="row">@DisplayNames.For(flag)</th>
+                        @foreach (var channel in Model.Channels)
+                        {
+                            <td>
+                                <form asp-action="ChannelFlag" method="post" x-data="settingForm" x-on:submit.prevent="save($event)" x-on:flags-updated.window="sync($event.detail)" x-bind:aria-busy="busy">
+                                    <input type="hidden" name="ChannelId" value="@channel.Id" /><input type="hidden" name="Flag" value="@flag" />
+                                    <input type="checkbox" role="switch" name="Enabled" value="true" checked="@flags.Contains((channel.Id, flag))" aria-label="@(DisplayNames.For(flag) + " in " + channel.Name)" x-ref="value" x-on:change="$refs.submit.click()" x-bind:disabled="busy" />
+                                    <input type="hidden" name="Enabled" value="false" /><button type="submit" x-ref="submit" x-show="false">Save</button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody></table>
+        </div>
+    }
+</article>
+<article x-data="flagSummary" x-on:flags-updated.window="refresh($event.detail)">
+    <header><h2>By flag type</h2><p>All channels currently assigned to each flag.</p></header>
+    @foreach (var flag in Model.Types)
+    {
+        <section data-flag="@flag">
+            <h3>@DisplayNames.For(flag)</h3>
+            <ul class="flag-channels">
+                @foreach (var channel in Model.Channels)
+                {
+                    <li data-channel="@channel.Id" hidden="@(!flags.Contains((channel.Id, flag)))">
+                        <form asp-action="ChannelFlag" method="post" class="actions" x-data="settingForm" x-on:submit.prevent="save($event)" x-bind:aria-busy="busy">
+                            <span>#@channel.Name</span><input type="hidden" name="ChannelId" value="@channel.Id" /><input type="hidden" name="Flag" value="@flag" /><input type="hidden" name="Enabled" value="false" />
+                            <button class="secondary" type="submit" x-bind:disabled="busy" aria-label="@( "Remove " + DisplayNames.For(flag) + " from " + channel.Name)">Remove</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+            <p data-empty hidden="@Model.Flags.Any(assigned => assigned.Type == flag)">No channels assigned.</p>
+        </section>
+    }
+</article>

@@ -1,0 +1,69 @@
+@{
+    var path = Context.Request.Path;
+    string? Current(string url) => path.Equals(url, StringComparison.OrdinalIgnoreCase) ? "page" : null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#007e68" />
+    <meta name="description" content="A Discord bot to prevent discord. Built by the C# Discord community, with moderation, participation tracking, and developer tools for your server." />
+    <title>@ViewData["Title"] · Accord</title>
+    <link rel="icon" type="image/png" href="~/favicon.png" />
+    <link rel="preload" href="~/fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script defer src="~/js/site.js" asp-append-version="true"></script>
+    <script defer src="~/lib/alpinejs/alpine.min.js" asp-append-version="true"></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <nav aria-label="Main navigation" class="container" x-data="{ expanded: false }">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <img src="~/images/accord.svg" alt="" width="36" height="36" /> Accord
+            </a>
+            <button type="button" class="secondary menu-toggle" x-cloak x-on:click="expanded = !expanded" aria-controls="navigation-links" x-bind:aria-expanded="expanded">Menu</button>
+                <ul id="navigation-links" class="navigation" x-bind:class="{ 'is-collapsed': !expanded }">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li><a asp-controller="Home" asp-action="Dashboard" aria-current="@Current("/dashboard")">Dashboard</a></li>
+                        <li><a asp-controller="Tags" asp-action="Index" aria-current="@Current("/tags")">Tags</a></li>
+                        @await Component.InvokeAsync("SettingsNavigation")
+                    }
+                    <li><a asp-controller="Home" asp-action="Help" aria-current="@Current("/help")">Commands</a></li>
+                    <li><a href="https://github.com/patrickklaeren/Accord" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Account" asp-action="Logout" method="post"><button class="secondary">Log out</button></form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" role="button">Log in</a>
+                        }
+                    </li>
+                </ul>
+        </nav>
+    </header>
+    <main id="main" class="container" tabindex="-1">
+        @if (TempData["Success"] is string success)
+        {
+            <p role="status">@success</p>
+        }
+        @if (TempData["Error"] is string error)
+        {
+            <p role="alert">@error</p>
+        }
+        @RenderBody()
+    </main>
+    <footer class="site-footer container">
+        <p><strong>Accord</strong></p>
+        <p><small><a asp-controller="Home" asp-action="Help">Command reference</a> · <a href="https://github.com/patrickklaeren/Accord">Source code</a></small></p>
+    </footer>
+    <div class="toast" x-data="notification" x-on:notice.window="show($event.detail)" x-cloak x-show="message" x-transition>
+        <p role="status" x-bind:data-error="error" x-text="message"></p>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

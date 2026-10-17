@@ -1,0 +1,41 @@
+@model System.Collections.Generic.IReadOnlyList<CommandCatalog.CommandGroup>
+@{
+    ViewData["Title"] = "Commands";
+}
+<header class="page-heading"><h1>Commands</h1><p>Accord’s command reference. Use <code>/help</code> in Discord to open this page.</p></header>
+<section x-data="commandBrowser">
+    <label for="command-search">Find a command</label>
+    <input id="command-search" type="search" placeholder="Search commands…" x-model="search" />
+    @foreach (var group in Model)
+    {
+        <details id="@CommandCatalog.Anchor(group)" open x-bind:hidden="!groupMatches($el)">
+            <summary>@group.Name <small>@group.Commands.Count commands</small></summary>
+            <p>@group.Description</p>
+            @foreach (var command in group.Commands)
+            {
+                <article data-command data-search="@($"{command.Usage} {command.Description} {group.Name}")" x-bind:hidden="!matches($el.dataset.search)">
+                    <header class="command-heading"><h2><code>@command.Usage</code></h2><div>
+                        @if (command.IsAdmin) { <span class="badge">Admin</span> }
+                        @if (command.IsEphemeral) { <span class="badge">Private</span> }
+                        @if (command.IsModal) { <span class="badge">Interactive</span> }
+                    </div></header>
+                    <p>@command.Description</p>
+                    @if (command.Parameters.Count > 0)
+                    {
+                        <dl>
+                            @foreach (var parameter in command.Parameters)
+                            {
+                                <dt><code>@parameter.Name</code> <small>@parameter.Type</small>
+                                    @if (parameter.IsOptional) { <small> · optional</small> }
+                                    @if (parameter.IsGreedy) { <small> · rest of input</small> }
+                                </dt>
+                                <dd>@parameter.Description</dd>
+                            }
+                        </dl>
+                    }
+                </article>
+            }
+        </details>
+    }
+    <p x-cloak x-show="noMatches">No commands match your search.</p>
+</section>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Accord.Domain;
 using Accord.Domain.Model;
@@ -57,9 +58,10 @@ public class TagService(
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.Uses, t => t.Uses + 1));
     }
 
-    private async Task<bool> TagExists(string name)
+    private async Task<bool> TagExists(string name, int? excludedAliasId = null, CancellationToken ct = default)
     {
-        return await db.TagAliases.AnyAsync(x => EF.Functions.ILike(x.Name, name));
+        var pattern = name.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+        return await db.TagAliases.AnyAsync(x => x.Id != excludedAliasId && EF.Functions.ILike(x.Name, pattern, "\\"), ct);
     }
 
     public async Task<ServiceResponse> AddTag(string name, string content, PermissionUser user)
@@ -157,18 +159,30 @@ public class TagService(
             .Where(x => x.Aliases.Any(d => d.Name == name))
             .SingleOrDefaultAsync();
 
-        if (tag is null)
-        {
-            return ServiceResponse.Fail("Tag not found");
-        }
+        return await AddAlias(tag, newAlias, user, CancellationToken.None);
+    }
 
+    public async Task<ServiceResponse> AddAlias(int tagId, string newAlias, PermissionUser user, CancellationToken ct)
+    {
+        var tag = await db.Tags.Include(tag => tag.Aliases).SingleOrDefaultAsync(tag => tag.Id == tagId, ct);
+        return await AddAlias(tag, newAlias, user, ct);
+    }
+
+    private async Task<ServiceResponse> AddAlias(Tag? tag, string newAlias, PermissionUser user, CancellationToken ct)
+    {
+        if (tag is null)
+            return ServiceResponse.Fail("Tag not found");
         var canAdd = await CanModifyTag(tag.AddedByUserId, user);
         if (!canAdd)
         {
             return ServiceResponse.Fail("Missing permission to add alias");
         }
 
-        var aliasExists = await TagExists(newAlias);
+        newAlias = newAlias.Trim();
+        if (string.IsNullOrWhiteSpace(newAlias) || newAlias.Length > 100)
+            return ServiceResponse.Fail("Enter an alias between 1 and 100 characters.");
+
+        var aliasExists = await TagExists(newAlias, ct: ct);
         if (aliasExists)
         {
             return ServiceResponse.Fail("Alias already exists");
@@ -183,7 +197,34 @@ public class TagService(
         };
 
         db.TagAliases.Add(alias);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
+
+        foreach (var name in tag.Aliases.Select(alias => alias.Name).Append(newAlias).Distinct())
+            tagCache.UncacheTag(name);
+
+        return ServiceResponse.Ok();
+    }
+
+    public async Task<ServiceResponse> RenameAlias(int tagId, int aliasId, string name, PermissionUser user, CancellationToken ct)
+    {
+        var tag = await db.Tags.Include(tag => tag.Aliases).SingleOrDefaultAsync(tag => tag.Id == tagId, ct);
+        if (tag?.Aliases.SingleOrDefault(alias => alias.Id == aliasId) is not { } alias)
+            return ServiceResponse.Fail("Alias not found for this tag.");
+        if (!await CanModifyTag(tag.AddedByUserId, user))
+            return ServiceResponse.Fail("Missing permission to edit alias");
+
+        name = name.Trim();
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 100)
+            return ServiceResponse.Fail("Enter an alias between 1 and 100 characters.");
+        if (await TagExists(name, aliasId, ct))
+            return ServiceResponse.Fail("Alias already exists");
+
+        var previousName = alias.Name;
+        alias.Name = name;
+        await db.SaveChangesAsync(ct);
+
+        foreach (var aliasName in tag.Aliases.Select(alias => alias.Name).Append(previousName).Distinct())
+            tagCache.UncacheTag(aliasName);
 
         return ServiceResponse.Ok();
     }
@@ -195,23 +236,34 @@ public class TagService(
             .Where(x => x.Aliases.Any(d => d.Name == name))
             .SingleOrDefaultAsync();
 
-        if (tag is null)
-        {
-            return ServiceResponse.Fail("Alias not found");
-        }
+        return await DeleteAlias(tag, tag?.Aliases.Single(alias => alias.Name == name), user, CancellationToken.None);
+    }
 
+    public async Task<ServiceResponse> DeleteAlias(int tagId, int aliasId, PermissionUser user, CancellationToken ct)
+    {
+        var tag = await db.Tags.Include(tag => tag.Aliases).SingleOrDefaultAsync(tag => tag.Id == tagId, ct);
+        return await DeleteAlias(tag, tag?.Aliases.SingleOrDefault(alias => alias.Id == aliasId), user, ct);
+    }
+
+    private async Task<ServiceResponse> DeleteAlias(Tag? tag, TagAlias? targetAlias, PermissionUser user, CancellationToken ct)
+    {
+        if (tag is null || targetAlias is null)
+            return ServiceResponse.Fail("Alias not found for this tag.");
         var canDelete = await CanModifyTag(tag.AddedByUserId, user);
         if (!canDelete)
         {
             return ServiceResponse.Fail("Missing permission to delete alias");
         }
 
-        var targetAlias = tag.Aliases.Single(x => x.Name == name);
+        if (tag.Aliases.Count <= 1)
+            return ServiceResponse.Fail("A tag must keep at least one alias. Rename it or delete the tag instead.");
 
+        var aliases = tag.Aliases.Select(alias => alias.Name).ToArray();
         db.TagAliases.Remove(targetAlias);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
 
-        tagCache.UncacheTag(targetAlias.Name);
+        foreach (var aliasName in aliases)
+            tagCache.UncacheTag(aliasName);
 
         return ServiceResponse.Ok();
     }

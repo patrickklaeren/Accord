@@ -1,0 +1,7 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Something went wrong";
+}
+<header class="page-heading"><h1>Something went wrong</h1><p>We couldn’t complete your request. Please return to the dashboard and try again.</p></header>
+<p>Request ID: <code>@Model.RequestId</code></p>
+<a asp-controller="Home" asp-action="Dashboard" role="button">Back to dashboard</a>

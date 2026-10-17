@@ -1,0 +1,28 @@
+@model Accord.Services.Guilds.GuildSettingsAccessResponse
+@{
+    ViewData["Title"] = "Settings";
+}
+<header class="page-heading">
+    <h1>Settings</h1>
+    <p>Manage Accord for your server.</p>
+</header>
+<ul class="settings-grid" aria-label="Settings">
+    @if (Model.CanManagePermissions)
+    {
+        <li>
+            <a class="settings-tile" asp-action="Permissions">
+                <h2>Permissions <span aria-hidden="true">→</span></h2>
+                <p>Manage access for guild roles and individual members.</p>
+            </a>
+        </li>
+    }
+    @if (Model.CanManageChannelFlags)
+    {
+        <li>
+            <a class="settings-tile" asp-action="ChannelFlags">
+                <h2>Channel flags <span aria-hidden="true">→</span></h2>
+                <p>Configure logging, participation tracking, and bot behaviour by channel.</p>
+            </a>
+        </li>
+    }
+</ul>

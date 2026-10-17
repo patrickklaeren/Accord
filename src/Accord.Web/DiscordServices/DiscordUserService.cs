@@ -17,11 +17,11 @@ public class DiscordUserService(IHttpContextAccessor httpContextAccessor, Discor
         }
 
         var discordUserId = context.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var discriminator = context.User.FindFirstValue("urn:discord:user:discriminator")!;
+        var discriminator = context.User.FindFirstValue("urn:discord:user:discriminator");
         var avatarClaim = context.User.FindFirstValue("urn:discord:avatar:hash");
 
         return discordAvatarHelper.GetAvatarUrl(ulong.Parse(discordUserId),
-            ushort.Parse(discriminator),
+            ushort.TryParse(discriminator, out var parsedDiscriminator) ? parsedDiscriminator : (ushort)0,
             avatarClaim);
     }
 

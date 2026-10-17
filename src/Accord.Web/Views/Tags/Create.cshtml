@@ -1,0 +1,14 @@
+@model TagInputModel
+@{
+    ViewData["Title"] = "Add tag";
+}
+<header class="page-heading"><p class="breadcrumb"><a asp-action="Index">Tags</a><span>/</span>Add tag</p><h1>Add tag</h1><p>Create content that members can recall in Discord.</p></header>
+<article class="form-panel">
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="All" role="alert"></div>
+        <label asp-for="Name"></label><input asp-for="Name" required maxlength="100" aria-describedby="name-hint" />
+        <small id="name-hint">A short name that’s easy to remember.</small>
+        <label asp-for="Content"></label><textarea asp-for="Content" rows="10" required></textarea>
+        <footer class="actions"><button type="submit">Create tag</button><a asp-action="Index">Cancel</a></footer>
+    </form>
+</article>

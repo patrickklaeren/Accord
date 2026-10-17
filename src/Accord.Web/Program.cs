@@ -16,17 +16,19 @@ using Accord.Services.Spam;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MudBlazor.Services;
 using Polly;
 using Polly.Extensions.Http;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication
     .CreateBuilder(args);
@@ -56,15 +58,19 @@ builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
-    .AddCookie()
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/";
+        options.AccessDeniedPath = "/";
+    })
     .AddDiscord(options =>
     {
         options.ClientId = builder.Configuration["Discord:ClientId"]!;
         options.ClientSecret = builder.Configuration["Discord:ClientSecret"]!;
         options.SaveTokens = true;
-        options.AccessDeniedPath = "/welcome";
+        options.AccessDeniedPath = "/";
 
         options.Scope.Add("identify");
 
@@ -72,9 +78,10 @@ builder.Services
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username", ClaimValueTypes.String);
     });
 
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services.AddMudServices();
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+builder.Services.AddAuthorization(options =>
+    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
 builder.Services.AddHttpClient<CSharpReplApiService>(x =>
     {
@@ -140,11 +147,7 @@ app.UseRouting();
 app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
-
-app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
-app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/welcome" }));
+app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 
 app.MapGet("/debug/all-headers", (HttpContext context) =>
     context.Request.Headers.ToDictionary(
@@ -161,8 +164,10 @@ app.MapGet("/debug/request", (HttpContext context) => new
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Scope created...");
-    await AccordContextExtensions.Migrate(scope.ServiceProvider.GetRequiredService<AccordContext>());
+    using var context = scope.ServiceProvider.GetRequiredService<AccordContext>();
+    
+    logger.LogInformation("Scope created, migrating database...");
+    await context.Database.MigrateAsync();
     logger.LogInformation("Migrated!");
 }
 

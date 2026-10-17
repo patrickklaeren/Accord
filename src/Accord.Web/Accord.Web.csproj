@@ -7,7 +7,6 @@
     <PackageReference Include="AutoRegisterInject" />
     <PackageReference Include="LazyCache.AspNetCore" />
     <PackageReference Include="MediatR" />
-    <PackageReference Include="MudBlazor" />
     <PackageReference Include="Sentry.AspNetCore" />
   </ItemGroup>
   <ItemGroup>

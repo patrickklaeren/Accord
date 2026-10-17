@@ -3,12 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Accord.Bot.Helpers;
 using Accord.Services;
+using Accord.Services.Guilds;
 using MediatR;
 
 namespace Accord.Bot.Services;
-
-public sealed record GetGuildMemberRequest(ulong DiscordUserId) : IRequest<ServiceResponse<DiscordGuildMemberDto>>;
-public sealed record DiscordGuildMemberDto(string Username, string? Nickname, string? GuildAvatarHash, ulong[] RoleIds);
 
 public class GetGuildMemberHandler(DiscordCache discordCache) 
     : IRequestHandler<GetGuildMemberRequest, ServiceResponse<DiscordGuildMemberDto>>
@@ -19,7 +17,7 @@ public class GetGuildMemberHandler(DiscordCache discordCache)
 
         if (!discordMember.IsSuccess)
         {
-            return ServiceResponse.Fail<DiscordGuildMemberDto>("No way");
+            return ServiceResponse.Fail<DiscordGuildMemberDto>("Guild member could not be found.");
         }
 
         var member = discordMember.Entity;

@@ -1,0 +1,107 @@
+@model TagsViewModel
+@{
+    ViewData["Title"] = "Tags";
+    var results = Model.Results;
+}
+<header class="page-heading"><h1>Tags</h1><p>Saved answers, aliases, and usage across the guild.</p></header>
+<section x-data="tagBrowser">
+    <div class="toolbar">
+        <form asp-action="Index" method="get" role="search">
+            <label for="tag-search">Search tags</label>
+            <div class="search-input">
+                <input id="tag-search" name="search" type="search" value="@results.Search" placeholder="Search names, aliases, or content…" />
+                <button type="submit" class="secondary">Search</button>
+            </div>
+        </form>
+        @if (Model.CanManage)
+        {
+            <a asp-action="Create" role="button">Add tag <span aria-hidden="true">+</span></a>
+        }
+    </div>
+    @if (results.TotalCount == 0)
+    {
+        <article>
+            @if (results.Search is not null)
+            {
+                <h2>No tags match your search</h2><p>Try another name, alias, or phrase, or <a asp-action="Index">show all tags</a>.</p>
+            }
+            else
+            {
+                <h2>No tags yet</h2><p>Tags added in Discord or on this site will appear here.</p>
+            }
+        </article>
+    }
+    else
+    {
+        <div class="table-scroll" role="region" aria-label="Tags" tabindex="0">
+            <table>
+                <thead><tr><th scope="col">Name &amp; aliases</th><th scope="col">Content</th><th scope="col">Uses</th>@if (Model.CanManage) { <th scope="col">Actions</th> }</tr></thead>
+                <tbody>
+                    @foreach (var tag in results.Tags)
+                    {
+                        <tr>
+                            <th scope="row"><strong>@tag.Name</strong><small>@string.Join(", ", tag.Aliases.Skip(1))</small></th>
+                            <td class="tag-content">@tag.Content</td><td>@tag.Uses.ToString("N0")</td>
+                            @if (Model.CanManage)
+                            {
+                                <td><div class="actions">
+                                    <a asp-action="Edit" asp-route-id="@tag.Id" data-name="@tag.Name" data-content="@tag.Content" x-on:click.prevent="edit($el)">Edit<span class="sr-only"> @tag.Name</span></a>
+                                    <a asp-action="Edit" asp-route-id="@tag.Id" asp-fragment="aliases">Aliases<span class="sr-only"> for @tag.Name</span></a>
+                                    <a asp-action="Delete" asp-route-id="@tag.Id" data-name="@tag.Name" x-on:click.prevent="remove($el)">Delete<span class="sr-only"> @tag.Name</span></a>
+                                </div></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav class="pagination" aria-label="Tag pages">
+            <p>Showing @results.FirstItem.ToString("N0")–@results.LastItem.ToString("N0") of @results.TotalCount.ToString("N0") tags</p>
+            <ul>
+                <li>
+                    @if (results.Page > 1)
+                    {
+                        <a asp-action="Index" asp-route-page="@(results.Page - 1)" asp-route-search="@results.Search" rel="prev">Previous</a>
+                    }
+                    else
+                    {
+                        <span aria-disabled="true">Previous</span>
+                    }
+                </li>
+                <li>Page @results.Page.ToString("N0") of @results.TotalPages.ToString("N0")</li>
+                <li>
+                    @if (results.Page < results.TotalPages)
+                    {
+                        <a asp-action="Index" asp-route-page="@(results.Page + 1)" asp-route-search="@results.Search" rel="next">Next</a>
+                    }
+                    else
+                    {
+                        <span aria-disabled="true">Next</span>
+                    }
+                </li>
+            </ul>
+        </nav>
+    }
+    @if (Model.CanManage)
+    {
+        <dialog x-ref="editDialog" aria-labelledby="edit-title" x-on:click.self="$el.close()">
+            <article>
+                <header><h2 id="edit-title">Edit <span x-text="name"></span></h2></header>
+                <form method="post" x-ref="editForm" asp-action="Index">
+                    <label for="edit-content">Content</label>
+                    <textarea id="edit-content" name="Input.Content" rows="8" required x-ref="content"></textarea>
+                    <footer class="actions"><button type="submit">Save changes</button><button type="button" class="secondary" x-on:click="$refs.editDialog.close()">Cancel</button></footer>
+                </form>
+            </article>
+        </dialog>
+        <dialog x-ref="deleteDialog" aria-labelledby="delete-title" x-on:click.self="$el.close()">
+            <article>
+                <header><h2 id="delete-title">Delete <span x-text="name"></span>?</h2></header>
+                <p>This removes the tag and all of its aliases. This cannot be undone.</p>
+                <form method="post" x-ref="deleteForm" asp-action="Index">
+                    <footer class="actions"><button type="submit" class="danger">Delete tag</button><button type="button" class="secondary" x-on:click="$refs.deleteDialog.close()">Cancel</button></footer>
+                </form>
+            </article>
+        </dialog>
+    }
+</section>

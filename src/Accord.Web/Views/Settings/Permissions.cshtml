@@ -1,0 +1,60 @@
+@model PermissionsViewModel
+@{
+    ViewData["Title"] = "Permissions";
+    var rolePermissions = Model.Permissions.RolePermissions.Select(permission => (permission.RoleId, permission.Type)).ToHashSet();
+}
+<header class="page-heading"><p class="breadcrumb"><a asp-controller="Settings" asp-action="Index">Settings</a><span>/</span>Permissions</p><h1>Permissions</h1><p>Manage Accord permissions for guild roles and individual members.</p></header>
+<article>
+    <header><h2>Role permissions</h2><p>Changes save as you switch. Guild administrators already have all permissions.</p></header>
+    <noscript><p>Choose a permission, then select Save to apply it.</p></noscript>
+    <div class="table-scroll" role="region" aria-label="Role permissions" tabindex="0">
+        <table class="matrix">
+            <thead><tr><th scope="col">Permission</th>@foreach (var role in Model.Roles) { <th scope="col">@role.Name</th> }</tr></thead>
+            <tbody>
+                @foreach (var permission in Model.Types)
+                {
+                    <tr><th scope="row">@DisplayNames.For(permission)</th>
+                        @foreach (var role in Model.Roles)
+                        {
+                            <td>
+                                <form asp-action="RolePermission" method="post" x-data="settingForm" x-on:submit.prevent="save($event)" x-bind:aria-busy="busy">
+                                    <input type="hidden" name="SubjectId" value="@role.Id" />
+                                    <input type="hidden" name="Permission" value="@permission" />
+                                    <input type="checkbox" role="switch" name="Enabled" value="true" checked="@rolePermissions.Contains((role.Id, permission))" aria-label="@(DisplayNames.For(permission) + " for " + role.Name)" x-ref="value" x-on:change="$refs.submit.click()" x-bind:disabled="busy" />
+                                    <input type="hidden" name="Enabled" value="false" />
+                                    <button type="submit" x-ref="submit" x-show="false">Save</button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</article>
+<article>
+    <header><h2>User permission overrides</h2><p>Grant an extra permission to a specific guild member.</p></header>
+    <form asp-action="UserPermission" method="post" class="inline-form">
+        <label>Discord user ID<input name="SubjectId" type="text" inputmode="numeric" pattern="[0-9]{1,20}" placeholder="123456789012345678" required /></label>
+        <label>Permission<select name="Permission">@foreach (var permission in Model.Types) { <option value="@permission">@DisplayNames.For(permission)</option> }</select></label>
+        <input type="hidden" name="Enabled" value="true" />
+        <button type="submit">Add override</button>
+    </form>
+    @if (Model.Permissions.UserPermissions.Count == 0)
+    {
+        <p>No user permission overrides configured.</p>
+    }
+    else
+    {
+        <div class="table-scroll" role="region" aria-label="User permission overrides" tabindex="0">
+            <table><thead><tr><th scope="col">Member</th><th scope="col">Discord ID</th><th scope="col">Permission</th><th scope="col">Action</th></tr></thead><tbody>
+                @foreach (var permission in Model.Permissions.UserPermissions)
+                {
+                    <tr><th scope="row">@Model.UserNames[permission.UserId]</th><td><code>@permission.UserId</code></td><td>@DisplayNames.For(permission.Type)</td><td>
+                        <form asp-action="UserPermission" method="post"><input type="hidden" name="SubjectId" value="@permission.UserId" /><input type="hidden" name="Permission" value="@permission.Type" /><input type="hidden" name="Enabled" value="false" /><button type="submit" class="secondary" aria-label="@( "Remove " + DisplayNames.For(permission.Type) + " for " + Model.UserNames[permission.UserId])">Remove</button></form>
+                    </td></tr>
+                }
+            </tbody></table>
+        </div>
+    }
+</article>

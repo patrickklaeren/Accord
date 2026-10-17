@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "A Discord bot to prevent discord";
+}
+<div class="welcome">
+    <section class="welcome-hero" aria-labelledby="welcome-title">
+        <header class="welcome-intro">
+            <h1 id="welcome-title">A Discord bot<br />to prevent <span>discord.</span></h1>
+            <p>Built by the C# Discord community. Moderation, participation tracking, and developer tools for your server.</p>
+            <div class="actions">
+                <a asp-controller="Account" asp-action="Login" role="button">Log in with Discord</a>
+                <a asp-action="Help" role="button" class="secondary">View commands</a>
+            </div>
+        </header>
+        <figure class="discord-scene" x-data="chatDemo" x-bind:class="{ 'is-paused': paused }" role="group" aria-label="Example Discord conversation demonstrating Accord tags, reminders, C# evaluation, compilation, and URL shortening.">
+            <div class="chat-rail" aria-hidden="true">
+                <span class="chat-server">C#</span>
+                <span class="chat-rail-divider"></span>
+                <span class="chat-channel-icon">#</span>
+                <span class="chat-rail-icon"></span>
+                <span class="chat-rail-icon"></span>
+            </div>
+            <div class="chat-window">
+                <div class="chat-channel">
+                    <span aria-hidden="true">#</span><strong>general</strong>
+                    <button type="button" class="chat-playback" x-cloak x-show="enhanced" x-on:click="toggle()" x-bind:aria-pressed="paused" x-bind:aria-label="paused ? 'Resume chat animation' : 'Pause chat animation'" x-text="paused ? 'Play' : 'Pause'">Pause</button>
+                </div>
+                <div class="chat-messages" x-ref="viewport" aria-hidden="true">
+                    <div class="chat-static" x-show="!enhanced">
+                        <div class="chat-message">
+                            <span class="chat-avatar chat-member-avatar">C#</span>
+                            <div class="chat-message-content">
+                                <span class="chat-author">member</span>
+                                <div class="chat-command"><code>/tag search async</code></div>
+                            </div>
+                        </div>
+                        <div class="chat-response">
+                            <div class="chat-message">
+                                <span class="chat-avatar chat-bot-avatar"><img src="~/images/accord.svg" alt="" width="24" height="24" /></span>
+                                <div class="chat-message-content">
+                                    <div class="chat-author-line"><span class="chat-author">Accord</span><span class="chat-app-label">APP</span></div>
+                                    <div class="chat-tag">
+                                        <strong>async / await</strong>
+                                        <p>Use <code>await</code> to wait for a task without blocking the calling thread.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-transcript" x-cloak x-show="enhanced" x-bind:class="{ 'is-resetting': resetting }">
+                        <template x-for="message in messages" x-bind:key="message.id">
+                            <div class="chat-message chat-message-arrive">
+                                <span class="chat-avatar chat-member-avatar" x-show="!message.bot">C#</span>
+                                <span class="chat-avatar chat-bot-avatar" x-show="message.bot"><img src="~/images/accord.svg" alt="" width="24" height="24" /></span>
+                                <div class="chat-message-content">
+                                    <div class="chat-author-line"><span class="chat-author" x-text="message.bot ? 'Accord' : 'member'"></span><span class="chat-app-label" x-show="message.bot">APP</span></div>
+                                    <div class="chat-command" x-show="!message.bot"><code x-text="message.text"></code></div>
+                                    <div class="chat-tag" x-show="message.bot">
+                                        <strong x-text="message.title"></strong>
+                                        <p x-text="message.text"></p>
+                                        <pre x-show="message.code"><code x-text="message.code"></code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <div class="chat-typing" x-show="typing"><span></span><span></span><span></span><small>Accord is typing</small></div>
+                    </div>
+                </div>
+                <div class="chat-compose" aria-hidden="true"><span>+</span><span>Message #general</span></div>
+            </div>
+        </figure>
+    </section>
+    <div class="welcome-content">
+        <section class="feature-list" aria-labelledby="features-title">
+            <header><h2 id="features-title">Features</h2></header>
+            <section><h3>C# REPL</h3><p>Compile and run C# directly in Discord with <code>!eval</code>, using a custom C# REPL with NuGet package support.</p></section>
+            <section><h3>Code sharing</h3><p>Share code through the integrated paste service, with links to full REPL and compilation output.</p></section>
+            <section><h3>URL shortening</h3><p>Turn long links into short URLs with <code>/shorten</code>, backed by your own URL shortening service.</p></section>
+            <section><h3>User profiles</h3><p>Participation rank, message activity, voice time, and moderation history.</p></section>
+            <section><h3>Reminders</h3><p>Schedule personal reminders using time spans such as <code>30m</code> or <code>1h</code>.</p></section>
+            <section><h3>Tags</h3><p>Save reusable answers. Add aliases, search content, and recall a tag in chat.</p></section>
+            <section><h3>Compiler Explorer</h3><p>Compile C#, F#, VB, and IL with the Godbolt compiler explorer.</p></section>
+            <section><h3>Moderation</h3><p>Record infractions, manage role and user permissions, and configure channel logs.</p></section>
+            <section><h3>Voice tracking</h3><p>Track time spent in voice channels as part of guild participation.</p></section>
+            <section><h3>Self hosting</h3><p>Run Accord and its supporting services in containers, with PostgreSQL for storage and .NET 10 powering the bot. See the <a href="https://github.com/patrickklaeren/Accord#how-to-self-host">self-hosting guide</a>.</p></section>
+        </section>
+        <aside class="command-index" aria-labelledby="command-index-title">
+            <h2 id="command-index-title">Commands</h2>
+            <ul>
+                <li><a asp-action="Help" asp-fragment="utilities"><code>!eval</code><small>Run C# with NuGet package support</small></a></li>
+                <li><a asp-action="Help" asp-fragment="utilities"><code>/shorten</code><small>Shorten a URL</small></a></li>
+                <li><a asp-action="Help" asp-fragment="profile-participation"><code>/profile</code><small>View activity and participation</small></a></li>
+                <li><a asp-action="Help" asp-fragment="tags"><code>/tag search</code><small>Find a saved answer</small></a></li>
+                <li><a asp-action="Help" asp-fragment="utilities"><code>/godbolt</code><small>Compile code from Discord</small></a></li>
+                <li><a asp-action="Help" asp-fragment="reminders"><code>/remind me</code><small>Schedule a personal reminder</small></a></li>
+            </ul>
+        </aside>
+    </div>
+</div>

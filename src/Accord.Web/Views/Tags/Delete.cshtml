@@ -1,0 +1,8 @@
+@model Accord.Services.Tags.TagDetailsDto
+@{
+    ViewData["Title"] = "Delete tag";
+}
+<header class="page-heading"><p class="breadcrumb"><a asp-action="Index">Tags</a><span>/</span>Delete tag</p><h1>Delete @Model.Name?</h1><p>This removes the tag and all of its aliases. This cannot be undone.</p></header>
+<article class="form-panel"><blockquote class="tag-content">@Model.Content</blockquote>
+    <form asp-action="ConfirmDelete" asp-route-id="@Model.Id" method="post"><footer class="actions"><button class="danger" type="submit">Delete tag</button><a asp-action="Index">Cancel</a></footer></form>
+</article>

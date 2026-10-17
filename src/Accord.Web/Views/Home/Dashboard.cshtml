@@ -1,0 +1,56 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<header class="page-heading"><h1>Dashboard</h1><p>Your profile and guild participation.</p></header>
+@if (Model.Error is not null)
+{
+    <p role="alert">@Model.Error</p>
+}
+<article class="profile-heading">
+    <img class="avatar" src="@Model.AvatarUrl" width="72" height="72" alt="" />
+    <div><h2>@Model.DisplayName</h2><p><span>@@@Model.Handle</span><span class="badge" data-active="@Model.IsGuildMember.ToString().ToLowerInvariant()">@(Model.IsGuildMember ? "Active in guild" : "Not in guild")</span></p></div>
+</article>
+@if (Model.Profile is { } profile)
+{
+    <section class="grid stats" aria-label="Guild participation">
+        <article><small>Community rank</small><strong>#@profile.User.ParticipationRank.ToString("N0")</strong><small>@Math.Round(profile.User.ParticipationPercentile, 0) percentile</small></article>
+        <article><small>Participation points</small><strong>@profile.User.ParticipationPoints.ToString("N0")</strong><small>Guild total</small></article>
+        <article><small>Messages · last 30 days</small><strong>@profile.Messages.Sum(message => message.NumberOfMessages).ToString("N0")</strong><small>@(Model.MostActiveTextChannel ?? "No message activity yet")</small></article>
+        <article><small>Voice · last 30 days</small><strong>@TimeSpan.FromMinutes(profile.VoiceMinutes.Sum(voice => voice.NumberOfMinutes)).Humanize()</strong><small>@(Model.MostActiveVoiceChannel ?? "No voice activity yet")</small></article>
+    </section>
+}
+<div class="grid">
+    <article>
+        <header><h2>User information</h2></header>
+        <dl>
+            <dt>Discord ID</dt><dd><code>@Model.UserId</code></dd>
+            <dt>Handle</dt><dd>@Model.Handle</dd>
+            @if (!string.IsNullOrWhiteSpace(Model.Nickname))
+            {
+                <dt>Nickname</dt><dd>@Model.Nickname</dd>
+            }
+            <dt>Account created</dt><dd><time datetime="@Model.CreatedAt.ToString("O")">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm 'UTC'")</time></dd>
+            @if (Model.Profile?.User.JoinedGuildDateTime is { } joined)
+            {
+                <dt>Joined the guild</dt><dd><time datetime="@joined.ToString("O")">@joined.ToUniversalTime().ToString("dd MMM yyyy, HH:mm 'UTC'")</time></dd>
+            }
+            @if (Model.Profile?.User.FirstSeenDateTime is { } seen)
+            {
+                <dt>First tracked</dt><dd><time datetime="@seen.ToString("O")">@seen.ToUniversalTime().ToString("dd MMM yyyy, HH:mm 'UTC'")</time></dd>
+            }
+        </dl>
+    </article>
+    <article>
+        <header><h2>Moderation history</h2></header>
+        @if (Model.Profile?.HistorySummary is { } history)
+        {
+            <p><strong>@history.Total</strong> history records</p>
+            <dl><dt>Bans</dt><dd>@history.Bans</dd><dt>Kicks</dt><dd>@history.Kicks</dd><dt>Mutes</dt><dd>@history.Mutes</dd><dt>Warnings</dt><dd>@history.Warnings</dd><dt>Notes</dt><dd>@history.Notes</dd></dl>
+        }
+        else
+        {
+            <p>No tracked history yet. Your activity will appear here once Accord has seen you in the guild.</p>
+        }
+    </article>
+</div>

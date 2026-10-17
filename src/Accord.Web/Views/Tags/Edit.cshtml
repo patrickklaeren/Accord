@@ -1,0 +1,35 @@
+@model EditTagViewModel
+@{
+    ViewData["Title"] = "Edit tag";
+}
+<header class="page-heading"><p class="breadcrumb"><a asp-action="Index">Tags</a><span>/</span>Edit tag</p><h1>Edit @Model.Name</h1></header>
+<article class="form-panel">
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+        <div asp-validation-summary="All" role="alert"></div>
+        <label asp-for="Input.Content">Content</label><textarea asp-for="Input.Content" rows="10" required></textarea>
+        <footer class="actions"><button type="submit">Save changes</button><a asp-action="Index">Cancel</a></footer>
+    </form>
+</article>
+<article class="form-panel" id="aliases">
+    <header><h2>Aliases</h2><p>Each alias recalls the same tag. The first alias is used as its display name.</p></header>
+    <form asp-action="AddAlias" asp-route-id="@Model.Id" method="post" class="inline-form">
+        <label for="new-alias">New alias<input id="new-alias" name="Name" required maxlength="100" /></label>
+        <button type="submit">Add alias</button>
+    </form>
+    <ul class="alias-list">
+        @foreach (var alias in Model.Aliases)
+        {
+            <li>
+                <form asp-action="RenameAlias" asp-route-id="@Model.Id" asp-route-aliasId="@alias.Id" method="post" class="alias-form">
+                    <label for="alias-@alias.Id" class="sr-only">Alias @alias.Name</label>
+                    <input id="alias-@alias.Id" name="Name" value="@alias.Name" required maxlength="100" />
+                    <div class="actions">
+                        <button type="submit" class="secondary">Save<span class="sr-only"> alias @alias.Name</span></button>
+                        <button type="submit" class="secondary" asp-action="RemoveAlias" asp-route-id="@Model.Id" asp-route-aliasId="@alias.Id" formnovalidate disabled="@(Model.Aliases.Count <= 1)">Remove<span class="sr-only"> alias @alias.Name</span></button>
+                    </div>
+                </form>
+            </li>
+        }
+    </ul>
+    <p><small>A tag needs at least one alias. You can rename the last alias or delete the tag.</small></p>
+</article>
