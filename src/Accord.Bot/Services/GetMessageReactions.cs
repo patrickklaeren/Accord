@@ -29,17 +29,27 @@ public class GetMessageReactionsHandler(IDiscordRestChannelAPI channelApi)
 
         if (message.Entity.Reactions.HasValue && message is { Entity.Reactions.Value.Count: > 0 })
         {
-            var discordReactions = await channelApi.GetReactionsAsync(channelSnowflake,
-                messageSnowflake,
-                request.Emoji,
-                ct: cancellationToken);
+            const int PAGE_SIZE = 100;
+            Optional<Snowflake> after = default;
 
-            if (discordReactions.IsSuccess)
+            while (true)
             {
-                reactionByUserIds = discordReactions
-                    .Entity
-                    .Select(x => x.ID.Value)
-                    .ToList();
+                var discordReactions = await channelApi.GetReactionsAsync(channelSnowflake,
+                    messageSnowflake,
+                    request.Emoji,
+                    after: after,
+                    limit: PAGE_SIZE,
+                    ct: cancellationToken);
+
+                if (!discordReactions.IsSuccess)
+                    return null;
+
+                reactionByUserIds.AddRange(discordReactions.Entity.Select(x => x.ID.Value));
+
+                if (discordReactions.Entity.Count < PAGE_SIZE)
+                    break;
+
+                after = discordReactions.Entity[^1].ID;
             }
         }
 
