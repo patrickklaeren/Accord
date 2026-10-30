@@ -246,6 +246,13 @@ public static class CommandCatalog
                         ]
                     },
                     new Command("/godbolt", "Compile code via Godbolt compiler explorer", false, false, true),
+                    new Command("/jumbo", "Show a full-size image of a custom or Unicode emoji", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("emoji", "string", "The custom or Unicode emoji to enlarge", false, false)
+                        ]
+                    },
                     new Command("/configure", "Update a bot configuration option", true, true, false)
                     {
                         Parameters =
