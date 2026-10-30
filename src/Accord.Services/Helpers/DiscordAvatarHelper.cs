@@ -11,7 +11,9 @@ public class DiscordAvatarHelper(DiscordConfiguration discordConfiguration)
     {
         if (string.IsNullOrWhiteSpace(avatarHash))
         {
-            var resultModulus = discordDiscriminator % 5;
+            var resultModulus = discordDiscriminator == 0
+                ? (discordUserId >> 22) % 6
+                : (ulong)(discordDiscriminator % 5);
             return $"{discordConfiguration.CdnBaseUrl}/embed/avatars/{resultModulus}.png";
         }
 

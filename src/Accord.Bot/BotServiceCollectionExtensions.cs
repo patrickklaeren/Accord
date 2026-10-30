@@ -56,6 +56,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<ProfileCommandGroup>()
             .WithCommandGroup<GuildInfoCommandGroup>()
             .WithCommandGroup<JumboCommandGroup>()
+            .WithCommandGroup<AvatarCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
             .WithCommandGroup<TagCommandGroup>()

@@ -253,6 +253,14 @@ public static class CommandCatalog
                             new Param("emoji", "string", "The custom or Unicode emoji to enlarge", false, false)
                         ]
                     },
+                    new Command("/avatar", "Show your avatar or another user's avatar", false, false, false)
+                    {
+                        Parameters =
+                        [
+                            new Param("user", "IUser", "User whose avatar to show (defaults to yourself)", true, false),
+                            new Param("size", "choice", "Image size: 16, 32, 64, 128 (default), 256, 512, 1024, 2048, or 4096", true, false)
+                        ]
+                    },
                     new Command("/configure", "Update a bot configuration option", true, true, false)
                     {
                         Parameters =
