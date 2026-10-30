@@ -83,6 +83,7 @@ public static class BotServiceCollectionExtensions
             .AddResponder<MemberUpdateResponder>()
             .AddResponder<MessageCreateDeleteResponder>()
             .AddResponder<AiMessageAnalysisResponder>()
+            .AddResponder<AiQuoteMentionResponder>()
             .AddResponder<ModerationActionResponder>()
             .AddResponder<PromotionCampaignVoteResponder>()
             .AddResponder<ReactionResponder>()
