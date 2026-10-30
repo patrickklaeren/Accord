@@ -40,6 +40,12 @@ This ensures the bot has the minimum required permissions and can manage Slash c
 
 Start via `Accord.AppHost`. This will apply migrations automatically via Entity Framework.
 
+### AppHost parameters
+
+Optional parameter values are defined under `Parameters` in `src/Accord.AppHost/appsettings.json`. User secrets, environment-specific settings, environment variables, and command-line arguments can override them through normal .NET configuration.
+
+For example, set `Parameters:ollama-base-url` in development secrets to the Ollama server URL and optionally set `Parameters:ollama-model`. For an AppHost environment variable, use `Parameters__ollama-base-url`. AppHost forwards the resolved values to the web application as `Ollama__BaseUrl` and `Ollama__Model`; those application keys are different from the AppHost parameter keys. When running the web project directly, use `Ollama:BaseUrl` and `Ollama:Model` instead.
+
 ## Architecture
 
 Accord is a self-hosted, single-guild Discord bot built with .NET. It combines a Remora-based Discord bot, application workflows handled through MediatR, EF Core persistence, and an ASP.NET Core MVC web frontend.

@@ -5,9 +5,11 @@ using Accord.Bot;
 using Accord.Bot.HostedServices;
 using Accord.Domain;
 using Accord.Services;
+using Accord.Services.AiAnalysis;
 using Accord.Services.CodeEvaluation;
 using Accord.Services.DemocraticDownVoting;
 using Accord.Services.Godbolt;
+using Accord.Services.Ollama;
 using Accord.Services.Paste;
 using Accord.Services.Rss;
 using Accord.Services.Shlink;
@@ -47,6 +49,7 @@ builder
     .AddLazyCache()
     .AddHttpContextAccessor()
     .AddHttpClient()
+    .Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SECTION_NAME))
     .AddMediatR(d => d.RegisterServicesFromAssemblies(typeof(BotClient).Assembly, typeof(ServiceResponse).Assembly))
     .AddDiscordBot(builder.Configuration)
     .AddSingleton(accordConfiguration)
@@ -127,6 +130,7 @@ builder.Services.AddHostedService<CoreEventQueueProcessor>();
 builder.Services.AddHostedService<StarboardEventQueueProcessor>();
 builder.Services.AddHostedService<SpamEventQueueProcessor>();
 builder.Services.AddHostedService<DemocraticDownVotingEventQueueProcessor>();
+builder.Services.AddHostedService<AiMessageAnalysisQueueProcessor>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

@@ -13,9 +13,12 @@ public class RunOptionService(AccordContext db, IAppCache appCache)
 {
     internal async Task<T> GetOption<T>(RunOptionKey key)
     {
-        return await appCache.GetOrAddAsync(
-            BuildGetOptionCacheKey(key),
-            () => GetOptionUncached<T>(key));
+        var value = await GetOptionValue(key)
+            ?? throw new InvalidOperationException($"Run option {key} was not found.");
+
+        return string.IsNullOrWhiteSpace(value)
+            ? default!
+            : (T)Convert.ChangeType(value, typeof(T));
     }
 
     private static string BuildGetOptionCacheKey(RunOptionKey key)
@@ -23,18 +26,22 @@ public class RunOptionService(AccordContext db, IAppCache appCache)
         return $"{nameof(RunOptionService)}/{nameof(GetOption)}/{key}";
     }
 
-    private async Task<T> GetOptionUncached<T>(RunOptionKey key)
+    internal async Task<T> GetOptionOrDefault<T>(RunOptionKey key, T defaultValue)
     {
-        var value = await db.RunOptions
-            .Where(x => x.Key == key)
-            .Select(x => x.Value)
-            .SingleAsync();
+        var value = await GetOptionValue(key);
+        return string.IsNullOrWhiteSpace(value)
+            ? defaultValue
+            : (T)Convert.ChangeType(value, typeof(T));
+    }
 
-        if (string.IsNullOrWhiteSpace(value))
-            return default!;
-        
-        var convertedValue = (T)Convert.ChangeType(value, typeof(T));
-        return convertedValue;
+    private async Task<string?> GetOptionValue(RunOptionKey key)
+    {
+        return await appCache.GetOrAddAsync(
+            BuildGetOptionCacheKey(key),
+            () => db.RunOptions
+                .Where(x => x.Key == key)
+                .Select(x => x.Value)
+                .SingleOrDefaultAsync());
     }
 
     internal Task UpdateOption<T>(RunOptionKey key, T? value)

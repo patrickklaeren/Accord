@@ -36,6 +36,7 @@ services:
       Discord__BotToken: ${DISCORD_BOTTOKEN}
       Shlink__BaseUrl: ${SHLINK_BASEURL}
       Shlink__APIKey: ${SHLINK_APIKEY}
+      Ollama__BaseUrl: ${OLLAMA_BASEURL}
 ```
 
 Accord can optionally connect to a C# REPL service, via the REPL module. You can self-host this:
@@ -80,15 +81,13 @@ Accord also has a link shortening service via https://github.com/shlinkio/shlink
 
 This bot is intended for **single-guild** usage.
 
-## Timed requested roles
+## Optional AI message analysis
 
-Administrators can enable a role with `/permission add-role` by selecting the role and the `CanBeRequested` permission, or through the website's role permissions settings. The bot needs permission to manage that role.
+Accord can categorise new member messages in its configured guild using Ollama as `Recruitment` (self-promotion or advertising) or `other`.
 
-Users run `/get-role` and select a role, then type the displayed C# keyword exactly in the modal. The role ID and expected keyword are carried in the modal's custom ID; pending challenges are not stored. An incorrect answer requires running `/get-role` again. Only roles with a `CanBeRequested` role permission can be granted; user permissions do not enable a role. Roles the user already owns are rejected.
+Set `Ollama__BaseUrl` (or `Ollama:BaseUrl` in configuration) to your Ollama server, for example `http://localhost:11434`. Accord defaults to `qwen3:0.6b`, which must already be available on the Ollama server.
 
-Successful grants are stored in `TimedRoles` with the Discord user ID, role ID, and UTC expiry. The bot checks for expired grants every five seconds, including after a restart, and attempts to remove roles after 30 minutes. It logs revocation success or failure and deletes the grant record after either outcome, including when the user has left the server.
-
-Create an Entity Framework migration for the new `TimedRoles` table before deploying this feature. No migration is included.
+An unset or invalid Ollama URL, a disabled option, or a missing run option disables analysis. Ollama failures, timeouts (30 seconds), and invalid classifications are logged and skipped. Analysis uses its own bounded background queue, so it does not delay message logging or existing spam checks. Direct messages, bots, system users, webhooks, and empty messages are excluded. The bot continues to operate without an Ollama endpoint.
 
 ## Credits
 

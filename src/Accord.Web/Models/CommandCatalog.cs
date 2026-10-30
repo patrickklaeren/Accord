@@ -27,6 +27,7 @@ public static class CommandCatalog
                         ]
                     },
                     new Command("/leaderboard", "Get a leaderboard of XP and participation points", false, false, false),
+                    new Command("/guildinfo", "Get guild information, recorded message activity, member counts, and coloured roles", false, false, false),
                     new Command("/calculate-xp", "Recalculate XP for all users", true, true, false),
                 ]
             },

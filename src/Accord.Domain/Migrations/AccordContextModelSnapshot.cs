@@ -330,6 +330,12 @@ namespace Accord.Domain.Migrations
                             Key = 18,
                             Type = 1,
                             Value = "2"
+                        },
+                        new
+                        {
+                            Key = 19,
+                            Type = 3,
+                            Value = "false"
                         });
                 });
 

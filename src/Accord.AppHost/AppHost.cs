@@ -6,15 +6,11 @@ var postgresPassword = builder.AddParameter(
 
 var sentryDsn = builder.AddParameter(
     name: "sentry-dsn",
-    secret: false,
-    value: string.Empty,
-    publishValueAsDefault: false);
+    secret: false);
 
 var sentryEnvironment = builder.AddParameter(
     name: "sentry-environment",
-    secret: false,
-    value: "dev",
-    publishValueAsDefault: false);
+    secret: false);
 
 var discordBotToken = builder.AddParameter(
     name: "discord-bot-token",
@@ -37,9 +33,7 @@ var discordGuildId = builder.AddParameter(
 
 var discordCdnBaseUrl = builder.AddParameter(
     name: "discord-cdn-base-url",
-    secret: false,
-    value: "https://cdn.discordapp.com",
-    publishValueAsDefault: true);
+    secret: false);
 
 var shlinkApiKey = builder.AddParameter(
     name: "shlink-api-key",
@@ -47,8 +41,15 @@ var shlinkApiKey = builder.AddParameter(
 
 var appBaseUrl = builder.AddParameter(
     name: "app-base-url",
-    secret: false,
-    value: "https://localhost:7568");
+    secret: false);
+
+var ollamaBaseUrl = builder.AddParameter(
+    name: "ollama-base-url",
+    secret: false);
+
+var ollamaModel = builder.AddParameter(
+    name: "ollama-model",
+    secret: false);
 
 builder
     .AddDockerComposeEnvironment("compose")
@@ -104,6 +105,8 @@ builder
     .WithEnvironment("AppBaseUrl", appBaseUrl)
     .WithEnvironment("ReplBaseUrl", repl.GetEndpoint("http"))
     .WithEnvironment("PasteBaseUrl", paste.GetEndpoint("http"))
+    .WithEnvironment("Ollama__BaseUrl", ollamaBaseUrl)
+    .WithEnvironment("Ollama__Model", ollamaModel)
     .WithEnvironment("Shlink__BaseUrl", shlink.GetEndpoint("http"))
     .WithEnvironment("Shlink__ApiKey", shlinkApiKey)
     .PublishAsDockerComposeService((_, service) => service.Name = "app");
