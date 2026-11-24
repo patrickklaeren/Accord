@@ -81,6 +81,25 @@ Accord also has a link shortening service via https://github.com/shlinkio/shlink
 
 This bot is intended for **single-guild** usage.
 
+## Report to ModMail
+
+When a member selects **Apps → Report to ModMail** on a message, Accord sends `$new <reporter ID> Reported message: <message link>` to Ticket Tool. The reporter becomes the ticket owner.
+
+1. **Set the private command channel.** Choose one Discord text channel visible only to Accord, Ticket Tool, and admins so members cannot see the report commands. Grant both bots **View Channel** and **Send Messages** there. Give Ticket Tool **Manage Messages** in that channel so it can delete Accord's commands. In that channel, run `/channel-flag add type:ModMail`. Exactly one channel should have this flag.
+2. **Authorize Accord.** In the Ticket Tool dashboard, select your server and open **Server Configs → Bot**. Add Accord's bot user ID and save. If you changed Ticket Tool's command prefix from `$`, set Accord's `Discord__TicketToolPrefix` to match. [Server configs](https://docs.tickettool.xyz/dashboard/server-configs#bot)
+3. **Allow tickets on behalf of reporters.** Open **Panel Configs → your ModMail panel → General Ticket Options → General → Support Team Roles**. Add a Discord role held by Accord and save. Ticket Tool requires a support team role to set another user as the owner with `$new`. [Support team roles](https://docs.tickettool.xyz/dashboard/panel-configs/general-options#support-team-roles) · [Ticket commands](https://docs.tickettool.xyz/general/commands#command-style-tickets)
+4. **Enable command-style tickets and cleanup.** In the ModMail panel, open **Panel Settings → Command Style**. Enable command-style ticket creation, turn off the option to watch all channels, and select the private channel from step 1 as the channel to monitor. On the same screen, enable **Delete command after creating ticket** and save. Ticket Tool will remove Accord's `$new` message from the private channel after it creates the ticket. [Command Style settings](https://docs.tickettool.xyz/dashboard/panel-configs/command-style-tickets#delete-command-after-creating-ticket)
+5. **Show the reported message in the ticket.** In the same panel, open **General Ticket Options → Ticket → Ticket Message**. In **Message Content**, keep the existing welcome line and add `{create.reason}` on its own line directly below it. Save the template. [Ticket Message editor](https://docs.tickettool.xyz/dashboard/panel-configs/ticket-options#ticket-message) · [Ticket variables](https://docs.tickettool.xyz/dashboard/panel-configs/variables#special-variables)
+
+   ```text
+   {ticket.user} Welcome
+   {create.reason}
+   ```
+
+To verify, right-click a server message and select **Apps → Report to ModMail**. In the newly opened ticket, the line below the welcome should read `Reported message:` followed by a clickable link to that exact message.
+
+If a member cannot see **Report to ModMail**, check their **Use Application Commands** permission in the channel containing the message. Under **Server Settings → Integrations → your Accord app → Manage**, check the app permissions and any overrides on **Report to ModMail** for that member, their roles, and the channel. The Ticket Tool support team role in step 3 is for the bot. [Discord command permissions](https://docs.discord.com/developers/interactions/application-commands#permissions)
+
 ## Optional AI message analysis
 
 Accord can categorise new member messages in its configured guild using Ollama as `Recruitment` (self-promotion or advertising) or `other`.
