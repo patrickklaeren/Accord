@@ -59,6 +59,7 @@ public static class BotServiceCollectionExtensions
             .WithCommandGroup<AvatarCommandGroup>()
             .WithCommandGroup<HistoryCommandGroup>()
             .WithCommandGroup<NoteCommandGroup>()
+            .WithCommandGroup<ModMailCommandGroup>()
             .WithCommandGroup<TagCommandGroup>()
             .WithCommandGroup<GodboltCommandGroup>()
             .WithCommandGroup<LinkShortnerCommandGroup>()
